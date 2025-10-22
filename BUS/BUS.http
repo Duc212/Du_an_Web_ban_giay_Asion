@@ -1,6 +1,0 @@
-@BUS_HostAddress = http://localhost:5202
-
-GET {{BUS_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

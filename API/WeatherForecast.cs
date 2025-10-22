@@ -1,4 +1,4 @@
-namespace BUS
+namespace API
 {
     public class WeatherForecast
     {
