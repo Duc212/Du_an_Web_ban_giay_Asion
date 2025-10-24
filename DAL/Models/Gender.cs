@@ -7,12 +7,11 @@ using System.Threading.Tasks;
 
 namespace DAL.Models
 {
-    public class Color
+    public class Gender
     {
         [Key]
-        public int ColorID { get; set; }
-        public string Name { get; set; }
-
-        public ICollection<ProductVariant> ProductVariants { get; set; } = new List<ProductVariant>();
+        public int GenderID { get; set; }
+        public string Name{ get; set; }
+        public ICollection<Product> Products { get; set; } = new List<Product>();
     }
 }
