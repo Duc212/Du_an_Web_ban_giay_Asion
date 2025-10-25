@@ -11,12 +11,15 @@ namespace DAL.Models
     {
         [Key]
         public int PaymentID { get; set; }
-        public int OrderID { get; set; }
-        public Order? Order { get; set; }
-
         public DateTime PaymentDate { get; set; }
+        [Required]
+        [MaxLength(50)]
         public string PaymentMethod { get; set; }
+        [Required]
+        [MaxLength(50)]
         public string PaymentStatus { get; set; }
+
+        public ICollection<Order> Orders { get; set; } = new List<Order>();
 
     }
 

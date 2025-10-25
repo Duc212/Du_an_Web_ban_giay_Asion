@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace DAL.Models
     {
         [Key]
         public int GenderID { get; set; }
+        [Required, Unicode(true), MaxLength(20)]
         public string Name{ get; set; }
         public ICollection<Product> Products { get; set; } = new List<Product>();
     }

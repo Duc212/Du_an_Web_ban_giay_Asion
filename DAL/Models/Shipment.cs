@@ -11,14 +11,19 @@ namespace DAL.Models
     {
         [Key]
         public int ShipmentID { get; set; }
-        public int OrderID { get; set; }
+        [Required]
+        [MaxLength(100)]
         public string ShippingProvider { get; set; }
+        [Required]
+        [MaxLength(100)]
         public string TrackingNumber { get; set; }
         public DateTime? ShippedDate { get; set; }
+        [Required]
+        [MaxLength(50)]
         public string DeliveryStatus { get; set; }
 
         // Navigation
-        public Order? Order { get; set; }
+        public ICollection<Order> Orders { get; set; } = new List<Order>();
     }
 
 }

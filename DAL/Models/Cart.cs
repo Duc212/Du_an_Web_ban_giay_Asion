@@ -12,7 +12,7 @@ namespace DAL.Models
         [Key]
         public int CartID { get; set; }
         public int UserID { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } 
 
         // Navigation properties
         public  User? User { get; set; }

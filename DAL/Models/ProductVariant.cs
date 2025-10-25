@@ -15,9 +15,17 @@ namespace DAL.Models
         public Color? Color { get; set; }
         public int? SizeID { get; set; }
         public Size? Size { get; set; }
+        [Required]
+        [Range(0, 1000000000, ErrorMessage = "ImportPrice must be >= 0")]
         public decimal ImportPrice { get; set; }
+        [Required]
+        [Range(0, 1000000000, ErrorMessage = "SellingPrice must be >= 0")]
         public decimal SellingPrice { get; set; }
+        [Required]
+        [Range(0, 100000, ErrorMessage = "StockQuantity must be >= 0")]
         public int StockQuantity { get; set; }
+        [Required]
+        [MaxLength(50)]
         public string Status { get; set; } = "Available";
 
         public int ProductID { get; set; }

@@ -21,12 +21,17 @@ namespace DAL.Models
         public Shipment? Shipment { get; set; }
         public int VoucherID { get; set; }
         public Voucher? Voucher { get; set; }
-
+        [Required,MaxLength(50)]
         public string OrderType { get; set; }
+        [Required]
         public DateTime OrderDate { get; set; }
         public string Status { get; set; }
+        [Required]
+        [Range(0, 1000000000, ErrorMessage = "TotalAmount must be >= 0")]
         public decimal TotalAmount { get; set; }
-        public string Address { get; set; }
+        [MaxLength(200)]
+        public string? Address { get; set; }
+        [MaxLength(200)]
         public string Note { get; set; }
 
         // Navigation

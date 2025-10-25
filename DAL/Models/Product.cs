@@ -11,8 +11,12 @@ namespace DAL.Models
     {
         [Key]
         public int ProductID { get; set; }
+        [Required]
+        [MaxLength(150)]
         public string Name { get; set; }
+        [MaxLength(500)]
         public string Description { get; set; }
+        [MaxLength(300)]
         public string ImageUrl { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

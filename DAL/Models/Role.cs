@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace DAL.Models
     {
         [Key]
         public int RoleID { get; set; }
+        [Required, MaxLength(50)]
         public string Name { get; set; }
 
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
