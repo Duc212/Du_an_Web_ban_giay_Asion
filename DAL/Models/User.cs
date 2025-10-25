@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -12,14 +13,27 @@ namespace DAL.Models
     {
         [Key]
         public int UserID { get; set; }
+        [Required]
+        [MaxLength(150),Unicode(true)]
         public string FullName { get; set; }
+        [Required]
+        [MaxLength(50)]
         public string Username { get; set; }
+        [Required]
+        [MaxLength(100)]
         public string Password { get; set; }
+        [Required]
+        [EmailAddress]
+        [MaxLength(100)]
         public string Email { get; set; }
+        [Phone]
+        [MaxLength(20)]
         public string Phone { get; set; }
         public DateTime DateOfBirth { get; set; }
+        [Required]
+        [MaxLength(50)]
         public string Status { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } 
 
         // Navigation
         public ICollection<UserRole>UserRoles  { get; set; } = new List<UserRole>();

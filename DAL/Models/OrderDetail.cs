@@ -16,7 +16,8 @@ namespace DAL.Models
 
         public int VariantID { get; set; }
         public ProductVariant? Variant { get; set; }
-
+        [Required]
+        [Range(1, 100000, ErrorMessage = "Quantity must be at least 1")]
         public int Quantity { get; set; }
 
     }

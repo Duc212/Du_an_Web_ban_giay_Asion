@@ -11,6 +11,7 @@ namespace DAL.Models
     {
         [Key]
         public int SizeID { get; set; }
+        [Required,Range(30,60,ErrorMessage ="Size Value from 30 to 60 ")]
         public string Value { get; set; }
 
         public ICollection<ProductVariant> ProductVariants { get; set; } = new List<ProductVariant>();
