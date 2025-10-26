@@ -19,7 +19,7 @@ namespace DAL.Models
 
         public int? ShipmentID { get; set; }
         public Shipment? Shipment { get; set; }
-        public int VoucherID { get; set; }
+        public int? VoucherID { get; set; }
         public Voucher? Voucher { get; set; }
         [Required,MaxLength(50)]
         public string OrderType { get; set; }
