@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BUS", "BUS\BUS.csproj", "{D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebUI", "WebUI\WebUI.csproj", "{1B62A135-33DE-4367-94C7-3E61372FD8B1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdminWeb", "AdminWeb\AdminWeb.csproj", "{0289D918-9B79-45A3-ABA8-66784366E8D2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{1B62A135-33DE-4367-94C7-3E61372FD8B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B62A135-33DE-4367-94C7-3E61372FD8B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B62A135-33DE-4367-94C7-3E61372FD8B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0289D918-9B79-45A3-ABA8-66784366E8D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0289D918-9B79-45A3-ABA8-66784366E8D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0289D918-9B79-45A3-ABA8-66784366E8D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0289D918-9B79-45A3-ABA8-66784366E8D2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
