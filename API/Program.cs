@@ -1,8 +1,10 @@
 ﻿using BUS.Services;
 using BUS.Services.Interfaces;
+using BUS.Service;
 using DAL;
 using DAL.Repository;
 using DAL.RepositoryAsyns;
+using DAL.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +23,8 @@ builder.Services.AddScoped(typeof(IRepositoryAsync<>), typeof(RepositoryAsync<>)
 
 builder.Services.AddTransient<IOrderServices, OrderServices>();
 
+builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<UserService>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
