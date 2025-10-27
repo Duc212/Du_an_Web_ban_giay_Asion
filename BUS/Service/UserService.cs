@@ -55,12 +55,11 @@ namespace BUS.Service
         }
         public async Task UpdateAsync(User user)
         {
-            if (string.IsNullOrWhiteSpace(user.Username) || string.IsNullOrWhiteSpace(user.Password))
-                throw new ArgumentException("Không để trống Username và Password.");
-
             if (user == null || user.UserID <= 0)
                 throw new ArgumentException("Dữ liệu không hợp lệ.");
 
+            if (string.IsNullOrWhiteSpace(user.Username) || string.IsNullOrWhiteSpace(user.Password))
+                throw new ArgumentException("Không để trống Username và Password.");
             var existing = await _userRepo.GetByIdAsync(user.UserID);
 
             if (existing == null)
@@ -92,5 +91,19 @@ namespace BUS.Service
             await _userRepo.DeleteAsync(user);
 
         }
+        public async Task<User> LoginAsync(string username, string password)
+        {
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+                throw new ArgumentException("Tên đăng nhập hoặc mật khẩu không được để trống.");
+
+            var users = await _userRepo.GetAllAsync();
+            var user = users.FirstOrDefault(u => u.Username == username && u.Password == password);
+
+            if (user == null)
+                throw new KeyNotFoundException("Tên đăng nhập hoặc mật khẩu không đúng.");
+
+            return user; 
+        }
+
     }
 }
