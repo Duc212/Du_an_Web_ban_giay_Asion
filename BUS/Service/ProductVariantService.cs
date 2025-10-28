@@ -17,12 +17,12 @@ namespace BUS.Service
             _repo = repo;
         }
 
-        public async Task<List<DAL.Models.ProductVariantService>> GetAllAsync()
+        public async Task<List<ProductVariant>> GetAllAsync()
         {
             return await _repo.GetAllAsync();
         }
 
-        public async Task<DAL.Models.ProductVariantService> GetByIdAsync(int id)
+        public async Task<ProductVariant> GetByIdAsync(int id)
         {
             var variant = await _repo.GetByIdAsync(id);
             if (variant == null)
@@ -30,7 +30,7 @@ namespace BUS.Service
             return variant;
         }
 
-        public async Task AddAsync(DAL.Models.ProductVariantService variant)
+        public async Task AddAsync(ProductVariant variant)
         {
             if (variant.ImportPrice < 0 || variant.SellingPrice < 0)
                 throw new ArgumentException("Giá sản phẩm phải >= 0");
@@ -41,7 +41,7 @@ namespace BUS.Service
             await _repo.AddAsync(variant);
         }
 
-        public async Task UpdateAsync(DAL.Models.ProductVariantService variant)
+        public async Task UpdateAsync(ProductVariant variant)
         {
             var existing = await _repo.GetByIdAsync(variant.VariantID);
             if (existing == null)
