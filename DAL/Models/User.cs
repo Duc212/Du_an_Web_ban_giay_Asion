@@ -31,8 +31,7 @@ namespace DAL.Models
         public string Phone { get; set; }
         public DateTime DateOfBirth { get; set; }
         [Required]
-        [MaxLength(50)]
-        public string Status { get; set; }
+        public int Status { get; set; }
         public DateTime CreatedAt { get; set; } 
 
         // Navigation

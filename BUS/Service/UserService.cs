@@ -1,4 +1,5 @@
-﻿using DAL.Models;
+﻿using DAL.Enums;
+using DAL.Models;
 using DAL.Repositories;
 using System;
 using System.Collections.Generic;
@@ -48,9 +49,8 @@ namespace BUS.Service
             if (allUsers.Any(u => u.Email == user.Email))
                 throw new ArgumentException("Email đã được sử dụng.");
 
-            user.Status = "Active";
+            user.Status = (int)UserStatusEnums.Active;
             user.CreatedAt = DateTime.Now;
-
             await _userRepo.AddAsync(user);
         }
         public async Task UpdateAsync(User user)

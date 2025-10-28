@@ -1,10 +1,7 @@
-﻿using DAL.Models;
+﻿using DAL.Enums;
+using DAL.Models;
+using Helper.Utils;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DAL
 {
@@ -48,11 +45,11 @@ namespace DAL
                 {
                     UserID = 1,
                     FullName = "Admin",
-                    Username = "admin",
-                    Password = "123",
+                    Username = "Admin123",
+                    Password = CryptoHelperUtil.Encrypt("123"),
                     Email = "admin@gmail.com",
                     Phone = "0123456789",
-                    Status = "Active",
+                    Status = (int)UserStatusEnums.Active,
                     CreatedAt = DateTime.Now
                 },
                 new User
@@ -60,10 +57,10 @@ namespace DAL
                     UserID = 2,
                     FullName = "Staff01",
                     Username = "user1",
-                    Password = "123",
+                    Password = CryptoHelperUtil.Encrypt("123"),
                     Email = "user1@gmail.com",
                     Phone = "0987654321",
-                    Status = "Active",
+                    Status = (int)UserStatusEnums.Active,
                     CreatedAt = DateTime.Now
                 }
             );
@@ -72,7 +69,6 @@ namespace DAL
                 new UserRole { UserRoleID = 1, UserID = 1, RoleID = 1 }, // Admin
                 new UserRole { UserRoleID = 2, UserID = 2, RoleID = 2 }  // Normal User
             );
-
             // Seed Address
             modelBuilder.Entity<Address>().HasData(
                 new Address { AddressID = 1, UserID = 1, AddressDetail = "123 Admin Street", City = "Hanoi", Ward = "Ward 1", Street = "Admin Street" },
