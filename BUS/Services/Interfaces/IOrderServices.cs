@@ -9,5 +9,6 @@ namespace BUS.Services.Interfaces
         Task<CommonResponse<bool>> CreateOrder(CreateOrderReq req);
         Task<CommonResponse<bool>> UpdateStatusOrder(UpdateStatusOrderReq req);
         Task<CommonPagination<GetListOrderRes>> GetListOrder(string? FullName, string? OrderCode, int? Status,DateTime? CreatedDate,int CurrentPage, int RecordPerPage);
+        Task<CommonResponse<GetOrderDetailRes>> GetOrderDetail(int OrderID);
     }
 }
