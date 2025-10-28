@@ -25,9 +25,15 @@ namespace API.Controllers
         }
         [HttpPost]
         [Route("Register")]
-        public async Task<CommonResponse<bool>> Register(RegisterReq req)
+        public async Task<CommonResponse<string>> Register(RegisterReq req)
         {
             return await _authServices.Register(req);
+        }
+        [HttpPost]
+        [Route("Verify")]
+        public async Task<CommonResponse<bool>> VerifyRegister(VerifyRegisterReq req)
+        {
+            return await _authServices.VerifyRegister(req);
         }
     }
 }
