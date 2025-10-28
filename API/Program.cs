@@ -65,6 +65,7 @@ builder.Services.AddScoped(typeof(IRepositoryAsync<>), typeof(RepositoryAsync<>)
 builder.Services.AddScoped(typeof(IUnitOfWork<>), typeof(UnitOfWork<>));
 
 builder.Services.AddTransient<IOrderServices, OrderServices>();
+builder.Services.AddTransient<IAuthServices, AuthServices>();
 builder.Services.AddTransient<ITokenUtils, TokenUtils>();
 
 builder.Services.AddScoped<UserRepository>();
