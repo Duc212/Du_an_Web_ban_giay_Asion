@@ -7,6 +7,7 @@ using DAL.Repositories;
 using DAL.Repository;
 using DAL.RepositoryAsyns;
 using DAL.UnitOfWork;
+using Helper.ModelHelps;
 using Helper.Utils;
 using Helper.Utils.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -82,7 +83,8 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
-
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
+var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>();
 // CORS
 builder.Services.AddCors(options =>
 {
@@ -114,4 +116,5 @@ app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.MapControllers();
 CryptoHelperUtil.Init(builder.Configuration);
+
 app.Run();
