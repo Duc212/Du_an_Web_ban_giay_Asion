@@ -41,7 +41,7 @@ namespace BUS.Services
                 return response;
             }
 
-            if (user.Password != req.Password)
+            if (CryptoHelperUtil.Decrypt(user.Password) != req.Password)
             {
                 response.Success = false;
                 response.Message = "Mật khẩu không đúng.";
