@@ -7,6 +7,9 @@ using DAL.Repositories;
 using DAL.Repository;
 using DAL.RepositoryAsyns;
 using DAL.UnitOfWork;
+using Helper.CacheCore;
+using Helper.CacheCore.Interfaces;
+using Helper.ModelHelps;
 using Helper.Utils;
 using Helper.Utils.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -14,10 +17,9 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
 builder.Services.AddControllers();
 
-// Swagger
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -53,13 +55,14 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
-// Database Context
+
+
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
-// Dependency Injection
+
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped(typeof(IRepositoryAsync<>), typeof(RepositoryAsync<>));
 builder.Services.AddScoped(typeof(IUnitOfWork<>), typeof(UnitOfWork<>));
@@ -67,15 +70,16 @@ builder.Services.AddScoped(typeof(IUnitOfWork<>), typeof(UnitOfWork<>));
 builder.Services.AddTransient<IOrderServices, OrderServices>();
 builder.Services.AddTransient<IAuthServices, AuthServices>();
 builder.Services.AddTransient<ITokenUtils, TokenUtils>();
+builder.Services.AddTransient<IMailServices, MailServices>();
 
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<UserService>();
 
-// Singleton
-builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+builder.Services.AddMemoryCache(); 
+builder.Services.AddSingleton<IMemoryCacheSystem, MemoryCacheSystem>();
 
-// Session (Requires Distributed Cache)
-builder.Services.AddDistributedMemoryCache(); 
+
+builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromDays(8);
@@ -83,7 +87,9 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// CORS
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
+var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -94,8 +100,11 @@ builder.Services.AddCors(options =>
     });
 });
 
-var app = builder.Build();
 
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+
+var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
@@ -106,12 +115,13 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
-app.UseSession(); 
+app.UseSession(); // enable session
 
 app.UseAuthorization();
 
 app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.MapControllers();
+
 CryptoHelperUtil.Init(builder.Configuration);
 app.Run();
