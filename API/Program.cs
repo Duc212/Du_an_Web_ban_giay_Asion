@@ -1,10 +1,11 @@
-﻿using BUS.Services;
+﻿using BUS.Service;
+using BUS.Services;
 using BUS.Services.Interfaces;
-using BUS.Service;
 using DAL;
+using DAL.Repositories;
 using DAL.Repository;
 using DAL.RepositoryAsyns;
-using DAL.Repositories;
+using DAL.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +21,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped(typeof(IRepositoryAsync<>), typeof(RepositoryAsync<>));
+builder.Services.AddScoped(typeof(IUnitOfWork<>), typeof(UnitOfWork<>));
 
 builder.Services.AddTransient<IOrderServices, OrderServices>();
 

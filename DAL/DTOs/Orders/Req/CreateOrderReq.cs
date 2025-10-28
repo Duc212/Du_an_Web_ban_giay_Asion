@@ -1,12 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DAL.DTOs
+namespace DAL.DTOs.Orders.Req
 {
-    public class CreateOrderDTO
+    public class CreateOrderReq
     {
         [Required(ErrorMessage = "UserID is required")]
         public int UserID { get; set; }
-
         public int? PaymentID { get; set; }
         public int? VoucherID { get; set; }
 
@@ -20,9 +19,9 @@ namespace DAL.DTOs
         [MaxLength(200)]
         public string? Note { get; set; }
 
-        public CreateShipmentDTO? Shipment { get; set; }
+        public CreateShipmentReq? Shipment { get; set; }
 
         [Required(ErrorMessage = "OrderDetails is required")]
-        public List<CreateOrderDetailsDTO> OrderDetails { get; set; } = new();
+        public List<CreateOrderDetailsReq> OrderDetails { get; set; } = new();
     }
 }

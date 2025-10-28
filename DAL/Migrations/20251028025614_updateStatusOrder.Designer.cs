@@ -4,6 +4,7 @@ using DAL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251028025614_updateStatusOrder")]
+    partial class updateStatusOrder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -237,10 +240,6 @@ namespace DAL.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("OrderCode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
@@ -582,7 +581,7 @@ namespace DAL.Migrations
                         new
                         {
                             UserID = 1,
-                            CreatedAt = new DateTime(2025, 10, 28, 10, 1, 58, 401, DateTimeKind.Local).AddTicks(257),
+                            CreatedAt = new DateTime(2025, 10, 28, 9, 56, 12, 699, DateTimeKind.Local).AddTicks(5813),
                             DateOfBirth = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "admin@gmail.com",
                             FullName = "Admin",
@@ -594,7 +593,7 @@ namespace DAL.Migrations
                         new
                         {
                             UserID = 2,
-                            CreatedAt = new DateTime(2025, 10, 28, 10, 1, 58, 401, DateTimeKind.Local).AddTicks(270),
+                            CreatedAt = new DateTime(2025, 10, 28, 9, 56, 12, 699, DateTimeKind.Local).AddTicks(5826),
                             DateOfBirth = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "user1@gmail.com",
                             FullName = "Staff01",

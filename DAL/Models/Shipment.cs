@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using System.ComponentModel.DataAnnotations;
 namespace DAL.Models
 {
     public class Shipment
@@ -20,7 +14,7 @@ namespace DAL.Models
         public DateTime? ShippedDate { get; set; }
         [Required]
         [MaxLength(50)]
-        public string DeliveryStatus { get; set; }
+        public int DeliveryStatus { get; set; }
 
         // Navigation
         public ICollection<Order> Orders { get; set; } = new List<Order>();

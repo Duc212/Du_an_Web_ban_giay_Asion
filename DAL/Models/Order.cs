@@ -11,7 +11,8 @@ namespace DAL.Models
     {
         [Key]
         public int OrderID { get; set; }
-        public int UserID { get; set; }
+        public string OrderCode { get; set; }
+        public int? UserID { get; set; }
         public User? User { get; set; }
 
         public int? PaymentID { get; set; }
@@ -25,7 +26,7 @@ namespace DAL.Models
         public string OrderType { get; set; }
         [Required]
         public DateTime OrderDate { get; set; }
-        public string Status { get; set; }
+        public int Status { get; set; }
         [Required]
         [Range(0, 1000000000, ErrorMessage = "TotalAmount must be >= 0")]
         public decimal TotalAmount { get; set; }
