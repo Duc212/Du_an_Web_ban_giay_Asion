@@ -53,8 +53,7 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
-
-// DbContext
+// Database Context
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -71,10 +70,16 @@ builder.Services.AddTransient<ITokenUtils, TokenUtils>();
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<UserService>();
 
-// Session
+// Singleton
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+// Session (Requires Distributed Cache)
+builder.Services.AddDistributedMemoryCache(); 
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromDays(8);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
 });
 
 // CORS
@@ -88,12 +93,9 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Singleton
-builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -102,8 +104,13 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
-app.UseSession();
+
+app.UseSession(); 
+
 app.UseAuthorization();
+
 app.UseMiddleware<ErrorHandlerMiddleware>();
+
 app.MapControllers();
+
 app.Run();
