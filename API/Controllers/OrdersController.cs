@@ -30,7 +30,7 @@ namespace API.Controllers
             var result = await _orderServices.UpdateStatusOrder(req);
             return result;
         }
-        [HttpPost]
+        [HttpGet]
         [Route("GetListOrder")]
         public async Task<CommonPagination<GetListOrderRes>> GetListOrder(string? FullName, string? OrderCode, int? Status, DateTime? CreatedDate, int CurrentPage, int RecordPerPage)
         {

@@ -21,6 +21,7 @@ namespace BUS.Services
         private readonly IRepositoryAsync<User> _userRepository;
         private readonly IRepositoryAsync<Address> _addressRepository;
         private readonly IUnitOfWork<AppDbContext> _unitOfWork;
+        private readonly IRepositoryAsync<Voucher> _voucherRepository;
         public OrderServices(
             IRepositoryAsync<Order> orderRepository,
             IRepositoryAsync<OrderDetail> orderDetailRepository,
@@ -28,7 +29,8 @@ namespace BUS.Services
             IRepositoryAsync<Shipment> shipmentRepository,
             IUnitOfWork<AppDbContext> unitOfWork,
             IRepositoryAsync<User> userRepository,
-            IRepositoryAsync<Address> addressRepository)
+            IRepositoryAsync<Address> addressRepository,
+            IRepositoryAsync<Voucher> voucherRepository)
         {
             _orderRepository = orderRepository;
             _orderDetailRepository = orderDetailRepository;
@@ -37,6 +39,7 @@ namespace BUS.Services
             _unitOfWork = unitOfWork;
             _userRepository = userRepository;
             _addressRepository = addressRepository;
+            _voucherRepository = voucherRepository;
         }
 
         public async Task<CommonResponse<bool>> CreateOrder(CreateOrderReq req)
@@ -181,7 +184,67 @@ namespace BUS.Services
                 TotalRecord = totalRecords
             };
         }
+        public async Task<CommonResponse<GetOrderDetailRes>> GetOrderDetail(int OrderID)
+        {
+            try
+            {
+                var query = from o in _orderRepository.Entities
+                            join u in _userRepository.Entities on o.UserID equals u.UserID
+                            join s in _shipmentRepository.Entities on o.ShipmentID equals s.ShipmentID into sh
+                            from shipment in sh.DefaultIfEmpty()
+                            join a in _addressRepository.Entities on o.UserID equals a.UserID into ad
+                            from address in ad.DefaultIfEmpty()
+                            join od in _orderDetailRepository.Entities on o.OrderID equals od.OrderID
+                            join pv in _variantRepository.Entities on od.VariantID equals pv.VariantID
+                            where o.OrderID == OrderID
+                            select new { o, u, shipment, address, od, pv };
 
+                var data = await query.ToListAsync();
+
+                if (!data.Any())
+                    return new CommonResponse<GetOrderDetailRes> { Success = false, Message = "Order not found" };
+
+                var first = data.First();
+
+                var orderRes = new GetOrderDetailRes
+                {
+                    OrderID = first.o.OrderID,
+                    OrderCode = first.o.OrderCode,
+                    UserName = first.u.Username,
+                    FullName = first.u.FullName,
+                    PhoneNumber = first.u.Phone,
+                    PaymentMethod = first.o.Payment?.PaymentMethod ?? string.Empty,
+                    ShippingProvider = first.shipment?.ShippingProvider,
+                    TrackingNumber = first.shipment?.TrackingNumber,
+                    ShippedDate = first.shipment?.ShippedDate,
+                    VoucherCode = first.o.Voucher != null ? first.o.Voucher.VoucherCode : string.Empty,
+                    OrderType = first.o.OrderType,
+                    OrderDate = first.o.OrderDate,
+                    Status = first.o.Status,
+                    TotalAmount = first.o.TotalAmount,
+                    Address = first.address != null ? $"{first.address.Street}, {first.address.Ward}, {first.address.City}" : null,
+                    Note = first.o.Note,
+                    ListProduct = data.Select(d => new GetProductDetailRes
+                    {
+                        ProductID = d.pv.Product.ProductID,
+                        ProductName = d.pv.Product.Name,
+                        imageUrl = d.pv.Product.ImageUrl,
+                        GendersName = d.pv.Product.Gender.Name,
+                        BrandName = d.pv.Product.Brand.Name,
+                        ImportPrice = d.pv.ImportPrice,
+                        SellingPrice = d.pv.SellingPrice,
+                        Quantity = d.od.Quantity,
+                        Value = d.pv.Size != null ? d.pv.Size.Value : ""
+                    }).ToList()
+                };
+
+                return new CommonResponse<GetOrderDetailRes> { Success = true, Data = orderRes };
+            }
+            catch (Exception ex)
+            {
+                return new CommonResponse<GetOrderDetailRes> { Success = false, Message = ex.Message };
+            }
+        }
 
         public async Task<CommonResponse<bool>> UpdateStatusOrder(UpdateStatusOrderReq req)
         {
