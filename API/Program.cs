@@ -113,5 +113,5 @@ app.UseAuthorization();
 app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.MapControllers();
-
+CryptoHelperUtil.Init(builder.Configuration);
 app.Run();
