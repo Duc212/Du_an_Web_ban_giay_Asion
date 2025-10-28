@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DAL.DTOs
+namespace DAL.DTOs.Orders.Req
 {
-    public class CreateOrderDetailsDTO
+    public class CreateOrderDetailsReq
     {
         [Required(ErrorMessage = "VariantID is required")]
         public int VariantID { get; set; }
