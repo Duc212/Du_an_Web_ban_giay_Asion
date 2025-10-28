@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DAL.DTOs
+namespace DAL.DTOs.Orders.Req
 {
-    public class CreateShipmentDTO
+    public class CreateShipmentReq
     {
         [Required(ErrorMessage = "ShippingProvider is required")]
         [MaxLength(100)]

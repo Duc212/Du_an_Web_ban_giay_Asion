@@ -1,11 +1,14 @@
-﻿using DAL.DTOs;
+﻿using DAL.DTOs.Orders.Req;
+using DAL.DTOs.Orders.Res;
 using DAL.Entities;
-using DAL.Models;
 
 namespace BUS.Services.Interfaces
 {
     public interface IOrderServices
     {
-        Task<CommonResponse<bool>> CreateOrder(CreateOrderDTO createOrder);
+        Task<CommonResponse<bool>> CreateOrder(CreateOrderReq req);
+        Task<CommonResponse<bool>> UpdateStatusOrder(UpdateStatusOrderReq req);
+        Task<CommonPagination<GetListOrderRes>> GetListOrder(string? FullName, string? OrderCode, int? Status,DateTime? CreatedDate,int CurrentPage, int RecordPerPage);
+        Task<CommonResponse<GetOrderDetailRes>> GetOrderDetail(int OrderID);
     }
 }
