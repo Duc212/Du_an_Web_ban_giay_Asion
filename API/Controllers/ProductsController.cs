@@ -71,6 +71,5 @@ namespace AppAPI.Controllers
             }
         }
 
-        }
     }
 }
