@@ -1,0 +1,50 @@
+@using WebUI.Models
+
+<!-- Product Card Component -->
+<div class="product-card" @onclick="OnProductClick">
+    <div class="product-image">
+        @if (Product.HasBadge)
+        {
+            <span class="product-badge @(Product.IsSale ? "sale" : "")">@Product.Badge</span>
+        }
+        <img src="@Product.ImageUrl" 
+             alt="@Product.Name" 
+             class="product-img"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+        <div class="image-fallback" style="display:none; width:100%; height:100%; background:#f8f8f8; align-items:center; justify-content:center; font-size:60px;">
+            👟
+        </div>
+        <button class="quick-view" @onclick="OnQuickViewClick" @onclick:stopPropagation="true">Xem Nhanh</button>
+    </div>
+    <div class="product-info">
+        <div class="product-vendor">@Product.Vendor</div>
+        <div class="product-name">@Product.Name</div>
+        <div class="product-price">
+            <span class="price-current">@Product.Price</span>
+            @if (!string.IsNullOrEmpty(Product.OldPrice))
+            {
+                <span class="price-old">@Product.OldPrice</span>
+            }
+            @if (!string.IsNullOrEmpty(Product.Discount))
+            {
+                <span class="discount-percent">@Product.Discount</span>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Product Product { get; set; } = new();
+    [Parameter] public EventCallback<Product> OnProductSelected { get; set; }
+    [Parameter] public EventCallback<Product> OnQuickView { get; set; }
+
+    private async Task OnProductClick()
+    {
+        await OnProductSelected.InvokeAsync(Product);
+    }
+
+    private async Task OnQuickViewClick()
+    {
+        await OnQuickView.InvokeAsync(Product);
+    }
+}

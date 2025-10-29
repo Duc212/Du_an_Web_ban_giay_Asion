@@ -1,0 +1,52 @@
+@page "/"
+
+<!-- Trend Products Section -->
+<div class="main-content">
+    <Sidebar />
+    <ProductsGrid Title="Xu Hướng Tuần Này" 
+                  Products="ProductData.TrendProducts"
+                  OnProductSelected="OnProductClick"
+                  OnQuickView="OnQuickView" />
+</div>
+
+<!-- Marquee Banner -->
+<MarqueeSection />
+
+<!-- Featured Collections Section -->
+<div class="main-content">
+    <Sidebar ShowGenderFilter="true" 
+             ShowSpecialOffers="true" 
+             ShowSportsFilter="true" />
+    <ProductsGrid Title="Bộ Sưu Tập Nổi Bật" 
+                  Products="ProductData.FeaturedProducts"
+                  OnProductSelected="OnProductClick"
+                  OnQuickView="OnQuickView" />
+</div>
+
+<!-- Sale Banner -->
+<Banner />
+
+@code {
+    protected override void OnInitialized()
+    {
+        Console.WriteLine($"Trend Products count: {ProductData.TrendProducts.Count}");
+        Console.WriteLine($"Featured Products count: {ProductData.FeaturedProducts.Count}");
+        
+        foreach (var product in ProductData.TrendProducts.Take(3))
+        {
+            Console.WriteLine($"Product: {product.Name}, ImageUrl: {product.ImageUrl}");
+        }
+    }
+
+    private void OnProductClick(Product product)
+    {
+        // Handle product click - navigate to product detail or show modal
+        Console.WriteLine($"Product clicked: {product.Name}");
+    }
+
+    private void OnQuickView(Product product)
+    {
+        // Handle quick view - show product modal or popup
+        Console.WriteLine($"Quick view: {product.Name}");
+    }
+}

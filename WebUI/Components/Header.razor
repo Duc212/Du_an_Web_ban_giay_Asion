@@ -1,0 +1,38 @@
+<!-- Header Component -->
+<header class="header">
+    <div class="header-container">
+        <a href="/" class="logo">ABC-MART</a>
+        
+        <nav>
+            <ul class="nav-menu">
+                <li><a href="/new-balance">New Balance</a></li>
+                <li><a href="/asics">Asics</a></li>
+                <li><a href="/converse">Converse</a></li>
+                <li><a href="/sale">Sale</a></li>
+            </ul>
+        </nav>
+
+        <div class="header-icons">
+            <i class="fas fa-search" @onclick="OnSearchClick"></i>
+            <i class="fas fa-user" @onclick="OnUserClick"></i>
+            <i class="fas fa-shopping-bag" @onclick="OnCartClick"></i>
+        </div>
+    </div>
+</header>
+
+@code {
+    private void OnSearchClick()
+    {
+        // Handle search click
+    }
+
+    private void OnUserClick()
+    {
+        // Handle user click
+    }
+
+    private void OnCartClick()
+    {
+        // Handle cart click
+    }
+}

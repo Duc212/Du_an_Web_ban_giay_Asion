@@ -102,7 +102,9 @@ builder.Services.AddCors(options =>
 
 
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
+var serviceProvider = builder.Services.BuildServiceProvider();
+var httpContextAccessor = serviceProvider.GetService<IHttpContextAccessor>();
+HttpContextHelper.Configure(httpContextAccessor);
 
 var app = builder.Build();
 
@@ -115,8 +117,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
-app.UseSession(); // enable session
-
+app.UseSession(); 
 app.UseAuthorization();
 
 app.UseMiddleware<ErrorHandlerMiddleware>();

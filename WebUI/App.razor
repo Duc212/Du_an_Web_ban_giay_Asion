@@ -1,12 +1,25 @@
-﻿<Router AppAssembly="@typeof(App).Assembly">
-    <Found Context="routeData">
+﻿@using Microsoft.AspNetCore.Components.Web
+
+<Router AppAssembly="@typeof(App).Assembly">
+  <Found Context="routeData">
+    <ErrorBoundary>
+            <ChildContent>
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+      <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+            </ChildContent>
+            <ErrorContent>
+     <div class="alert alert-danger">
+            <p>Sorry, an error has occurred:</p>
+           <p>@context.Message</p>
+     </div>
+   </ErrorContent>
+        </ErrorBoundary>
     </Found>
     <NotFound>
-        <PageTitle>Not found</PageTitle>
         <LayoutView Layout="@typeof(MainLayout)">
-            <p role="alert">Sorry, there's nothing at this address.</p>
+      <div class="alert alert-warning">
+                <p>Sorry, there's nothing at this address.</p>
+ </div>
         </LayoutView>
     </NotFound>
 </Router>
