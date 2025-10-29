@@ -1,0 +1,299 @@
+@using WebUI.Models
+@inject NavigationManager Navigation
+
+<!-- Related Products Component -->
+<div class="related-products">
+    <div class="section-header">
+        <h2 class="section-title">You May Also Like</h2>
+        <p class="    private bool IsSimilarBrand(Product product)
+    {
+        return product.Brand == CurrentProduct.Brand;
+    }
+
+    private bool IsSimilarPrice(Product product)
+    {
+        // Check if prices are within 20% of each other
+        decimal threshold = CurrentProduct.Price * 0.2m;
+        return Math.Abs(product.Price - CurrentProduct.Price) <= threshold;
+    }btitle">Customers who viewed this item also viewed</p>
+    </div>
+
+    <div class="products-carousel">
+        <button class="carousel-nav prev" @onclick="ScrollLeft" title="Previous products">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+
+        <div class="products-scroll-container" @ref="scrollContainer">
+            <div class="products-row">
+                @foreach (var product in Products)
+                {
+                    <div class="related-product-card" @onclick="() => OnProductClick(product)">
+                        <div class="related-product-image">
+                            @if (product.HasBadge)
+                            {
+                                <span class="product-badge @(product.IsSale ? "sale" : "new")">
+                                    @product.Badge
+                                </span>
+                            }
+                            <img src="@product.ImageUrl" alt="@product.Name" />
+                            
+                            <!-- Quick Actions Overlay -->
+                            <div class="quick-actions-overlay">
+                                <button class="quick-action-btn" @onclick:stopPropagation="true" 
+                                        @onclick="() => OnQuickView(product)" title="Quick View">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="quick-action-btn" @onclick:stopPropagation="true"
+                                        @onclick="() => OnAddToWishlist(product)" title="Add to Wishlist">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                                <button class="quick-action-btn" @onclick:stopPropagation="true"
+                                        @onclick="() => OnQuickAddToCart(product)" title="Add to Cart">
+                                    <i class="fas fa-cart-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="related-product-info">
+                            <div class="product-brand-small">@product.Brand</div>
+                            <h4 class="product-name-small">@product.Name</h4>
+                            
+                            <!-- Product Rating -->
+                            <div class="product-rating-small">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <i class="fas fa-star @(i <= product.Rating ? "filled" : "")"></i>
+                                }
+                                <span class="rating-count">(@product.ReviewCount)</span>
+                            </div>
+
+                            <div class="product-price-small">
+                                <span class="current-price">@product.PriceFormatted</span>
+                                @if (product.OriginalPrice.HasValue)
+                                {
+                                    <span class="old-price">@product.OldPriceFormatted</span>
+                                }
+                                @if (product.HasDiscount)
+                                {
+                                    <span class="discount-small">@product.Discount</span>
+                                }
+                            </div>
+
+                            <!-- Stock Status -->
+                            <div class="stock-status">
+                                @if (GetRandomStock() > 0)
+                                {
+                                    <span class="in-stock">
+                                        <i class="fas fa-check-circle"></i>
+                                        In Stock
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="out-stock">
+                                        <i class="fas fa-times-circle"></i>
+                                        Out of Stock
+                                    </span>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Comparison Badge -->
+                        <div class="comparison-info">
+                            @if (IsSameBrand(product))
+                            {
+                                <span class="same-brand-badge">Same Brand</span>
+                            }
+                            @if (IsSimilarPrice(product))
+                            {
+                                <span class="similar-price-badge">Similar Price</span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <button class="carousel-nav next" @onclick="ScrollRight" title="Next products">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <!-- Carousel Indicators -->
+    <div class="carousel-indicators">
+        @for (int i = 0; i < GetTotalPages(); i++)
+        {
+            <button class="indicator @(CurrentPage == i ? "active" : "")"
+                    @onclick="() => GoToPage(i)">
+            </button>
+        }
+    </div>
+
+    <!-- View All Products Link -->
+    <div class="view-all-section">
+        <a href="/products" class="btn-view-all">
+            <span>View All Products</span>
+            <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <!-- Recently Viewed Products -->
+    @if (RecentlyViewedProducts.Any())
+    {
+        <div class="recently-viewed-section">
+            <h3 class="recently-viewed-title">Recently Viewed</h3>
+            <div class="recently-viewed-grid">
+                @foreach (var recentProduct in RecentlyViewedProducts.Take(4))
+                {
+                    <div class="recently-viewed-item" @onclick="() => OnProductClick(recentProduct)">
+                        <img src="@recentProduct.ImageUrl" alt="@recentProduct.Name" />
+                        <div class="recently-viewed-info">
+                            <span class="recent-name">@TruncateProductName(recentProduct.Name)</span>
+                            <span class="recent-price">@recentProduct.Price</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Product CurrentProduct { get; set; } = new();
+    [Parameter] public List<Product> Products { get; set; } = new();
+    [Parameter] public EventCallback<Product> OnProductSelected { get; set; }
+
+    private ElementReference scrollContainer;
+    private int CurrentPage { get; set; } = 0;
+    private int ItemsPerPage { get; set; } = 4;
+    private List<Product> RecentlyViewedProducts { get; set; } = new();
+
+    protected override void OnParametersSet()
+    {
+        // Simulate recently viewed products
+        GenerateRecentlyViewed();
+    }
+
+    private void GenerateRecentlyViewed()
+    {
+        // In a real app, this would come from user's browsing history
+        var allProducts = LegacyProductData.TrendProducts.Concat(LegacyProductData.FeaturedProducts).ToList();
+        RecentlyViewedProducts = allProducts.Where(p => p != CurrentProduct)
+                                           .OrderBy(x => Guid.NewGuid())
+                                           .Take(6)
+                                           .ToList();
+    }
+
+    private string GetBrandFromVendor(string vendor)
+    {
+        return vendor?.Split('|').FirstOrDefault()?.Trim() ?? "ABC-MART";
+    }
+
+    private string TruncateProductName(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return "";
+        
+        return name.Length > 50 ? name.Substring(0, 50) + "..." : name;
+    }
+
+    private int GetRandomRating()
+    {
+        return new Random().Next(3, 6); // Random rating between 3-5 stars
+    }
+
+    private int GetRandomReviewCount()
+    {
+        return new Random().Next(5, 200); // Random review count
+    }
+
+    private int GetRandomStock()
+    {
+        return new Random().Next(0, 20); // Random stock level
+    }
+
+    private bool IsSameBrand(Product product)
+    {
+        return product.Brand == CurrentProduct.Brand;
+    }
+
+    private bool IsSimilarPrice(Product product)
+    {
+        // Check if prices are within 20% of each other
+        decimal threshold = CurrentProduct.Price * 0.2m;
+        return Math.Abs(product.Price - CurrentProduct.Price) <= threshold;
+    }
+
+    private int GetTotalPages()
+    {
+        return (int)Math.Ceiling((double)Products.Count / ItemsPerPage);
+    }
+
+    private async Task ScrollLeft()
+    {
+        if (CurrentPage > 0)
+        {
+            CurrentPage--;
+            await ScrollToPage();
+        }
+    }
+
+    private async Task ScrollRight()
+    {
+        if (CurrentPage < GetTotalPages() - 1)
+        {
+            CurrentPage++;
+            await ScrollToPage();
+        }
+    }
+
+    private async Task GoToPage(int page)
+    {
+        CurrentPage = page;
+        await ScrollToPage();
+    }
+
+    private async Task ScrollToPage()
+    {
+        // Calculate scroll position based on current page
+        var scrollPosition = CurrentPage * (300 * ItemsPerPage); // 300px per item approx
+        
+        await scrollContainer.FocusAsync();
+        StateHasChanged();
+    }
+
+    private async Task OnProductClick(Product product)
+    {
+        // Add to recently viewed
+        if (!RecentlyViewedProducts.Contains(product))
+        {
+            RecentlyViewedProducts.Insert(0, product);
+            if (RecentlyViewedProducts.Count > 6)
+            {
+                RecentlyViewedProducts.RemoveAt(6);
+            }
+        }
+
+        // Navigate to product detail page
+        Navigation.NavigateTo($"/product/{product.Id}");
+        
+        await OnProductSelected.InvokeAsync(product);
+    }
+
+    private async Task OnQuickView(Product product)
+    {
+        // Navigate to product detail page (same as clicking on product)
+        Navigation.NavigateTo($"/product/{product.Id}");
+    }
+
+    private async Task OnAddToWishlist(Product product)
+    {
+        // Implement add to wishlist logic
+        Console.WriteLine($"Added to wishlist: {product.Name}");
+    }
+
+    private async Task OnQuickAddToCart(Product product)
+    {
+        // Implement quick add to cart logic
+        Console.WriteLine($"Quick add to cart: {product.Name}");
+    }
+}

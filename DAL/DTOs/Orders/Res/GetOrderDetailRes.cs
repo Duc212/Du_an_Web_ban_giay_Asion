@@ -1,6 +1,4 @@
-﻿using DAL.Models;
-using System.ComponentModel.DataAnnotations;
-namespace DAL.DTOs.Orders.Res
+﻿namespace DAL.DTOs.Orders.Res
 {
     public class GetOrderDetailRes
     {

@@ -1,0 +1,219 @@
+@page "/product/{ProductId:int}"
+@using WebUI.Models
+@using WebUI.Services
+@inject IJSRuntime JSRuntime
+@inject CartService CartService
+
+<PageTitle>@(CurrentProduct?.Name ?? "Product") - ABC-MART</PageTitle>
+
+<div class="product-detail-container">
+    @if (CurrentProduct != null)
+    {
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb-nav">
+            <div class="container">
+                <ol class="breadcrumb">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/products">Products</a></li>
+                    <li class="active">@CurrentProduct.Name</li>
+                </ol>
+            </div>
+        </nav>
+
+        <!-- Main Product Section -->
+        <div class="product-main-section">
+            <div class="container">
+                <div class="product-layout">
+                    <!-- Left: Product Images -->
+                    <div class="product-images-section">
+                        <ProductImageGallery Product="CurrentProduct" />
+                    </div>
+
+                    <!-- Right: Product Details -->
+                    <div class="product-details-section">
+                        <ProductDetails Product="CurrentProduct" 
+                                      OnQuantityChanged="OnQuantityChanged"
+                                      OnAddToCart="OnAddToCartWithOptions"
+                                      OnBuyNow="OnBuyNow"
+                                      OnSizeChanged="OnSizeChanged"
+                                      OnColorChanged="OnColorChanged"
+                                      InitialQuantity="Quantity"
+                                      InitialSize="SelectedSize"
+                                      InitialColor="SelectedColor" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Information Tabs -->
+        <div class="product-tabs-section">
+            <div class="container">
+                <ProductTabs Product="CurrentProduct" />
+            </div>
+        </div>
+
+        <!-- Related Products -->
+        <div class="related-products-section">
+            <div class="container">
+                <RelatedProducts CurrentProduct="CurrentProduct" 
+                               Products="GetRelatedProducts()" />
+            </div>
+        </div>
+
+        <!-- Mobile Sticky Actions -->
+        <div class="mobile-sticky-actions">
+            <div class="mobile-actions-content">
+                <div class="mobile-price">
+                    <span class="current-price">@CurrentProduct.Price</span>
+                    @if (!string.IsNullOrEmpty(CurrentProduct.OldPriceFormatted))
+                    {
+                        <span class="old-price">@CurrentProduct.OldPriceFormatted</span>
+                    }
+                </div>
+                <div class="mobile-buttons">
+                    <button class="btn-add-cart mobile" @onclick="OnAddToCart">
+                        <i class="fas fa-cart-plus"></i>
+                        Add to Cart
+                    </button>
+                    <button class="btn-buy-now mobile" @onclick="OnBuyNow">
+                        Buy Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Product Not Found -->
+        <div class="product-not-found">
+            <div class="container">
+                <div class="not-found-content">
+                    <i class="fas fa-search"></i>
+                    <h2>Product Not Found</h2>
+                    <p>The product you're looking for doesn't exist or has been removed.</p>
+                    <a href="/" class="btn-back-home">Back to Home</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container"></div>
+
+@code {
+    [Parameter] public int ProductId { get; set; }
+    
+    private Product? CurrentProduct { get; set; }
+    private int Quantity { get; set; } = 1;
+    private string SelectedSize { get; set; } = "";
+    private string SelectedColor { get; set; } = "";
+
+    protected override void OnParametersSet()
+    {
+        LoadProduct();
+    }
+
+    private void LoadProduct()
+    {
+        CurrentProduct = ProductDetailData.GetProductById(ProductId);
+    }
+
+    private void OnQuantityChanged(int newQuantity)
+    {
+        Quantity = newQuantity;
+        StateHasChanged();
+    }
+
+    private async Task OnAddToCart()
+    {
+        if (CurrentProduct != null)
+        {
+            // Add to cart with quantity
+            CartService.AddItem(CurrentProduct, Quantity);
+            await ShowToast("success", "Added to Cart!", $"{CurrentProduct.Name} (x{Quantity}) has been added to your cart.");
+        }
+    }
+
+    private async Task OnAddToCartWithOptions()
+    {
+        if (CurrentProduct != null)
+        {
+            // Add to cart with selected size, color and quantity
+            CartService.AddItem(CurrentProduct, Quantity, SelectedSize, SelectedColor);
+            var sizeColorInfo = !string.IsNullOrEmpty(SelectedSize) || !string.IsNullOrEmpty(SelectedColor) 
+                ? $" (Size: {SelectedSize ?? "N/A"}, Color: {SelectedColor ?? "N/A"})" 
+                : "";
+            await ShowToast("success", "Added to Cart!", $"{CurrentProduct.Name} (x{Quantity}){sizeColorInfo} has been added to your cart.");
+        }
+    }
+
+    private async Task OnBuyNow()
+    {
+        if (CurrentProduct != null)
+        {
+            // Buy now logic - redirect to checkout
+            await ShowToast("info", "Redirecting...", "Taking you to checkout page.");
+            
+            // Simulate navigation delay
+            await Task.Delay(1500);
+            // Navigation.NavigateTo("/checkout");
+        }
+    }
+
+    private void OnSizeChanged(string newSize)
+    {
+        SelectedSize = newSize;
+        StateHasChanged();
+    }
+
+    private void OnColorChanged(string newColor)
+    {
+        SelectedColor = newColor;
+        StateHasChanged();
+    }
+
+    private List<Product> GetRelatedProducts()
+    {
+        return ProductDetailData.GetRelatedProducts(CurrentProduct?.Id ?? 0, 6);
+    }
+
+    private async Task ShowToast(string type, string title, string message)
+    {
+        var toastHtml = $@"
+            <div class='toast toast-{type}' style='animation: slideInRight 0.3s ease;'>
+                <div class='toast-icon'>
+                    <i class='fas fa-{GetToastIcon(type)}'></i>
+                </div>
+                <div class='toast-content'>
+                    <div class='toast-title'>{title}</div>
+                    <div class='toast-message'>{message}</div>
+                </div>
+                <button class='toast-close' onclick='this.parentElement.remove()'>
+                    <i class='fas fa-times'></i>
+                </button>
+            </div>";
+
+        await JSRuntime.InvokeVoidAsync("eval", $@"
+            const container = document.getElementById('toast-container');
+            container.insertAdjacentHTML('beforeend', `{toastHtml}`);
+            
+            const toast = container.lastElementChild;
+            setTimeout(() => {{
+                if (toast && toast.parentElement) {{
+                    toast.style.animation = 'slideOutRight 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }}
+            }}, 4000);
+        ");
+    }
+
+    private string GetToastIcon(string type) => type switch
+    {
+        "success" => "check-circle",
+        "error" => "exclamation-circle",
+        "warning" => "exclamation-triangle",
+        "info" => "info-circle",
+        _ => "info-circle"
+    };
+}

@@ -1,0 +1,445 @@
+@using WebUI.Models
+
+<!-- Product Tabs Component -->
+<div class="product-tabs">
+    <!-- Tab Headers -->
+    <div class="tab-headers">
+        <button class="tab-header @(ActiveTab == "description" ? "active" : "")"
+                @onclick='() => SetActiveTab("description")'>
+            <i class="fas fa-info-circle"></i>
+            <span>Description</span>
+        </button>
+        <button class="tab-header @(ActiveTab == "specifications" ? "active" : "")"
+                @onclick='() => SetActiveTab("specifications")'>
+            <i class="fas fa-cog"></i>
+            <span>Specifications</span>
+        </button>
+        <button class="tab-header @(ActiveTab == "reviews" ? "active" : "")"
+                @onclick='() => SetActiveTab("reviews")'>
+            <i class="fas fa-star"></i>
+            <span>Reviews (@ReviewCount)</span>
+        </button>
+        <button class="tab-header @(ActiveTab == "shipping" ? "active" : "")"
+                @onclick='() => SetActiveTab("shipping")'>
+            <i class="fas fa-truck"></i>
+            <span>Shipping & Returns</span>
+        </button>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+        @if (ActiveTab == "description")
+        {
+            <div class="tab-pane description-pane">
+                <div class="description-content">
+                    <h3>Product Overview</h3>
+                    <p>@GetDetailedDescription()</p>
+                    
+                    <h4>Key Features</h4>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check"></i> Premium quality materials</li>
+                        <li><i class="fas fa-check"></i> Comfortable cushioned sole</li>
+                        <li><i class="fas fa-check"></i> Breathable upper construction</li>
+                        <li><i class="fas fa-check"></i> Durable rubber outsole</li>
+                        <li><i class="fas fa-check"></i> Stylish modern design</li>
+                        <li><i class="fas fa-check"></i> Perfect for daily wear</li>
+                    </ul>
+
+                    <h4>Care Instructions</h4>
+                    <div class="care-instructions">
+                        <div class="care-item">
+                            <i class="fas fa-hand-sparkles"></i>
+                            <span>Clean with damp cloth</span>
+                        </div>
+                        <div class="care-item">
+                            <i class="fas fa-sun"></i>
+                            <span>Air dry only</span>
+                        </div>
+                        <div class="care-item">
+                            <i class="fas fa-ban"></i>
+                            <span>Do not machine wash</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (ActiveTab == "specifications")
+        {
+            <div class="tab-pane specifications-pane">
+                <div class="spec-grid">
+                    <div class="spec-group">
+                        <h4>General Information</h4>
+                        <table class="spec-table">
+                            <tr>
+                                <td>Brand</td>
+                                <td>@GetBrandFromVendor(Product.Vendor)</td>
+                            </tr>
+                            <tr>
+                                <td>Category</td>
+                                <td>@GetCategoryFromVendor(Product.Vendor)</td>
+                            </tr>
+                            <tr>
+                                <td>Model</td>
+                                <td>@Product.Name</td>
+                            </tr>
+                            <tr>
+                                <td>SKU</td>
+                                <td>@GenerateSKU()</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="spec-group">
+                        <h4>Materials & Construction</h4>
+                        <table class="spec-table">
+                            <tr>
+                                <td>Upper Material</td>
+                                <td>Synthetic leather, Mesh</td>
+                            </tr>
+                            <tr>
+                                <td>Sole Material</td>
+                                <td>Rubber</td>
+                            </tr>
+                            <tr>
+                                <td>Insole</td>
+                                <td>EVA foam cushioning</td>
+                            </tr>
+                            <tr>
+                                <td>Closure Type</td>
+                                <td>Lace-up</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="spec-group">
+                        <h4>Size & Fit</h4>
+                        <table class="spec-table">
+                            <tr>
+                                <td>Available Sizes</td>
+                                <td>38-45 (EU)</td>
+                            </tr>
+                            <tr>
+                                <td>Fit Type</td>
+                                <td>True to size</td>
+                            </tr>
+                            <tr>
+                                <td>Width</td>
+                                <td>Standard (D)</td>
+                            </tr>
+                            <tr>
+                                <td>Weight</td>
+                                <td>~280g (size 42)</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (ActiveTab == "reviews")
+        {
+            <div class="tab-pane reviews-pane">
+                <!-- Reviews Summary -->
+                <div class="reviews-summary">
+                    <div class="rating-overview">
+                        <div class="average-rating">
+                            <span class="rating-number">@ProductRating.ToString("F1")</span>
+                            <div class="rating-stars">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <i class="fas fa-star @(i <= ProductRating ? "filled" : "")"></i>
+                                }
+                            </div>
+                            <span class="total-reviews">Based on @ReviewCount reviews</span>
+                        </div>
+                    </div>
+
+                    <div class="rating-breakdown">
+                        @for (int star = 5; star >= 1; star--)
+                        {
+                            var percentage = GetRatingPercentage(star);
+                            <div class="rating-bar">
+                                <span class="star-label">@star star</span>
+                                <div class="bar-container">
+                                    <div class="bar-fill" style="width: @percentage%"></div>
+                                </div>
+                                <span class="bar-percentage">@percentage%</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Review Filters -->
+                <div class="review-filters">
+                    <button class="filter-btn @(ReviewFilter == "all" ? "active" : "")"
+                            @onclick='() => SetReviewFilter("all")'>
+                        All Reviews
+                    </button>
+                    <button class="filter-btn @(ReviewFilter == "photos" ? "active" : "")"
+                            @onclick='() => SetReviewFilter("photos")'>
+                        With Photos
+                    </button>
+                    <button class="filter-btn @(ReviewFilter == "verified" ? "active" : "")"
+                            @onclick='() => SetReviewFilter("verified")'>
+                        Verified Purchase
+                    </button>
+                </div>
+
+                <!-- Individual Reviews -->
+                <div class="reviews-list">
+                    @foreach (var review in GetFilteredReviews())
+                    {
+                        <div class="review-item">
+                            <div class="review-header">
+                                <div class="reviewer-info">
+                                    <div class="reviewer-avatar">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                    <div class="reviewer-details">
+                                        <span class="reviewer-name">@review.ReviewerName</span>
+                                        @if (review.IsVerified)
+                                        {
+                                            <span class="verified-badge">
+                                                <i class="fas fa-check-circle"></i>
+                                                Verified Purchase
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="review-rating">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <i class="fas fa-star @(i <= review.Rating ? "filled" : "")"></i>
+                                    }
+                                    <span class="review-date">@review.Date.ToString("MMM dd, yyyy")</span>
+                                </div>
+                            </div>
+                            
+                            <div class="review-content">
+                                <h5 class="review-title">@review.Title</h5>
+                                <p class="review-text">@review.Comment</p>
+                                
+                                @if (review.HasPhotos)
+                                {
+                                    <div class="review-photos">
+                                        <img src="@Product.ImageUrl" alt="Customer photo" class="review-photo" />
+                                        <img src="@Product.ImageUrl" alt="Customer photo" class="review-photo" />
+                                    </div>
+                                }
+                            </div>
+                            
+                            <div class="review-actions">
+                                <button class="review-action-btn">
+                                    <i class="fas fa-thumbs-up"></i>
+                                    Helpful (@review.HelpfulCount)
+                                </button>
+                                <button class="review-action-btn">
+                                    <i class="fas fa-reply"></i>
+                                    Reply
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Load More Reviews -->
+                <div class="load-more-reviews">
+                    <button class="btn-load-more">
+                        <i class="fas fa-plus"></i>
+                        Load More Reviews
+                    </button>
+                </div>
+            </div>
+        }
+        else if (ActiveTab == "shipping")
+        {
+            <div class="tab-pane shipping-pane">
+                <div class="shipping-grid">
+                    <div class="shipping-section">
+                        <h4><i class="fas fa-truck"></i> Shipping Information</h4>
+                        <div class="shipping-options">
+                            <div class="shipping-option">
+                                <div class="option-header">
+                                    <span class="option-name">Standard Delivery</span>
+                                    <span class="option-price">Free</span>
+                                </div>
+                                <div class="option-details">
+                                    <p>5-7 business days • Orders over $50</p>
+                                </div>
+                            </div>
+                            
+                            <div class="shipping-option">
+                                <div class="option-header">
+                                    <span class="option-name">Express Delivery</span>
+                                    <span class="option-price">$9.99</span>
+                                </div>
+                                <div class="option-details">
+                                    <p>2-3 business days • All orders</p>
+                                </div>
+                            </div>
+                            
+                            <div class="shipping-option">
+                                <div class="option-header">
+                                    <span class="option-name">Next Day Delivery</span>
+                                    <span class="option-price">$19.99</span>
+                                </div>
+                                <div class="option-details">
+                                    <p>Next business day • Order before 2 PM</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="shipping-section">
+                        <h4><i class="fas fa-undo"></i> Returns & Exchanges</h4>
+                        <ul class="policy-list">
+                            <li><i class="fas fa-check"></i> 30-day return window</li>
+                            <li><i class="fas fa-check"></i> Free return shipping</li>
+                            <li><i class="fas fa-check"></i> Original packaging required</li>
+                            <li><i class="fas fa-check"></i> Unworn condition only</li>
+                            <li><i class="fas fa-check"></i> Easy online returns portal</li>
+                        </ul>
+                        
+                        <div class="return-steps">
+                            <h5>How to Return:</h5>
+                            <ol>
+                                <li>Go to "My Orders" in your account</li>
+                                <li>Select the item you want to return</li>
+                                <li>Print the return label</li>
+                                <li>Package and send back</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public Product Product { get; set; } = new();
+
+    private string ActiveTab { get; set; } = "description";
+    private string ReviewFilter { get; set; } = "all";
+    private decimal ProductRating { get; set; } = 4.5m;
+    private int ReviewCount { get; set; } = 128;
+
+    // Sample review data
+    private List<ProductReview> Reviews { get; set; } = new();
+
+    protected override void OnParametersSet()
+    {
+        GenerateSampleReviews();
+    }
+
+    private void SetActiveTab(string tab)
+    {
+        ActiveTab = tab;
+        StateHasChanged();
+    }
+
+    private void SetReviewFilter(string filter)
+    {
+        ReviewFilter = filter;
+        StateHasChanged();
+    }
+
+    private string GetBrandFromVendor(string vendor)
+    {
+        return vendor?.Split('|').FirstOrDefault()?.Trim() ?? "ABC-MART";
+    }
+
+    private string GetCategoryFromVendor(string vendor)
+    {
+        var parts = vendor?.Split('|');
+        return parts?.Length > 1 ? parts[1].Trim() : "Unisex";
+    }
+
+    private string GetDetailedDescription()
+    {
+        return $"Experience superior comfort and style with the {Product.Name}. " +
+               "Crafted with precision and attention to detail, these shoes combine " +
+               "innovative technology with timeless design. Whether you're hitting the " +
+               "gym, going for a run, or just running errands, these shoes provide " +
+               "the perfect blend of performance and fashion.";
+    }
+
+    private string GenerateSKU()
+    {
+        var brandCode = GetBrandFromVendor(Product.Vendor).Substring(0, 2).ToUpper();
+        var random = new Random().Next(1000, 9999);
+        return $"{brandCode}-{random}";
+    }
+
+    private int GetRatingPercentage(int starRating)
+    {
+        // Simulate rating distribution
+        return starRating switch
+        {
+            5 => 60,
+            4 => 25,
+            3 => 10,
+            2 => 3,
+            1 => 2,
+            _ => 0
+        };
+    }
+
+    private void GenerateSampleReviews()
+    {
+        Reviews = new List<ProductReview>
+        {
+            new() { 
+                ReviewerName = "John Smith", 
+                Rating = 5, 
+                Title = "Excellent quality!", 
+                Comment = "These shoes are amazing! Super comfortable and great quality. Would definitely buy again.",
+                Date = DateTime.Now.AddDays(-5),
+                IsVerified = true,
+                HelpfulCount = 12,
+                HasPhotos = true
+            },
+            new() { 
+                ReviewerName = "Sarah Johnson", 
+                Rating = 4, 
+                Title = "Good value for money", 
+                Comment = "Nice shoes, good fit. The only downside is they took a while to break in.",
+                Date = DateTime.Now.AddDays(-12),
+                IsVerified = true,
+                HelpfulCount = 8,
+                HasPhotos = false
+            },
+            new() { 
+                ReviewerName = "Mike Chen", 
+                Rating = 5, 
+                Title = "Perfect for running", 
+                Comment = "I've been using these for my daily runs and they're fantastic. Great cushioning and support.",
+                Date = DateTime.Now.AddDays(-18),
+                IsVerified = false,
+                HelpfulCount = 15,
+                HasPhotos = true
+            }
+        };
+    }
+
+    private List<ProductReview> GetFilteredReviews()
+    {
+        return ReviewFilter switch
+        {
+            "photos" => Reviews.Where(r => r.HasPhotos).ToList(),
+            "verified" => Reviews.Where(r => r.IsVerified).ToList(),
+            _ => Reviews
+        };
+    }
+
+    public class ProductReview
+    {
+        public string ReviewerName { get; set; } = "";
+        public int Rating { get; set; }
+        public string Title { get; set; } = "";
+        public string Comment { get; set; } = "";
+        public DateTime Date { get; set; }
+        public bool IsVerified { get; set; }
+        public int HelpfulCount { get; set; }
+        public bool HasPhotos { get; set; }
+    }
+}

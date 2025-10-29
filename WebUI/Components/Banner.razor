@@ -1,0 +1,15 @@
+<!-- Banner Component -->
+<div class="banner">
+    <div class="banner-content">
+        <h2>@Title</h2>
+        <p>@Description</p>
+        <a href="@LinkUrl" class="banner-btn">@ButtonText</a>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Sale Up To 50%";
+    [Parameter] public string Description { get; set; } = "Giảm giá lên đến 50% cho tất cả sản phẩm";
+    [Parameter] public string ButtonText { get; set; } = "Mua Ngay";
+    [Parameter] public string LinkUrl { get; set; } = "#";
+}

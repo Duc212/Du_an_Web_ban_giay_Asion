@@ -1,0 +1,160 @@
+@using WebUI.Models
+
+<!-- Product Image Gallery Component -->
+<div class="product-image-gallery">
+    <!-- Main Image Display -->
+    <div class="main-image-container">
+        <div class="image-wrapper">
+            @if (Product.HasBadge)
+            {
+                <span class="product-badge @(Product.IsSale ? "sale" : "new")">
+                    @Product.Badge
+                </span>
+            }
+            <img src="@SelectedImageUrl" 
+                 alt="@Product.Name" 
+                 class="main-image"
+                 @onclick="OpenImageModal" />
+            
+            <!-- Zoom Icon -->
+            <button class="zoom-btn" @onclick="OpenImageModal" title="Click to zoom">
+                <i class="fas fa-search-plus"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Thumbnail Images -->
+    <div class="thumbnail-gallery">
+        <div class="thumbnail-container">
+            @foreach (var (imageUrl, index) in GetProductImages().Select((img, idx) => (img, idx)))
+            {
+                <div class="thumbnail-item @(imageUrl == SelectedImageUrl ? "active" : "")"
+                     @onclick="() => SelectImage(imageUrl)">
+                    <img src="@imageUrl" alt="@Product.Name view @(index + 1)" />
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Image Navigation Arrows (for mobile) -->
+    <button class="nav-arrow nav-prev" @onclick="PreviousImage" title="Previous image">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    <button class="nav-arrow nav-next" @onclick="NextImage" title="Next image">
+        <i class="fas fa-chevron-right"></i>
+    </button>
+
+    <!-- Image Counter -->
+    <div class="image-counter">
+        <span>@(GetCurrentImageIndex() + 1) / @GetProductImages().Count</span>
+    </div>
+</div>
+
+<!-- Image Modal for Full-Screen View -->
+@if (ShowImageModal)
+{
+    <div class="image-modal-overlay" @onclick="CloseImageModal">
+        <div class="image-modal-content" @onclick:stopPropagation="true">
+            <button class="modal-close" @onclick="CloseImageModal">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="modal-image-container">
+                <img src="@SelectedImageUrl" alt="@Product.Name" class="modal-image" />
+            </div>
+            
+            <!-- Modal Navigation -->
+            <button class="modal-nav modal-prev" @onclick="PreviousImage">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="modal-nav modal-next" @onclick="NextImage">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+            
+            <!-- Modal Thumbnails -->
+            <div class="modal-thumbnails">
+                @foreach (var (imageUrl, index) in GetProductImages().Select((img, idx) => (img, idx)))
+                {
+                    <div class="modal-thumbnail @(imageUrl == SelectedImageUrl ? "active" : "")"
+                         @onclick="() => SelectImage(imageUrl)">
+                        <img src="@imageUrl" alt="@Product.Name view @(index + 1)" />
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Product Product { get; set; } = new();
+
+    private string SelectedImageUrl { get; set; } = "";
+    private bool ShowImageModal { get; set; } = false;
+
+    protected override void OnParametersSet()
+    {
+        if (Product != null)
+        {
+            SelectedImageUrl = Product.ImageUrl;
+        }
+    }
+
+    private List<string> GetProductImages()
+    {
+        var images = new List<string> { Product.ImageUrl };
+        
+        // Add additional product images (simulated)
+        // In real app, Product would have multiple images property
+        var baseUrl = Product.ImageUrl;
+        if (baseUrl.Contains("trungsneaker.com"))
+        {
+            // Add more variants for demo
+            images.Add("https://trungsneaker.com/wp-content/uploads/2021/08/Nike-Air-Force-1-Low-Triple-White-CW2288-111.jpg");
+            images.Add("https://trungsneaker.com/wp-content/uploads/2021/08/Nike-Air-Force-1-Low-Triple-Black-CW2288-001.jpg");
+            images.Add("https://trungsneaker.com/wp-content/uploads/2023/10/Giay-New-Balance-550-White-Green-BBW550VG-1.jpg");
+        }
+        
+        return images.Distinct().ToList();
+    }
+
+    private void SelectImage(string imageUrl)
+    {
+        SelectedImageUrl = imageUrl;
+        StateHasChanged();
+    }
+
+    private void PreviousImage()
+    {
+        var images = GetProductImages();
+        var currentIndex = images.IndexOf(SelectedImageUrl);
+        var newIndex = currentIndex == 0 ? images.Count - 1 : currentIndex - 1;
+        SelectedImageUrl = images[newIndex];
+        StateHasChanged();
+    }
+
+    private void NextImage()
+    {
+        var images = GetProductImages();
+        var currentIndex = images.IndexOf(SelectedImageUrl);
+        var newIndex = currentIndex == images.Count - 1 ? 0 : currentIndex + 1;
+        SelectedImageUrl = images[newIndex];
+        StateHasChanged();
+    }
+
+    private int GetCurrentImageIndex()
+    {
+        return GetProductImages().IndexOf(SelectedImageUrl);
+    }
+
+    private void OpenImageModal()
+    {
+        ShowImageModal = true;
+        StateHasChanged();
+    }
+
+    private void CloseImageModal()
+    {
+        ShowImageModal = false;
+        StateHasChanged();
+    }
+}

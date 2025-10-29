@@ -4,6 +4,7 @@ using DAL.DTOs.Auths.Res;
 using DAL.Entities;
 using DAL.Enums;
 using DAL.Models;
+using DAL.Repositories;
 using DAL.RepositoryAsyns;
 using Helper.CacheCore.Interfaces;
 using Helper.Utils;
@@ -17,19 +18,90 @@ namespace BUS.Services
         private readonly IRepositoryAsync<User> _userRepository;
         private readonly ITokenUtils _tokenUtils;
         private readonly IMailServices _mailServices;
+        private readonly IRepositoryAsync<UserRole> _userRoleRepository;
+        private readonly IRepositoryAsync<Role> _roleRepository;
         private readonly IMemoryCacheSystem _cache;
 
         public AuthServices(
             IRepositoryAsync<User> userRepository,
             ITokenUtils tokenUtils,
             IMailServices mailServices,
-            IMemoryCacheSystem cache)
+            IMemoryCacheSystem cache,
+            IRepositoryAsync<UserRole> userRoleRepository,
+            IRepositoryAsync<Role> roleRepository)
         {
             _userRepository = userRepository;
             _tokenUtils = tokenUtils;
             _mailServices = mailServices;
             _cache = cache;
+            _userRoleRepository = userRoleRepository;
+            _roleRepository = roleRepository;
         }
+
+        public async Task<CommonResponse<bool>> CreateUserFromAdmin(CreateUserReq req)
+        {
+            var response = new CommonResponse<bool>();
+
+            try
+            {
+                var existingUser = await _userRepository.AsNoTrackingQueryable()
+                    .FirstOrDefaultAsync(x => x.Username == req.Username || x.Email == req.Email);
+
+                if (existingUser != null)
+                {
+                    response.Success = false;
+                    response.Message = "Tên đăng nhập hoặc email đã tồn tại!";
+                    response.Data = false;
+                    return response;
+                }
+
+                var encryptedPassword = CryptoHelperUtil.Encrypt(req.Password);
+
+                var user = new User
+                {
+                    FullName = req.FullName,
+                    Username = req.Username,
+                    Password = encryptedPassword,
+                    Email = req.Email,
+                    Phone = req.Phone,
+                    DateOfBirth = req.DateOfBirth,
+                    Status = (int)UserStatusEnums.Active,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _userRepository.AddAsync(user);
+                await _userRepository.SaveChangesAsync();
+
+                var roles = await _roleRepository.AsQueryable()
+                    .Where(r => req.ListRole.Contains(r.Name))
+                    .ToListAsync();
+
+                foreach (var role in roles)
+                {
+                    var userRole = new UserRole
+                    {
+                        UserID = user.UserID,
+                        RoleID = role.RoleID
+                    };
+                    await _userRoleRepository.AddAsync(userRole);
+                }
+
+                await _userRoleRepository.SaveChangesAsync();
+
+                response.Success = true;
+                response.Message = "Tạo user thành công!";
+                response.Data = true;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = $"Lỗi khi tạo user: {ex.Message}";
+                response.Data = false;
+            }
+
+            return response;
+        }
+
 
         public async Task<CommonResponse<LoginRes>> Login(LoginReq req)
         {
@@ -58,6 +130,11 @@ namespace BUS.Services
                 response.Message = "Mật khẩu không đúng.";
                 return response;
             }
+            var roles = await (from ur in _userRoleRepository.AsQueryable()
+                               join r in _roleRepository.AsQueryable() on ur.RoleID equals r.RoleID
+                               where ur.UserID == user.UserID
+                               select r.Name)
+                   .ToListAsync();
 
             var accessToken = _tokenUtils.GenerateToken(user.UserID);
             var refreshToken = _tokenUtils.GenerateRefreshToken(user.UserID);
@@ -67,8 +144,11 @@ namespace BUS.Services
             response.Data = new LoginRes
             {
                 AccessToken = accessToken,
-                RefreshToken = refreshToken
+                RefreshToken = refreshToken,
+                UserID = user.UserID,
+                RoleName = roles
             };
+
 
             return response;
         }
@@ -160,7 +240,13 @@ namespace BUS.Services
 
                 await _userRepository.AddAsync(user);
                 await _userRepository.SaveChangesAsync();
-
+                var userRole = new UserRole
+                {
+                    UserID = user.UserID,
+                    RoleID = (int)RoleEnums.User
+                };
+                await _userRoleRepository.AddAsync(userRole);
+                await _userRepository.SaveChangesAsync();
                 _cache.Remove($"register:{req.Email}");
 
                 response.Success = true;

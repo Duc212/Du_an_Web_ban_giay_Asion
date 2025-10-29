@@ -19,8 +19,6 @@ namespace DAL.DTOs.Orders.Req
         [MaxLength(200)]
         public string? Note { get; set; }
 
-        public CreateShipmentReq? Shipment { get; set; }
-
         [Required(ErrorMessage = "OrderDetails is required")]
         public List<CreateOrderDetailsReq> OrderDetails { get; set; } = new();
     }

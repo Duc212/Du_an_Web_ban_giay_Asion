@@ -1,0 +1,22 @@
+<!-- Marquee Section Component -->
+<div class="marquee-section">
+    <div class="marquee-content">
+        @foreach (var text in MarqueeTexts)
+        {
+            <span class="marquee-text">@text</span>
+        }
+        @* Duplicate for seamless scrolling *@
+        @foreach (var text in MarqueeTexts)
+        {
+            <span class="marquee-text">@text</span>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<string> MarqueeTexts { get; set; } = new()
+    {
+        "THẬT NHIỀU THƯƠNG HIỆU CHỈ VỚI MỘT CỬA HÀNG!",
+        "ALL BRANDS IN ONE SHOP!"
+    };
+}

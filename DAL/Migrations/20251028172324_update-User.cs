@@ -12,6 +12,8 @@ namespace DAL.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql("UPDATE [Users] SET [Status] = 0 WHERE [Status] = 'Active'");
+            migrationBuilder.Sql("UPDATE [Users] SET [Status] = 1 WHERE [Status] = 'Inactive'");
 
             migrationBuilder.AlterColumn<int>(
                 name: "Status",
