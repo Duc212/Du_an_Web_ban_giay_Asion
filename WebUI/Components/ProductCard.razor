@@ -1,4 +1,5 @@
 @using WebUI.Models
+@inject NavigationManager Navigation
 
 <!-- Product Card Component -->
 <div class="product-card" @onclick="OnProductClick">
@@ -17,13 +18,13 @@
         <button class="quick-view" @onclick="OnQuickViewClick" @onclick:stopPropagation="true">Xem Nhanh</button>
     </div>
     <div class="product-info">
-        <div class="product-vendor">@Product.Vendor</div>
+        <div class="product-vendor">@Product.Brand</div>
         <div class="product-name">@Product.Name</div>
         <div class="product-price">
-            <span class="price-current">@Product.Price</span>
-            @if (!string.IsNullOrEmpty(Product.OldPrice))
+            <span class="price-current">@Product.PriceFormatted</span>
+            @if (Product.OriginalPrice.HasValue)
             {
-                <span class="price-old">@Product.OldPrice</span>
+                <span class="price-old">@Product.OldPriceFormatted</span>
             }
             @if (!string.IsNullOrEmpty(Product.Discount))
             {
@@ -40,11 +41,15 @@
 
     private async Task OnProductClick()
     {
+        // Navigate to product detail page
+        Navigation.NavigateTo($"/product/{Product.Id}");
         await OnProductSelected.InvokeAsync(Product);
     }
 
     private async Task OnQuickViewClick()
     {
+        // Navigate to product detail page
+        Navigation.NavigateTo($"/product/{Product.Id}");
         await OnQuickView.InvokeAsync(Product);
     }
 }
