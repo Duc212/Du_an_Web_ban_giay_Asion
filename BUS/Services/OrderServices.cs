@@ -48,28 +48,10 @@ namespace BUS.Services
             {
                 await _unitOfWork.ExecuteInTransactionAsync(async () =>
                 {
-                    int? shipmentId = null;
-
-                    if (req.Shipment != null)
-                    {
-                        var shipment = new Shipment
-                        {
-                            ShippingProvider = req.Shipment.ShippingProvider,
-                            TrackingNumber = req.Shipment.TrackingNumber,
-                            ShippedDate = req.Shipment.ShippedDate,
-                            DeliveryStatus = (int)OrderStatusEnums.Pending
-                        };
-
-                        await _shipmentRepository.AddAsync(shipment);
-                        await _shipmentRepository.SaveChangesAsync();
-
-                        shipmentId = shipment.ShipmentID;
-                    }
 
                     var order = new Order
                     {
                         UserID = req.UserID,
-                        ShipmentID = shipmentId,
                         VoucherID = req.VoucherID ?? 0,
                         OrderType = req.OrderType,
                         Address = req.Address,
@@ -298,6 +280,65 @@ namespace BUS.Services
                     Message = $"Lỗi khi cập nhật trạng thái đơn hàng: {ex.Message}"
                 };
             }
+        }
+        public async Task<CommonResponse<bool>> ConfirmOrderAsync(ConfirmOrderReq req)
+        {
+            var response = new CommonResponse<bool>();
+
+            try
+            {
+                var order = await _orderRepository.AsQueryable()
+                    .FirstOrDefaultAsync(o => o.OrderID == req.OrderID);
+
+                if (order == null)
+                    return new CommonResponse<bool> { Success = false, Message = "Order not found", Data = false };
+
+                if (order.Status != (int)OrderStatusEnums.Pending)
+                    return new CommonResponse<bool> { Success = false, Message = "Order cannot be confirmed in current status", Data = false };
+
+                order.Status = (int)OrderStatusEnums.Confirmed;
+                order.OrderDate = DateTime.Now;
+
+                Shipment shipment;
+                if (order.ShipmentID.HasValue)
+                {
+                    shipment = order.Shipment!;
+                }
+                else
+                {
+                    shipment = new Shipment
+                    {
+                        ShippingProvider = "DefaultProvider", 
+                        TrackingNumber = GenerateTrackingNumber(),
+                        DeliveryStatus = 0, 
+                        ShippedDate = null
+                    };
+
+                    await _shipmentRepository.AddAsync(shipment);
+                    await _shipmentRepository.SaveChangesAsync();
+
+                    order.ShipmentID = shipment.ShipmentID;
+                }
+
+                await _orderRepository.UpdateAsync(order);
+
+                response.Success = true;
+                response.Message = "Order confirmed successfully";
+                response.Data = true;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = $"Error: {ex.Message}";
+                response.Data = false;
+            }
+
+            return response;
+        }
+
+        private string GenerateTrackingNumber()
+        {
+            return $"TRK-{Guid.NewGuid().ToString("N")[..12].ToUpper()}";
         }
 
         private string GenerateOrderCode()

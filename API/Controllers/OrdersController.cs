@@ -1,8 +1,10 @@
-﻿using BUS.Services;
+﻿using API.Extensions;
+using BUS.Services;
 using BUS.Services.Interfaces;
 using DAL.DTOs.Orders.Req;
 using DAL.DTOs.Orders.Res;
 using DAL.Entities;
+using Helper.Utils;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
@@ -36,6 +38,12 @@ namespace API.Controllers
         {
             var result = await _orderServices.GetListOrder(FullName, OrderCode, Status, CreatedDate, CurrentPage, RecordPerPage);
             return result;
+        }
+        [HttpPost]
+        [Route("ConfirmOrder")]
+        public async Task<CommonResponse<bool>> ConfirmOrderAsync(ConfirmOrderReq req)
+        {
+            return await _orderServices.ConfirmOrderAsync(req);
         }
     }
 }

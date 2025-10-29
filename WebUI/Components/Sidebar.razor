@@ -1,0 +1,73 @@
+<!-- Sidebar Component -->
+<aside class="sidebar">
+    <h3>Danh mục sản phẩm</h3>
+    <ul>
+        <li><a href="#"><i class="fas fa-running"></i> Giày chạy bộ</a></li>
+        <li><a href="#"><i class="fas fa-basketball-ball"></i> Giày thể thao</a></li>
+        <li><a href="#"><i class="fas fa-shoe-prints"></i> Giày lifestyle</a></li>
+        <li><a href="#"><i class="fas fa-walking"></i> Giày đi bộ</a></li>
+        <li><a href="#"><i class="fas fa-futbol"></i> Giày bóng đá</a></li>
+        <li><a href="#"><i class="fas fa-child"></i> Giày trẻ em</a></li>
+        <li><a href="#"><i class="fas fa-tshirt"></i> Quần áo thể thao</a></li>
+        <li><a href="#"><i class="fas fa-socks"></i> Phụ kiện</a></li>
+    </ul>
+
+    <h3>Thương hiệu</h3>
+    <ul>
+        <li><a href="#"><i class="fas fa-star"></i> New Balance</a></li>
+        <li><a href="#"><i class="fas fa-star"></i> Asics</a></li>
+        <li><a href="#"><i class="fas fa-star"></i> Converse</a></li>
+        <li><a href="#"><i class="fas fa-star"></i> Vans</a></li>
+        <li><a href="#"><i class="fas fa-star"></i> Adidas</a></li>
+        <li><a href="#"><i class="fas fa-star"></i> Nike</a></li>
+    </ul>
+
+    <h3>Mức giá</h3>
+    <ul>
+        <li><a href="#"><i class="fas fa-tag"></i> Dưới 1 triệu</a></li>
+        <li><a href="#"><i class="fas fa-tag"></i> 1 - 2 triệu</a></li>
+        <li><a href="#"><i class="fas fa-tag"></i> 2 - 3 triệu</a></li>
+        <li><a href="#"><i class="fas fa-tag"></i> 3 - 5 triệu</a></li>
+        <li><a href="#"><i class="fas fa-tag"></i> Trên 5 triệu</a></li>
+    </ul>
+
+    @if (ShowGenderFilter)
+    {
+        <h3>Theo giới tính</h3>
+        <ul>
+            <li><a href="#"><i class="fas fa-male"></i> Nam</a></li>
+            <li><a href="#"><i class="fas fa-female"></i> Nữ</a></li>
+            <li><a href="#"><i class="fas fa-child"></i> Trẻ em</a></li>
+            <li><a href="#"><i class="fas fa-users"></i> Unisex</a></li>
+        </ul>
+    }
+
+    @if (ShowSpecialOffers)
+    {
+        <h3>Dịp đặc biệt</h3>
+        <ul>
+            <li><a href="#"><i class="fas fa-bolt"></i> Flash Sale</a></li>
+            <li><a href="#"><i class="fas fa-percentage"></i> Khuyến mãi</a></li>
+            <li><a href="#"><i class="fas fa-gift"></i> Quà tặng</a></li>
+            <li><a href="#"><i class="fas fa-crown"></i> Sản phẩm độc quyền</a></li>
+        </ul>
+    }
+
+    @if (ShowSportsFilter)
+    {
+        <h3>Theo môn thể thao</h3>
+        <ul>
+            <li><a href="#"><i class="fas fa-running"></i> Chạy bộ</a></li>
+            <li><a href="#"><i class="fas fa-dumbbell"></i> Gym & Fitness</a></li>
+            <li><a href="#"><i class="fas fa-basketball-ball"></i> Bóng rổ</a></li>
+            <li><a href="#"><i class="fas fa-futbol"></i> Bóng đá</a></li>
+            <li><a href="#"><i class="fas fa-table-tennis"></i> Thể thao khác</a></li>
+        </ul>
+    }
+</aside>
+
+@code {
+    [Parameter] public bool ShowGenderFilter { get; set; } = false;
+    [Parameter] public bool ShowSpecialOffers { get; set; } = false;
+    [Parameter] public bool ShowSportsFilter { get; set; } = false;
+}

@@ -1,0 +1,21 @@
+<nav>
+    <ul class="nav-menu @(isMenuOpen ? "show" : "")">
+      <li><a href="#">New Balance</a></li>
+        <li><a href="#">Asics</a></li>
+        <li><a href="#">Converse</a></li>
+        <li><a href="#">Sale</a></li>
+    </ul>
+    
+    <button class="menu-toggle d-md-none" @onclick="ToggleMenu">
+    <i class="fas fa-bars"></i>
+    </button>
+</nav>
+
+@code {
+    private bool isMenuOpen;
+
+    private void ToggleMenu()
+  {
+        isMenuOpen = !isMenuOpen;
+    }
+}

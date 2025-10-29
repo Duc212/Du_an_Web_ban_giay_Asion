@@ -15,11 +15,9 @@ namespace API.Extensions
         private class AuthorizeAttributeImpl : IAsyncActionFilter
         {
             private readonly ITokenUtils _utils;
-            private readonly string _langCode;
 
-            public AuthorizeAttributeImpl(ITokenUtils utils, IConfiguration configuration)
+            public AuthorizeAttributeImpl(ITokenUtils utils)
             {
-                _langCode = configuration["ProjectSettings:LanguageCode"] ?? "vi";
                 _utils = utils;
             }
 

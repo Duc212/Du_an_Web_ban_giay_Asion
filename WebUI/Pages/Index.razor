@@ -1,0 +1,54 @@
+@page "/"
+@inject NavigationManager Navigation
+
+<!-- Trend Products Section -->
+<div class="main-content">
+    <Sidebar />
+    <ProductsGrid Title="Xu Hướng Tuần Này" 
+                  Products="LegacyProductData.TrendProducts"
+                  OnProductSelected="OnProductClick"
+                  OnQuickView="OnQuickView" />
+</div>
+
+<!-- Marquee Banner -->
+<MarqueeSection />
+
+<!-- Featured Collections Section -->
+<div class="main-content">
+    <Sidebar ShowGenderFilter="true" 
+             ShowSpecialOffers="true" 
+             ShowSportsFilter="true" />
+    <ProductsGrid Title="Bộ Sưu Tập Nổi Bật" 
+                  Products="LegacyProductData.FeaturedProducts"
+                  OnProductSelected="OnProductClick"
+                  OnQuickView="OnQuickView" />
+</div>
+
+<!-- Sale Banner -->
+<Banner />
+
+@code {
+    protected override void OnInitialized()
+    {
+        Console.WriteLine($"Trend Products count: {LegacyProductData.TrendProducts.Count}");
+        Console.WriteLine($"Featured Products count: {LegacyProductData.FeaturedProducts.Count}");
+        
+        foreach (var product in LegacyProductData.TrendProducts.Take(3))
+        {
+            Console.WriteLine($"Product: {product.Name}, ImageUrl: {product.ImageUrl}");
+        }
+    }
+
+    private void OnProductClick(Product product)
+    {
+        // Navigate to product detail page
+        Console.WriteLine($"Product clicked: {product.Name}");
+        Navigation.NavigateTo($"/product/{product.Id}");
+    }
+
+    private void OnQuickView(Product product)
+    {
+        // Handle quick view - show product modal or popup
+        Console.WriteLine($"Quick view: {product.Name}");
+    }
+}
