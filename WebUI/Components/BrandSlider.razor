@@ -1,0 +1,25 @@
+<!-- Brand Slider Component -->
+<div class="brand-slider">
+    <div class="brand-track">
+        @foreach (var brand in Brands)
+        {
+            <div class="brand-item">@brand</div>
+        }
+        @* Duplicate for seamless scrolling *@
+        @foreach (var brand in Brands)
+        {
+            <div class="brand-item">@brand</div>
+        }
+    </div>
+</div>
+
+@code {
+    private readonly List<string> Brands = new()
+    {
+        "NEW BALANCE",
+        "ASICS",
+        "CONVERSE",
+        "VANS",
+        "ADIDAS"
+    };
+}

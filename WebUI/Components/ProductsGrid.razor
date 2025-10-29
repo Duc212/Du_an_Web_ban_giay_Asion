@@ -1,0 +1,24 @@
+@using WebUI.Models
+@using WebUI.Components
+
+<!-- Products Grid Component -->
+<section class="section">
+    <div class="section-header">
+        <h2 class="section-title">@Title</h2>
+    </div>
+    <div class="products-grid">
+        @foreach (var product in Products)
+        {
+            <ProductCard Product="product" 
+                        OnProductSelected="OnProductSelected"
+                        OnQuickView="OnQuickView" />
+        }
+    </div>
+</section>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Sản phẩm";
+    [Parameter] public List<Product> Products { get; set; } = new();
+    [Parameter] public EventCallback<Product> OnProductSelected { get; set; }
+    [Parameter] public EventCallback<Product> OnQuickView { get; set; }
+}
