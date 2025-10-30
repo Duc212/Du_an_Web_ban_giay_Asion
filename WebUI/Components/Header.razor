@@ -1,3 +1,9 @@
+@using WebUI.Components
+@using WebUI.Services
+@inject CartService CartService
+@inject NavigationManager Navigation
+@implements IDisposable
+
 <!-- Header Component -->
 <header class="header">
     <div class="header-container">
@@ -15,12 +21,87 @@
         <div class="header-icons">
             <i class="fas fa-search" @onclick="OnSearchClick"></i>
             <i class="fas fa-user" @onclick="OnUserClick"></i>
-            <i class="fas fa-shopping-bag" @onclick="OnCartClick"></i>
+            <div class="cart-icon" @onclick="OnCartClick">
+                <i class="fas fa-shopping-bag"></i>
+                @if (CartItemsCount > 0)
+                {
+                    <span class="cart-badge">@CartItemsCount</span>
+                }
+            </div>
         </div>
     </div>
 </header>
 
+<!-- Cart Summary Dropdown -->
+@if (ShowCartSummary)
+{
+    <div class="cart-dropdown-overlay" @onclick="() => OnCartSummaryVisibilityChanged(false)">
+        <div class="cart-dropdown-content" @onclick:stopPropagation="true">
+            <div class="cart-header">
+                <h3>Giỏ hàng (@CartItemsCount sản phẩm)</h3>
+                <button class="close-btn" @onclick="() => OnCartSummaryVisibilityChanged(false)">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            @if (CartItemsCount > 0)
+            {
+                <div class="cart-items-list">
+                    @foreach (var item in CartService.GetItems())
+                    {
+                        <div class="cart-item-row">
+                            <img src="@item.Product.ImageUrl" alt="@item.Product.Name" class="item-thumb" />
+                            <div class="item-info">
+                                <h4>@item.Product.Name</h4>
+                                <p>@item.Product.Brand</p>
+                                <div class="item-price-qty">
+                                    <span>@item.Product.PriceFormatted x @item.Quantity</span>
+                                </div>
+                            </div>
+                            <button class="remove-item-btn" @onclick="() => RemoveCartItem(item.Product.Id)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    }
+                </div>
+                
+                <div class="cart-footer">
+                    <div class="cart-total">
+                        <strong>Tổng: @GetCartTotal()</strong>
+                    </div>
+                    <div class="cart-actions">
+                        <button class="btn btn-outline" @onclick="ViewCart">Xem giỏ hàng</button>
+                        <button class="btn btn-primary" @onclick="Checkout">Thanh toán</button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="empty-cart">
+                    <i class="fas fa-shopping-bag"></i>
+                    <p>Giỏ hàng trống</p>
+                </div>
+            }
+        </div>
+    </div>
+}
+
 @code {
+    private int CartItemsCount = 0;
+    private bool ShowCartSummary = false;
+
+    protected override void OnInitialized()
+    {
+        CartService.OnCartChanged += UpdateCartCount;
+        UpdateCartCount();
+    }
+
+    private void UpdateCartCount()
+    {
+        CartItemsCount = CartService.GetTotalItems();
+        InvokeAsync(StateHasChanged);
+    }
+
     private void OnSearchClick()
     {
         // Handle search click
@@ -33,6 +114,43 @@
 
     private void OnCartClick()
     {
-        // Handle cart click
+        ShowCartSummary = !ShowCartSummary;
+        Console.WriteLine($"Cart clicked - {CartItemsCount} items, ShowCart: {ShowCartSummary}");
+        StateHasChanged();
+    }
+
+    private void OnCartSummaryVisibilityChanged(bool isVisible)
+    {
+        ShowCartSummary = isVisible;
+        StateHasChanged();
+    }
+
+    private void RemoveCartItem(int productId)
+    {
+        CartService.RemoveItem(productId);
+    }
+
+    private string GetCartTotal()
+    {
+        return $"{CartService.GetTotalPrice():N0}đ";
+    }
+
+    private void ViewCart()
+    {
+        // Navigate to cart page
+        ShowCartSummary = false;
+        Navigation.NavigateTo("/cart");
+    }
+
+    private void Checkout()
+    {
+        // Navigate to checkout
+        ShowCartSummary = false;
+        // Navigation.NavigateTo("/checkout");
+    }
+
+    public void Dispose()
+    {
+        CartService.OnCartChanged -= UpdateCartCount;
     }
 }
