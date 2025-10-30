@@ -1,0 +1,481 @@
+@page "/register"
+@layout AuthLayout
+@using WebUI.Services.Interfaces
+@using System.ComponentModel.DataAnnotations
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<div class="auth-container">
+    <div class="auth-split">
+        <!-- Left Side - Form -->
+        <div class="auth-form-side">
+            <div class="auth-form-container">
+                <!-- Logo -->
+                <div class="auth-logo">
+                    <img src="/images/logo.svg" alt="ABC Mart" class="logo-img" />
+                    <h1 class="brand-text">ABC MART</h1>
+                </div>
+
+                <!-- Register Form -->
+                <div class="auth-form">
+                    <h2 class="auth-title">Tạo tài khoản mới</h2>
+                    <p class="auth-subtitle">Tham gia cùng hàng nghìn khách hàng tin tưởng</p>
+
+                    <form @onsubmit="HandleRegister" @onsubmit:preventDefault="true" class="register-form">
+                        <!-- Full Name Input -->
+                        <div class="form-group">
+                            <label class="form-label">Họ và tên</label>
+                            <div class="input-container">
+                                <i class="fas fa-user input-icon"></i>
+                                <input type="text" 
+                                       @bind="registerModel.FullName" 
+                                       @oninput="OnFullNameChange"
+                                       class="form-input" 
+                                       placeholder="Nhập họ và tên đầy đủ" />
+                            </div>
+                            @if (!string.IsNullOrEmpty(fullNameError))
+                            {
+                                <div class="validation-error">@fullNameError</div>
+                            }
+                        </div>
+
+                        <!-- Email Input -->
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <div class="input-container">
+                                <i class="fas fa-envelope input-icon"></i>
+                                <input type="email" 
+                                       @bind="registerModel.Email" 
+                                       @oninput="OnEmailChange"
+                                       class="form-input @(GetEmailValidationClass())" 
+                                       placeholder="Nhập địa chỉ email" />
+                                @if (emailValidationIcon != "")
+                                {
+                                    <i class="fas @emailValidationIcon validation-icon"></i>
+                                }
+                            </div>
+                            @if (!string.IsNullOrEmpty(emailError))
+                            {
+                                <div class="validation-error">@emailError</div>
+                            }
+                        </div>
+
+                        <!-- Phone Input -->
+                        <div class="form-group">
+                            <label class="form-label">Số điện thoại</label>
+                            <div class="input-container">
+                                <select @bind="registerModel.CountryCode" class="country-select">
+                                    <option value="+84">+84</option>
+                                    <option value="+1">+1</option>
+                                    <option value="+86">+86</option>
+                                </select>
+                                <input type="tel" 
+                                       @bind="registerModel.Phone" 
+                                       @oninput="OnPhoneChange"
+                                       class="form-input phone-input" 
+                                       placeholder="Nhập số điện thoại" />
+                            </div>
+                            @if (!string.IsNullOrEmpty(phoneError))
+                            {
+                                <div class="validation-error">@phoneError</div>
+                            }
+                        </div>
+
+                        <!-- Password Input -->
+                        <div class="form-group">
+                            <label class="form-label">Mật khẩu</label>
+                            <div class="input-container">
+                                <i class="fas fa-lock input-icon"></i>
+                                <input type="@(showPassword ? "text" : "password")" 
+                                       @bind="registerModel.Password" 
+                                       @oninput="OnPasswordChange"
+                                       class="form-input" 
+                                       placeholder="Nhập mật khẩu" />
+                                <button type="button" 
+                                        class="password-toggle" 
+                                        @onclick="TogglePasswordVisibility">
+                                    <i class="fas @(showPassword ? "fa-eye-slash" : "fa-eye")"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Password Strength Indicator -->
+                            @if (!string.IsNullOrEmpty(registerModel.Password))
+                            {
+                                <div class="password-strength">
+                                    <div class="strength-bar">
+                                        <div class="strength-fill strength-@passwordStrength.ToLower()" 
+                                             style="width: @GetPasswordStrengthWidth()%"></div>
+                                    </div>
+                                    <span class="strength-text strength-@passwordStrength.ToLower()">
+                                        Độ mạnh: @passwordStrength
+                                    </span>
+                                </div>
+                            }
+                            
+                            @if (!string.IsNullOrEmpty(passwordError))
+                            {
+                                <div class="validation-error">@passwordError</div>
+                            }
+                        </div>
+
+                        <!-- Confirm Password Input -->
+                        <div class="form-group">
+                            <label class="form-label">Xác nhận mật khẩu</label>
+                            <div class="input-container">
+                                <i class="fas fa-lock input-icon"></i>
+                                <input type="@(showConfirmPassword ? "text" : "password")" 
+                                       @bind="registerModel.ConfirmPassword" 
+                                       @oninput="OnConfirmPasswordChange"
+                                       class="form-input @(GetPasswordMatchClass())" 
+                                       placeholder="Nhập lại mật khẩu" />
+                                <button type="button" 
+                                        class="password-toggle" 
+                                        @onclick="ToggleConfirmPasswordVisibility">
+                                    <i class="fas @(showConfirmPassword ? "fa-eye-slash" : "fa-eye")"></i>
+                                </button>
+                                @if (passwordMatchIcon != "")
+                                {
+                                    <i class="fas @passwordMatchIcon validation-icon"></i>
+                                }
+                            </div>
+                            @if (!string.IsNullOrEmpty(confirmPasswordError))
+                            {
+                                <div class="validation-error">@confirmPasswordError</div>
+                            }
+                        </div>
+
+                        <!-- Terms & Policy Checkbox -->
+                        <div class="form-group">
+                            <label class="checkbox-container terms-checkbox">
+                                <input type="checkbox" @bind="registerModel.AcceptTerms" class="checkbox-input" />
+                                <span class="checkbox-checkmark"></span>
+                                <span class="checkbox-text">
+                                    Tôi đồng ý với 
+                                    <a href="/terms" class="terms-link">Điều khoản sử dụng</a> 
+                                    & <a href="/privacy" class="terms-link">Chính sách bảo mật</a>
+                                </span>
+                            </label>
+                            @if (!string.IsNullOrEmpty(termsError))
+                            {
+                                <div class="validation-error">@termsError</div>
+                            }
+                        </div>
+
+                        <!-- Register Button -->
+                        <button type="submit" class="btn-primary" disabled="@(isLoading || !IsFormValid())">
+                            @if (isLoading)
+                            {
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Đang xử lý...</span>
+                            }
+                            else
+                            {
+                                <span>ĐĂNG KÝ</span>
+                            }
+                        </button>
+
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                @errorMessage
+                            </div>
+                        }
+                    </form>
+
+                    <!-- Login Link -->
+                    <p class="auth-footer">
+                        Đã có tài khoản? 
+                        <a href="/login" class="login-link">Đăng nhập ngay</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side - Banner -->
+        <div class="auth-banner-side">
+            <div class="banner-content">
+                <div class="banner-overlay"></div>
+                <div class="banner-text">
+                    <h3>Trở thành thành viên ABC Mart</h3>
+                    <p>Nhận ưu đãi độc quyền và thông tin sản phẩm mới nhất</p>
+                    <div class="banner-features">
+                        <div class="feature-item">
+                            <i class="fas fa-gift"></i>
+                            <span>Ưu đãi thành viên</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-bell"></i>
+                            <span>Thông báo sớm nhất</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-star"></i>
+                            <span>Tích điểm thưởng</span>
+                        </div>
+                    </div>
+                </div>
+                <img src="/images/register-banner.jpg" alt="Join ABC Mart" class="banner-image" />
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterModel registerModel = new();
+    private bool showPassword = false;
+    private bool showConfirmPassword = false;
+    private bool isLoading = false;
+    
+    private string errorMessage = "";
+    private string fullNameError = "";
+    private string emailError = "";
+    private string phoneError = "";
+    private string passwordError = "";
+    private string confirmPasswordError = "";
+    private string termsError = "";
+    
+    private string passwordStrength = "Yếu";
+    private string emailValidationIcon = "";
+    private string passwordMatchIcon = "";
+
+    public class RegisterModel
+    {
+        public string FullName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string CountryCode { get; set; } = "+84";
+        public string Phone { get; set; } = "";
+        public string Password { get; set; } = "";
+        public string ConfirmPassword { get; set; } = "";
+        public bool AcceptTerms { get; set; } = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("addAuthPageClass");
+        }
+    }
+
+    private void TogglePasswordVisibility() => showPassword = !showPassword;
+    private void ToggleConfirmPasswordVisibility() => showConfirmPassword = !showConfirmPassword;
+
+    private void OnFullNameChange(ChangeEventArgs e)
+    {
+        registerModel.FullName = e.Value?.ToString() ?? "";
+        ValidateFullName();
+    }
+
+    private void OnEmailChange(ChangeEventArgs e)
+    {
+        registerModel.Email = e.Value?.ToString() ?? "";
+        ValidateEmail();
+    }
+
+    private void OnPhoneChange(ChangeEventArgs e)
+    {
+        registerModel.Phone = e.Value?.ToString() ?? "";
+        ValidatePhone();
+    }
+
+    private void OnPasswordChange(ChangeEventArgs e)
+    {
+        registerModel.Password = e.Value?.ToString() ?? "";
+        ValidatePassword();
+        CheckPasswordStrength();
+        ValidateConfirmPassword(); // Re-validate confirm password when password changes
+    }
+
+    private void OnConfirmPasswordChange(ChangeEventArgs e)
+    {
+        registerModel.ConfirmPassword = e.Value?.ToString() ?? "";
+        ValidateConfirmPassword();
+    }
+
+    private void ValidateFullName()
+    {
+        fullNameError = "";
+        if (string.IsNullOrEmpty(registerModel.FullName))
+        {
+            fullNameError = "Vui lòng nhập họ và tên";
+        }
+        else if (registerModel.FullName.Trim().Length < 2)
+        {
+            fullNameError = "Họ và tên phải có ít nhất 2 ký tự";
+        }
+    }
+
+    private void ValidateEmail()
+    {
+        emailError = "";
+        emailValidationIcon = "";
+        
+        if (string.IsNullOrEmpty(registerModel.Email))
+        {
+            emailError = "Vui lòng nhập email";
+            return;
+        }
+
+        var emailRegex = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+        if (!System.Text.RegularExpressions.Regex.IsMatch(registerModel.Email, emailRegex))
+        {
+            emailError = "Email không hợp lệ";
+            emailValidationIcon = "fa-times";
+        }
+        else
+        {
+            emailValidationIcon = "fa-check";
+        }
+    }
+
+    private void ValidatePhone()
+    {
+        phoneError = "";
+        if (string.IsNullOrEmpty(registerModel.Phone))
+        {
+            phoneError = "Vui lòng nhập số điện thoại";
+        }
+        else if (registerModel.Phone.Length < 9 || registerModel.Phone.Length > 11)
+        {
+            phoneError = "Số điện thoại không hợp lệ";
+        }
+    }
+
+    private void ValidatePassword()
+    {
+        passwordError = "";
+        if (string.IsNullOrEmpty(registerModel.Password))
+        {
+            passwordError = "Vui lòng nhập mật khẩu";
+        }
+        else if (registerModel.Password.Length < 6)
+        {
+            passwordError = "Mật khẩu phải có ít nhất 6 ký tự";
+        }
+    }
+
+    private void ValidateConfirmPassword()
+    {
+        confirmPasswordError = "";
+        passwordMatchIcon = "";
+        
+        if (string.IsNullOrEmpty(registerModel.ConfirmPassword))
+        {
+            confirmPasswordError = "Vui lòng xác nhận mật khẩu";
+            return;
+        }
+
+        if (registerModel.Password != registerModel.ConfirmPassword)
+        {
+            confirmPasswordError = "Mật khẩu xác nhận không khớp";
+            passwordMatchIcon = "fa-times";
+        }
+        else
+        {
+            passwordMatchIcon = "fa-check";
+        }
+    }
+
+    private void CheckPasswordStrength()
+    {
+        if (string.IsNullOrEmpty(registerModel.Password))
+        {
+            passwordStrength = "Yếu";
+            return;
+        }
+
+        var score = 0;
+        var password = registerModel.Password;
+
+        // Length check
+        if (password.Length >= 8) score++;
+        if (password.Length >= 12) score++;
+
+        // Character variety checks
+        if (password.Any(char.IsLower)) score++;
+        if (password.Any(char.IsUpper)) score++;
+        if (password.Any(char.IsDigit)) score++;
+        if (password.Any(ch => "!@#$%^&*()_+-=[]{}|;:,.<>?".Contains(ch))) score++;
+
+        passwordStrength = score switch
+        {
+            <= 2 => "Yếu",
+            3 or 4 => "Trung bình",
+            _ => "Mạnh"
+        };
+    }
+
+    private int GetPasswordStrengthWidth()
+    {
+        return passwordStrength switch
+        {
+            "Yếu" => 33,
+            "Trung bình" => 66,
+            "Mạnh" => 100,
+            _ => 0
+        };
+    }
+
+    private string GetEmailValidationClass()
+    {
+        if (string.IsNullOrEmpty(registerModel.Email)) return "";
+        return emailValidationIcon == "fa-check" ? "valid" : "invalid";
+    }
+
+    private string GetPasswordMatchClass()
+    {
+        if (string.IsNullOrEmpty(registerModel.ConfirmPassword)) return "";
+        return passwordMatchIcon == "fa-check" ? "valid" : "invalid";
+    }
+
+    private bool IsFormValid()
+    {
+        return !string.IsNullOrEmpty(registerModel.FullName) &&
+               !string.IsNullOrEmpty(registerModel.Email) &&
+               !string.IsNullOrEmpty(registerModel.Phone) &&
+               !string.IsNullOrEmpty(registerModel.Password) &&
+               !string.IsNullOrEmpty(registerModel.ConfirmPassword) &&
+               registerModel.Password == registerModel.ConfirmPassword &&
+               registerModel.AcceptTerms &&
+               emailValidationIcon == "fa-check";
+    }
+
+    private async Task HandleRegister()
+    {
+        // Validate all fields
+        ValidateFullName();
+        ValidateEmail();
+        ValidatePhone();
+        ValidatePassword();
+        ValidateConfirmPassword();
+        
+        termsError = "";
+        if (!registerModel.AcceptTerms)
+        {
+            termsError = "Bạn phải đồng ý với điều khoản để tiếp tục";
+        }
+
+        if (!IsFormValid()) return;
+
+        isLoading = true;
+        errorMessage = "";
+        
+        try
+        {
+            // Simulate API call
+            await Task.Delay(2000);
+            
+            // Simulate success - redirect to OTP verification
+            Navigation.NavigateTo($"/otp-verification?email={Uri.EscapeDataString(registerModel.Email)}");
+        }
+        catch (Exception)
+        {
+            errorMessage = "Đã có lỗi xảy ra. Vui lòng thử lại sau.";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+}

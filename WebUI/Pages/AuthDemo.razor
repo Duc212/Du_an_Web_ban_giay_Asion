@@ -1,0 +1,51 @@
+@page "/auth-demo"
+@layout AuthLayout
+
+<div style="padding: 40px; text-align: center; background: #f5f5f5; min-height: 100vh;">
+    <h1 style="margin-bottom: 30px; color: #333;">🔐 ABC Mart Authentication Demo</h1>
+    
+    <div style="display: flex; flex-direction: column; gap: 20px; max-width: 400px; margin: 0 auto;">
+        
+        <a href="/login" style="display: inline-block; padding: 15px 30px; background: #FF4D4D; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s;">
+            🔑 Đăng nhập (Login)
+        </a>
+        
+        <a href="/register" style="display: inline-block; padding: 15px 30px; background: #48BB78; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s;">
+            📝 Đăng ký (Register)
+        </a>
+        
+        <a href="/otp-verification?email=test@abc.com" style="display: inline-block; padding: 15px 30px; background: #ED8936; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s;">
+            🔐 Xác thực OTP
+        </a>
+        
+        <a href="/" style="display: inline-block; padding: 15px 30px; background: #4299E1; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s;">
+            🏠 Về trang chủ
+        </a>
+    </div>
+    
+    <div style="margin-top: 40px; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <h3 style="color: #333; margin-bottom: 15px;">🧪 Test Credentials:</h3>
+        <div style="text-align: left; max-width: 300px; margin: 0 auto;">
+            <p><strong>Login:</strong></p>
+            <p>📧 Email: <code>admin@abc.com</code></p>
+            <p>🔒 Password: <code>123456</code></p>
+            <br>
+            <p><strong>OTP:</strong></p>
+            <p>🔢 Valid Code: <code>123456</code></p>
+        </div>
+    </div>
+    
+    <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border-radius: 8px; color: #856404;">
+        <h4>📝 Tính năng hoàn thành:</h4>
+        <ul style="text-align: left; max-width: 500px; margin: 0 auto;">
+            <li>✅ Split screen design với banner</li>
+            <li>✅ Form validation real-time</li>
+            <li>✅ Password strength indicator</li>
+            <li>✅ OTP với 6 ô input, auto-focus</li>
+            <li>✅ Countdown timer và resend OTP</li>
+            <li>✅ Social login buttons</li>
+            <li>✅ Responsive design</li>
+            <li>✅ Animations và error handling</li>
+        </ul>
+    </div>
+</div>

@@ -1,0 +1,232 @@
+@using WebUI.Services.Interfaces
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<div class="user-dropdown-container" @onmouseenter="ShowDropdown" @onmouseleave="StartHideTimer">
+    <!-- User Icon -->
+    <div class="user-icon" @onclick="OnUserClick">
+        @if (IsAuthenticated)
+        {
+            <div class="user-avatar">
+                @if (!string.IsNullOrEmpty(CurrentUser?.FullName))
+                {
+                    <span class="avatar-text">@GetAvatarText(CurrentUser.FullName)</span>
+                }
+                else
+                {
+                    <i class="fas fa-user"></i>
+                }
+            </div>
+        }
+        else
+        {
+            <i class="fas fa-user"></i>
+        }
+    </div>
+
+    <!-- Dropdown Menu -->
+    @if (showDropdown)
+    {
+        <div class="user-dropdown @(IsAuthenticated ? "authenticated" : "guest")"
+             @onmouseenter="CancelHideTimer" 
+             @onmouseleave="StartHideTimer">
+            @if (IsAuthenticated)
+            {
+                <!-- Authenticated User Menu -->
+                <div class="user-info">
+                    <div class="user-avatar-large">
+                        <span class="avatar-text">@GetAvatarText(CurrentUser?.FullName ?? "")</span>
+                    </div>
+                    <div class="user-details">
+                        <p class="user-name">@CurrentUser?.FullName</p>
+                        <p class="user-email">@CurrentUser?.Email</p>
+                    </div>
+                </div>
+                
+                <div class="dropdown-divider"></div>
+                
+                <a href="/profile" class="dropdown-item" @onclick="CloseDropdown">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Thông tin cá nhân</span>
+                </a>
+                
+                <a href="/orders" class="dropdown-item" @onclick="CloseDropdown">
+                    <i class="fas fa-box"></i>
+                    <span>Đơn hàng của tôi</span>
+                </a>
+                
+                <a href="/wishlist" class="dropdown-item" @onclick="CloseDropdown">
+                    <i class="fas fa-heart"></i>
+                    <span>Sản phẩm yêu thích</span>
+                </a>
+                
+                <a href="/addresses" class="dropdown-item" @onclick="CloseDropdown">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Sổ địa chỉ</span>
+                </a>
+                
+                <div class="dropdown-divider"></div>
+                
+                <a href="/settings" class="dropdown-item" @onclick="CloseDropdown">
+                    <i class="fas fa-cog"></i>
+                    <span>Cài đặt</span>
+                </a>
+                
+                <button class="dropdown-item logout-btn" @onclick="HandleLogout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Đăng xuất</span>
+                </button>
+            }
+            else
+            {
+                <!-- Guest User Menu -->
+                <div class="guest-welcome">
+                    <h4>Chào mừng đến ABC Mart!</h4>
+                    <p>Đăng nhập để trải nghiệm đầy đủ</p>
+                </div>
+                
+                <div class="auth-buttons">
+                    <a href="/login" class="btn-login" @onclick="CloseDropdown">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Đăng nhập</span>
+                    </a>
+                    
+                    <a href="/register" class="btn-register" @onclick="CloseDropdown">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Đăng ký</span>
+                    </a>
+                </div>
+                
+                <div class="dropdown-divider"></div>
+                
+                <a href="/orders/guest" class="dropdown-item" @onclick="CloseDropdown">
+                    <i class="fas fa-search"></i>
+                    <span>Tra cứu đơn hàng</span>
+                </a>
+                
+                <a href="/help" class="dropdown-item" @onclick="CloseDropdown">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Trợ giúp</span>
+                </a>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private bool showDropdown = false;
+    private bool IsAuthenticated => AuthService?.IsAuthenticated ?? false;
+    private WebUI.Models.User? CurrentUser => AuthService?.CurrentUser;
+    private System.Threading.Timer? hideTimer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Subscribe to auth state changes if needed
+        if (AuthService != null)
+        {
+            AuthService.AuthStateChanged += OnAuthStateChanged;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("setupDropdownClickOutside", DotNetObjectReference.Create(this));
+        }
+    }
+
+    private void OnAuthStateChanged(object? sender, bool isAuthenticated)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void ShowDropdown()
+    {
+        CancelHideTimer(); // Cancel any pending hide operation
+        showDropdown = true;
+        StateHasChanged();
+    }
+
+    private void StartHideTimer()
+    {
+        // Hide after 300ms delay to allow mouse to move to dropdown
+        hideTimer?.Dispose();
+        hideTimer = new System.Threading.Timer(HideDropdownCallback, null, 300, Timeout.Infinite);
+    }
+
+    private void CancelHideTimer()
+    {
+        hideTimer?.Dispose();
+        hideTimer = null;
+    }
+
+    private void HideDropdownCallback(object? state)
+    {
+        InvokeAsync(() =>
+        {
+            showDropdown = false;
+            StateHasChanged();
+        });
+    }
+
+    private void CloseDropdown()
+    {
+        CancelHideTimer();
+        showDropdown = false;
+        StateHasChanged();
+    }
+
+    private void OnUserClick()
+    {
+        if (!IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login");
+        }
+        else
+        {
+            // Toggle dropdown - useful for mobile/touch devices
+            CancelHideTimer();
+            showDropdown = !showDropdown;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleLogout()
+    {
+        CloseDropdown();
+        
+        if (AuthService != null)
+        {
+            await AuthService.LogoutAsync();
+            Navigation.NavigateTo("/");
+        }
+    }
+
+    private string GetAvatarText(string fullName)
+    {
+        if (string.IsNullOrEmpty(fullName)) return "?";
+        
+        var parts = fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return "?";
+        if (parts.Length == 1) return parts[0][0].ToString().ToUpper();
+        
+        return (parts[0][0].ToString() + parts[^1][0].ToString()).ToUpper();
+    }
+
+    [JSInvokable]
+    public void CloseDropdownFromJS()
+    {
+        CloseDropdown();
+    }
+
+    public void Dispose()
+    {
+        hideTimer?.Dispose();
+        if (AuthService != null)
+        {
+            AuthService.AuthStateChanged -= OnAuthStateChanged;
+        }
+    }
+}
