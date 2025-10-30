@@ -1,0 +1,251 @@
+@page "/login"
+@layout AuthLayout
+@using WebUI.Services.Interfaces
+@using System.ComponentModel.DataAnnotations
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<div class="auth-container">
+    <div class="auth-split">
+        <!-- Left Side - Form -->
+        <div class="auth-form-side">
+            <div class="auth-form-container">
+                <!-- Logo -->
+                <div class="auth-logo">
+                    <img src="/images/logo.svg" alt="ABC Mart" class="logo-img" />
+                    <h1 class="brand-text">ABC MART</h1>
+                </div>
+
+                <!-- Login Form -->
+                <div class="auth-form">
+                    <h2 class="auth-title">Chào mừng trở lại</h2>
+                    <p class="auth-subtitle">Đăng nhập vào tài khoản của bạn</p>
+
+                    <form @onsubmit="HandleLogin" @onsubmit:preventDefault="true" class="login-form">
+                        <!-- Email/Phone Input -->
+                        <div class="form-group">
+                            <label class="form-label">Email hoặc số điện thoại</label>
+                            <div class="input-container">
+                                <i class="fas fa-envelope input-icon"></i>
+                                <input type="text" 
+                                       @bind="loginModel.EmailOrPhone" 
+                                       class="form-input" 
+                                       placeholder="Nhập email hoặc số điện thoại" 
+                                       @oninput="OnEmailPhoneChange" />
+                            </div>
+                            @if (!string.IsNullOrEmpty(emailError))
+                            {
+                                <div class="validation-error">@emailError</div>
+                            }
+                        </div>
+
+                        <!-- Password Input -->
+                        <div class="form-group">
+                            <label class="form-label">Mật khẩu</label>
+                            <div class="input-container">
+                                <i class="fas fa-lock input-icon"></i>
+                                <input type="@(showPassword ? "text" : "password")" 
+                                       @bind="loginModel.Password" 
+                                       class="form-input" 
+                                       placeholder="Nhập mật khẩu" />
+                                <button type="button" 
+                                        class="password-toggle" 
+                                        @onclick="TogglePasswordVisibility">
+                                    <i class="fas @(showPassword ? "fa-eye-slash" : "fa-eye")"></i>
+                                </button>
+                            </div>
+                            @if (!string.IsNullOrEmpty(passwordError))
+                            {
+                                <div class="validation-error">@passwordError</div>
+                            }
+                        </div>
+
+                        <!-- Remember & Forgot Password -->
+                        <div class="form-options">
+                            <label class="checkbox-container">
+                                <input type="checkbox" @bind="loginModel.RememberMe" class="checkbox-input" />
+                                <span class="checkbox-checkmark"></span>
+                                <span class="checkbox-text">Ghi nhớ đăng nhập</span>
+                            </label>
+                            <a href="/forgot-password" class="forgot-link">Quên mật khẩu?</a>
+                        </div>
+
+                        <!-- Login Button -->
+                        <button type="submit" class="btn-primary" disabled="@isLoading">
+                            @if (isLoading)
+                            {
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Đang xử lý...</span>
+                            }
+                            else
+                            {
+                                <span>ĐĂNG NHẬP</span>
+                            }
+                        </button>
+
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                @errorMessage
+                            </div>
+                        }
+                    </form>
+
+                    <!-- Divider -->
+                    <div class="auth-divider">
+                        <span>Hoặc đăng nhập với</span>
+                    </div>
+
+                    <!-- Social Login -->
+                    <div class="social-login">
+                        <button class="social-btn google-btn" @onclick="LoginWithGoogle">
+                            <img src="/images/google-icon.svg" alt="Google" class="social-icon" />
+                            <span>Google</span>
+                        </button>
+                        <button class="social-btn facebook-btn" @onclick="LoginWithFacebook">
+                            <i class="fab fa-facebook-f social-icon"></i>
+                            <span>Facebook</span>
+                        </button>
+                    </div>
+
+                    <!-- Register Link -->
+                    <p class="auth-footer">
+                        Chưa có tài khoản? 
+                        <a href="/register" class="register-link">Đăng ký ngay</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side - Banner -->
+        <div class="auth-banner-side">
+            <div class="banner-content">
+                <div class="banner-overlay"></div>
+                <div class="banner-text">
+                    <h3>Khám phá bộ sưu tập giày thể thao mới nhất</h3>
+                    <p>Hàng nghìn mẫu giày từ các thương hiệu nổi tiếng thế giới</p>
+                    <div class="banner-features">
+                        <div class="feature-item">
+                            <i class="fas fa-truck"></i>
+                            <span>Miễn phí vận chuyển</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Bảo hành chính hãng</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-undo"></i>
+                            <span>Đổi trả trong 30 ngày</span>
+                        </div>
+                    </div>
+                </div>
+                <img src="/images/auth-banner.jpg" alt="Sneaker Collection" class="banner-image" />
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginModel loginModel = new();
+    private bool showPassword = false;
+    private bool isLoading = false;
+    private string errorMessage = "";
+    private string emailError = "";
+    private string passwordError = "";
+
+    public class LoginModel
+    {
+        public string EmailOrPhone { get; set; } = "";
+        public string Password { get; set; } = "";
+        public bool RememberMe { get; set; } = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("addAuthPageClass");
+        }
+    }
+
+    private void TogglePasswordVisibility()
+    {
+        showPassword = !showPassword;
+    }
+
+    private void OnEmailPhoneChange(ChangeEventArgs e)
+    {
+        loginModel.EmailOrPhone = e.Value?.ToString() ?? "";
+        errorMessage = ""; // Clear error when user types
+    }
+
+    private async Task HandleLogin()
+    {
+        // Validate form
+        if (!ValidateForm()) return;
+        
+        isLoading = true;
+        errorMessage = "";
+        
+        try
+        {
+            // Simulate API call
+            await Task.Delay(1500);
+            
+            // Fake validation
+            if (loginModel.EmailOrPhone == "admin@abc.com" && loginModel.Password == "123456")
+            {
+                // Success - redirect to home
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                errorMessage = "Email/Số điện thoại hoặc mật khẩu không chính xác";
+            }
+        }
+        catch (Exception)
+        {
+            errorMessage = "Đã có lỗi xảy ra. Vui lòng thử lại sau.";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private bool ValidateForm()
+    {
+        emailError = "";
+        passwordError = "";
+        
+        if (string.IsNullOrEmpty(loginModel.EmailOrPhone))
+        {
+            emailError = "Vui lòng nhập email hoặc số điện thoại";
+        }
+        
+        if (string.IsNullOrEmpty(loginModel.Password))
+        {
+            passwordError = "Vui lòng nhập mật khẩu";
+        }
+        else if (loginModel.Password.Length < 6)
+        {
+            passwordError = "Mật khẩu phải có ít nhất 6 ký tự";
+        }
+        
+        return string.IsNullOrEmpty(emailError) && string.IsNullOrEmpty(passwordError);
+    }
+
+    private async Task LoginWithGoogle()
+    {
+        // Implement Google OAuth login
+        await JSRuntime.InvokeVoidAsync("console.log", "Google login clicked");
+    }
+
+    private async Task LoginWithFacebook()
+    {
+        // Implement Facebook OAuth login
+        await JSRuntime.InvokeVoidAsync("console.log", "Facebook login clicked");
+    }
+}

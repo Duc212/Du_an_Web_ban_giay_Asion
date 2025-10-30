@@ -9,9 +9,12 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-builder.Services.AddScoped<CartService>();
 
-// Register Product Service
+// Register Services
+builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+
+// Register Auth Service - will be initialized on first use
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 await builder.Build().RunAsync();

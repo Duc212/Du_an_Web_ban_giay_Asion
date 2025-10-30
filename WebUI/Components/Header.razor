@@ -20,7 +20,10 @@
 
         <div class="header-icons">
             <i class="fas fa-search" @onclick="OnSearchClick"></i>
-            <i class="fas fa-user" @onclick="OnUserClick"></i>
+            
+            <!-- User Dropdown Component -->
+            <UserDropdown />
+            
             <div class="cart-icon" @onclick="OnCartClick">
                 <i class="fas fa-shopping-bag"></i>
                 @if (CartItemsCount > 0)
@@ -109,7 +112,7 @@
 
     private void OnUserClick()
     {
-        // Handle user click
+        // This method is no longer needed since UserDropdown handles user interaction
     }
 
     private void OnCartClick()
