@@ -20,6 +20,10 @@ namespace WebUI.Models
         [MinLength(2, ErrorMessage = "Họ và tên phải có ít nhất 2 ký tự")]
         public string FullName { get; set; } = "";
 
+        [Required(ErrorMessage = "Vui lòng nhập tên đăng nhập")]
+        [MinLength(3, ErrorMessage = "Tên đăng nhập phải có ít nhất 3 ký tự")]
+        public string Username { get; set; } = "";
+
         [Required(ErrorMessage = "Vui lòng nhập email")]
         [EmailAddress(ErrorMessage = "Email không hợp lệ")]
         public string Email { get; set; } = "";
@@ -38,8 +42,37 @@ namespace WebUI.Models
         [Compare(nameof(Password), ErrorMessage = "Mật khẩu xác nhận không khớp")]
         public string ConfirmPassword { get; set; } = "";
 
+        [Required(ErrorMessage = "Vui lòng chọn ngày sinh")]
+        public DateTime? DateOfBirth { get; set; }
+
         [Range(typeof(bool), "true", "true", ErrorMessage = "Bạn phải đồng ý với điều khoản")]
         public bool AcceptTerms { get; set; } = false;
+    }
+
+    // DTO for API call
+    public class RegisterApiRequest
+    {
+        public string FullName { get; set; } = "";
+        public string Username { get; set; } = "";
+        public string Password { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Phone { get; set; } = "";
+        public DateTime DateOfBirth { get; set; }
+    }
+
+    // DTO for OTP Verification API
+    public class VerifyOtpApiRequest
+    {
+        public string Email { get; set; } = "";
+        public string Code { get; set; } = "";
+    }
+
+    // API Response Models
+    public class ApiResponse<T>
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = "";
+        public T? Data { get; set; }
     }
 
     public class OtpVerificationRequest

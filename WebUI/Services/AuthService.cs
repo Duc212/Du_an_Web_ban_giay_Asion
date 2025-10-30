@@ -102,33 +102,100 @@ namespace WebUI.Services
         {
             try
             {
-                // Simulate API delay
-                await Task.Delay(2000);
-
-                // Check if email exists (fake check)
-                if (request.Email.ToLower() == "admin@abc.com")
+                // Tạo API request DTO
+                var apiRequest = new RegisterApiRequest
                 {
-                    return new AuthResponse<RegisterResult>
-                    {
-                        Success = false,
-                        Message = "Email đã được sử dụng",
-                        Errors = new List<string> { "Email already exists" }
-                    };
-                }
-
-                // Fake successful registration
-                var result = new RegisterResult
-                {
-                    UserId = Guid.NewGuid().ToString(),
-                    VerificationToken = GenerateFakeToken(),
-                    RequiresVerification = true
+                    FullName = request.FullName,
+                    Username = request.Username,
+                    Password = request.Password,
+                    Email = request.Email,
+                    Phone = request.Phone,
+                    DateOfBirth = request.DateOfBirth ?? DateTime.Now.AddYears(-18)
                 };
 
+                // Serialize request to JSON
+                var jsonContent = JsonSerializer.Serialize(apiRequest, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+
+                // Tạo HTTP content
+                var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+
+                // Gọi API
+                var response = await _httpClient.PostAsync("https://localhost:7134/api/Auth/Register", content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Parse API response
+                    var apiResponse = JsonSerializer.Deserialize<ApiResponse<string>>(responseContent, new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    });
+
+                    if (apiResponse?.Success == true)
+                    {
+                        // Tạo result cho UI
+                        var result = new RegisterResult
+                        {
+                            UserId = Guid.NewGuid().ToString(),
+                            VerificationToken = GenerateFakeToken(),
+                            RequiresVerification = true
+                        };
+
+                        return new AuthResponse<RegisterResult>
+                        {
+                            Success = true,
+                            Message = apiResponse.Message ?? "Đăng ký thành công. Vui lòng kiểm tra email để xác nhận tài khoản.",
+                            Data = result
+                        };
+                    }
+                    else
+                    {
+                        return new AuthResponse<RegisterResult>
+                        {
+                            Success = false,
+                            Message = apiResponse?.Message ?? "Đăng ký thất bại",
+                            Errors = new List<string> { apiResponse?.Message ?? "Unknown error" }
+                        };
+                    }
+                }
+                else
+                {
+                    // Parse error response
+                    try
+                    {
+                        var apiResponse = JsonSerializer.Deserialize<ApiResponse<string>>(responseContent, new JsonSerializerOptions
+                        {
+                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                        });
+
+                        return new AuthResponse<RegisterResult>
+                        {
+                            Success = false,
+                            Message = apiResponse?.Message ?? "Đăng ký thất bại. Vui lòng kiểm tra thông tin và thử lại.",
+                            Errors = new List<string> { apiResponse?.Message ?? $"API Error: {response.StatusCode}" }
+                        };
+                    }
+                    catch
+                    {
+                        return new AuthResponse<RegisterResult>
+                        {
+                            Success = false,
+                            Message = "Đăng ký thất bại. Vui lòng kiểm tra thông tin và thử lại.",
+                            Errors = new List<string> { $"API Error: {response.StatusCode}" }
+                        };
+                    }
+                }
+            }
+            catch (HttpRequestException ex)
+            {
                 return new AuthResponse<RegisterResult>
                 {
-                    Success = true,
-                    Message = "Đăng ký thành công. Vui lòng kiểm tra email để xác nhận tài khoản.",
-                    Data = result
+                    Success = false,
+                    Message = "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.",
+                    Errors = new List<string> { ex.Message }
                 };
             }
             catch (Exception ex)
@@ -146,25 +213,88 @@ namespace WebUI.Services
         {
             try
             {
-                // Simulate API delay
-                await Task.Delay(1500);
-
-                // Fake OTP validation - accept "123456" as valid
-                if (request.OtpCode == "123456")
+                // Tạo API request DTO
+                var apiRequest = new VerifyOtpApiRequest
                 {
-                    return new AuthResponse<bool>
-                    {
-                        Success = true,
-                        Message = "Xác nhận thành công",
-                        Data = true
-                    };
-                }
+                    Email = request.Contact,
+                    Code = request.OtpCode
+                };
 
+                // Serialize request to JSON
+                var jsonContent = JsonSerializer.Serialize(apiRequest, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+
+                // Tạo HTTP content
+                var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+
+                // Gọi API
+                var response = await _httpClient.PostAsync("https://localhost:7134/api/Auth/Verify", content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Parse API response
+                    var apiResponse = JsonSerializer.Deserialize<ApiResponse<string>>(responseContent, new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    });
+
+                    if (apiResponse?.Success == true)
+                    {
+                        return new AuthResponse<bool>
+                        {
+                            Success = true,
+                            Message = apiResponse.Message ?? "Xác nhận thành công",
+                            Data = true
+                        };
+                    }
+                    else
+                    {
+                        return new AuthResponse<bool>
+                        {
+                            Success = false,
+                            Message = apiResponse?.Message ?? "Xác nhận thất bại",
+                            Data = false
+                        };
+                    }
+                }
+                else
+                {
+                    // Parse error response
+                    try
+                    {
+                        var apiResponse = JsonSerializer.Deserialize<ApiResponse<string>>(responseContent, new JsonSerializerOptions
+                        {
+                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                        });
+
+                        return new AuthResponse<bool>
+                        {
+                            Success = false,
+                            Message = apiResponse?.Message ?? "Mã OTP không chính xác hoặc đã hết hạn",
+                            Data = false
+                        };
+                    }
+                    catch
+                    {
+                        return new AuthResponse<bool>
+                        {
+                            Success = false,
+                            Message = "Mã OTP không chính xác hoặc đã hết hạn",
+                            Data = false
+                        };
+                    }
+                }
+            }
+            catch (HttpRequestException ex)
+            {
                 return new AuthResponse<bool>
                 {
                     Success = false,
-                    Message = "Mã OTP không chính xác",
-                    Data = false
+                    Message = "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.",
+                    Errors = new List<string> { ex.Message }
                 };
             }
             catch (Exception ex)

@@ -1,9 +1,11 @@
 @page "/register"
 @layout AuthLayout
 @using WebUI.Services.Interfaces
+@using WebUI.Models
 @using System.ComponentModel.DataAnnotations
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject IAuthService AuthService
 
 <div class="auth-container">
     <div class="auth-split">
@@ -12,8 +14,16 @@
             <div class="auth-form-container">
                 <!-- Logo -->
                 <div class="auth-logo">
-                    <img src="/images/logo.svg" alt="ABC Mart" class="logo-img" />
-                    <h1 class="brand-text">ABC MART</h1>
+                    <div class="logo-container">
+                        <div class="logo-icon">
+                            <div class="shoe-icon">
+                                <div class="shoe-sole"></div>
+                                <div class="shoe-upper"></div>
+                                <div class="shoe-laces"></div>
+                            </div>
+                        </div>
+                        <h1 class="brand-text">ABC MART</h1>
+                    </div>
                 </div>
 
                 <!-- Register Form -->
@@ -36,6 +46,23 @@
                             @if (!string.IsNullOrEmpty(fullNameError))
                             {
                                 <div class="validation-error">@fullNameError</div>
+                            }
+                        </div>
+
+                        <!-- Username Input -->
+                        <div class="form-group">
+                            <label class="form-label">Tên đăng nhập</label>
+                            <div class="input-container">
+                                <i class="fas fa-at input-icon"></i>
+                                <input type="text" 
+                                       @bind="registerModel.Username" 
+                                       @oninput="OnUsernameChange"
+                                       class="form-input" 
+                                       placeholder="Nhập tên đăng nhập" />
+                            </div>
+                            @if (!string.IsNullOrEmpty(usernameError))
+                            {
+                                <div class="validation-error">@usernameError</div>
                             }
                         </div>
 
@@ -78,6 +105,23 @@
                             @if (!string.IsNullOrEmpty(phoneError))
                             {
                                 <div class="validation-error">@phoneError</div>
+                            }
+                        </div>
+
+                        <!-- Date of Birth Input -->
+                        <div class="form-group">
+                            <label class="form-label">Ngày sinh</label>
+                            <div class="input-container">
+                                <i class="fas fa-calendar input-icon"></i>
+                                <input type="date" 
+                                       @bind="registerModel.DateOfBirth" 
+                                       @oninput="OnDateOfBirthChange"
+                                       class="form-input" 
+                                       max="@DateTime.Now.AddYears(-13).ToString("yyyy-MM-dd")" />
+                            </div>
+                            @if (!string.IsNullOrEmpty(dateOfBirthError))
+                            {
+                                <div class="validation-error">@dateOfBirthError</div>
                             }
                         </div>
 
@@ -228,8 +272,10 @@
     
     private string errorMessage = "";
     private string fullNameError = "";
+    private string usernameError = "";
     private string emailError = "";
     private string phoneError = "";
+    private string dateOfBirthError = "";
     private string passwordError = "";
     private string confirmPasswordError = "";
     private string termsError = "";
@@ -241,9 +287,11 @@
     public class RegisterModel
     {
         public string FullName { get; set; } = "";
+        public string Username { get; set; } = "";
         public string Email { get; set; } = "";
         public string CountryCode { get; set; } = "+84";
         public string Phone { get; set; } = "";
+        public DateTime? DateOfBirth { get; set; }
         public string Password { get; set; } = "";
         public string ConfirmPassword { get; set; } = "";
         public bool AcceptTerms { get; set; } = false;
@@ -266,6 +314,12 @@
         ValidateFullName();
     }
 
+    private void OnUsernameChange(ChangeEventArgs e)
+    {
+        registerModel.Username = e.Value?.ToString() ?? "";
+        ValidateUsername();
+    }
+
     private void OnEmailChange(ChangeEventArgs e)
     {
         registerModel.Email = e.Value?.ToString() ?? "";
@@ -276,6 +330,15 @@
     {
         registerModel.Phone = e.Value?.ToString() ?? "";
         ValidatePhone();
+    }
+
+    private void OnDateOfBirthChange(ChangeEventArgs e)
+    {
+        if (DateTime.TryParse(e.Value?.ToString(), out var date))
+        {
+            registerModel.DateOfBirth = date;
+        }
+        ValidateDateOfBirth();
     }
 
     private void OnPasswordChange(ChangeEventArgs e)
@@ -302,6 +365,27 @@
         else if (registerModel.FullName.Trim().Length < 2)
         {
             fullNameError = "Họ và tên phải có ít nhất 2 ký tự";
+        }
+    }
+
+    private void ValidateUsername()
+    {
+        usernameError = "";
+        if (string.IsNullOrEmpty(registerModel.Username))
+        {
+            usernameError = "Vui lòng nhập tên đăng nhập";
+        }
+        else if (registerModel.Username.Length < 3)
+        {
+            usernameError = "Tên đăng nhập phải có ít nhất 3 ký tự";
+        }
+        else if (registerModel.Username.Length > 20)
+        {
+            usernameError = "Tên đăng nhập không được quá 20 ký tự";
+        }
+        else if (!System.Text.RegularExpressions.Regex.IsMatch(registerModel.Username, @"^[a-zA-Z0-9_]+$"))
+        {
+            usernameError = "Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới";
         }
     }
 
@@ -338,6 +422,29 @@
         else if (registerModel.Phone.Length < 9 || registerModel.Phone.Length > 11)
         {
             phoneError = "Số điện thoại không hợp lệ";
+        }
+    }
+
+    private void ValidateDateOfBirth()
+    {
+        dateOfBirthError = "";
+        if (!registerModel.DateOfBirth.HasValue)
+        {
+            dateOfBirthError = "Vui lòng chọn ngày sinh";
+        }
+        else 
+        {
+            var age = DateTime.Now.Year - registerModel.DateOfBirth.Value.Year;
+            if (registerModel.DateOfBirth.Value.Date > DateTime.Now.AddYears(-age)) age--;
+            
+            if (age < 13)
+            {
+                dateOfBirthError = "Bạn phải từ 13 tuổi trở lên để đăng ký";
+            }
+            else if (age > 120)
+            {
+                dateOfBirthError = "Ngày sinh không hợp lệ";
+            }
         }
     }
 
@@ -431,21 +538,32 @@
     private bool IsFormValid()
     {
         return !string.IsNullOrEmpty(registerModel.FullName) &&
+               !string.IsNullOrEmpty(registerModel.Username) &&
                !string.IsNullOrEmpty(registerModel.Email) &&
                !string.IsNullOrEmpty(registerModel.Phone) &&
+               registerModel.DateOfBirth.HasValue &&
                !string.IsNullOrEmpty(registerModel.Password) &&
                !string.IsNullOrEmpty(registerModel.ConfirmPassword) &&
                registerModel.Password == registerModel.ConfirmPassword &&
                registerModel.AcceptTerms &&
-               emailValidationIcon == "fa-check";
+               emailValidationIcon == "fa-check" &&
+               string.IsNullOrEmpty(fullNameError) &&
+               string.IsNullOrEmpty(usernameError) &&
+               string.IsNullOrEmpty(emailError) &&
+               string.IsNullOrEmpty(phoneError) &&
+               string.IsNullOrEmpty(dateOfBirthError) &&
+               string.IsNullOrEmpty(passwordError) &&
+               string.IsNullOrEmpty(confirmPasswordError);
     }
 
     private async Task HandleRegister()
     {
         // Validate all fields
         ValidateFullName();
+        ValidateUsername();
         ValidateEmail();
         ValidatePhone();
+        ValidateDateOfBirth();
         ValidatePassword();
         ValidateConfirmPassword();
         
@@ -462,13 +580,33 @@
         
         try
         {
-            // Simulate API call
-            await Task.Delay(2000);
+            // Create API request
+            var request = new RegisterRequest
+            {
+                FullName = registerModel.FullName,
+                Username = registerModel.Username,
+                Email = registerModel.Email,
+                Phone = registerModel.Phone,
+                DateOfBirth = registerModel.DateOfBirth,
+                Password = registerModel.Password,
+                ConfirmPassword = registerModel.ConfirmPassword,
+                AcceptTerms = registerModel.AcceptTerms
+            };
+
+            // Call AuthService
+            var response = await AuthService.RegisterAsync(request);
             
-            // Simulate success - redirect to OTP verification
-            Navigation.NavigateTo($"/otp-verification?email={Uri.EscapeDataString(registerModel.Email)}");
+            if (response.Success)
+            {
+                // Success - redirect to OTP verification
+                Navigation.NavigateTo($"/otp-verification?type=email&contact={Uri.EscapeDataString(registerModel.Email)}");
+            }
+            else
+            {
+                errorMessage = response.Message ?? "Đăng ký thất bại. Vui lòng thử lại.";
+            }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             errorMessage = "Đã có lỗi xảy ra. Vui lòng thử lại sau.";
         }
