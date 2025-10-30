@@ -1,0 +1,154 @@
+@using Microsoft.AspNetCore.Components
+@inject IJSRuntime JSRuntime
+
+<div class="toast-container" id="toast-container">
+    @foreach (var toast in _toasts)
+    {
+        <div class="toast @GetToastClass(toast.Type) @(toast.IsVisible ? "show" : "")" 
+             data-id="@toast.Id">
+            <div class="toast-icon">
+                <i class="fas @GetToastIcon(toast.Type)"></i>
+            </div>
+            <div class="toast-content">
+                <div class="toast-title">@GetToastTitle(toast.Type)</div>
+                <div class="toast-message">@toast.Message</div>
+            </div>
+            <button type="button" class="toast-close" @onclick="() => RemoveToast(toast.Id)">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    private List<ToastMessage> _toasts = new();
+    private int _nextId = 1;
+
+    public class ToastMessage
+    {
+        public int Id { get; set; }
+        public string Message { get; set; } = "";
+        public ToastType Type { get; set; }
+        public bool IsVisible { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+    }
+
+    public enum ToastType
+    {
+        Success,
+        Error,
+        Warning,
+        Info
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("window.toastService.initialize", DotNetObjectReference.Create(this));
+        }
+    }
+
+    [JSInvokable]
+    public async Task ShowToast(string message, string type = "info")
+    {
+        var toastType = Enum.Parse<ToastType>(type, true);
+        var toast = new ToastMessage
+        {
+            Id = _nextId++,
+            Message = message,
+            Type = toastType,
+            IsVisible = false
+        };
+
+        _toasts.Add(toast);
+        StateHasChanged();
+
+        // Delay to allow DOM to render
+        await Task.Delay(100);
+        toast.IsVisible = true;
+        StateHasChanged();
+
+        // Auto remove after 5 seconds
+        _ = Task.Delay(5000).ContinueWith(async _ =>
+        {
+            await InvokeAsync(() => RemoveToast(toast.Id));
+        });
+    }
+
+    public async Task ShowSuccess(string message)
+    {
+        await ShowToast(message, "Success");
+    }
+
+    public async Task ShowError(string message)
+    {
+        await ShowToast(message, "Error");
+    }
+
+    public async Task ShowWarning(string message)
+    {
+        await ShowToast(message, "Warning");
+    }
+
+    public async Task ShowInfo(string message)
+    {
+        await ShowToast(message, "Info");
+    }
+
+    private void RemoveToast(int id)
+    {
+        var toast = _toasts.FirstOrDefault(t => t.Id == id);
+        if (toast != null)
+        {
+            toast.IsVisible = false;
+            StateHasChanged();
+
+            // Remove from list after animation
+            Task.Delay(300).ContinueWith(_ =>
+            {
+                InvokeAsync(() =>
+                {
+                    _toasts.Remove(toast);
+                    StateHasChanged();
+                });
+            });
+        }
+    }
+
+    private string GetToastClass(ToastType type)
+    {
+        return type switch
+        {
+            ToastType.Success => "toast-success",
+            ToastType.Error => "toast-error",
+            ToastType.Warning => "toast-warning",
+            ToastType.Info => "toast-info",
+            _ => "toast-info"
+        };
+    }
+
+    private string GetToastIcon(ToastType type)
+    {
+        return type switch
+        {
+            ToastType.Success => "fa-check-circle",
+            ToastType.Error => "fa-exclamation-circle",
+            ToastType.Warning => "fa-exclamation-triangle",
+            ToastType.Info => "fa-info-circle",
+            _ => "fa-info-circle"
+        };
+    }
+
+    private string GetToastTitle(ToastType type)
+    {
+        return type switch
+        {
+            ToastType.Success => "Thành công",
+            ToastType.Error => "Lỗi",
+            ToastType.Warning => "Cảnh báo",
+            ToastType.Info => "Thông tin",
+            _ => "Thông báo"
+        };
+    }
+}

@@ -1,50 +1,120 @@
 @page "/otp-verification"
 @layout AuthLayout
 @using System.Timers
+@using WebUI.Services.Interfaces
+@using WebUI.Models
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject IAuthService AuthService
+@implements IDisposable
 
 <div class="auth-container otp-container">
     <div class="otp-form-wrapper">
         <div class="otp-form-container">
+            <!-- Logo -->
+            <div class="auth-logo">
+                <div class="logo-container">
+                    <div class="logo-icon">
+                        <div class="shoe-icon">
+                            <div class="shoe-sole"></div>
+                            <div class="shoe-upper"></div>
+                            <div class="shoe-laces"></div>
+                        </div>
+                    </div>
+                    <h1 class="brand-text">ABC MART</h1>
+                </div>
+            </div>
+            
             <!-- Icon -->
             <div class="otp-icon">
-                @if (verificationType == "email")
-                {
-                    <i class="fas fa-envelope-open"></i>
-                }
-                else
-                {
-                    <i class="fas fa-mobile-alt"></i>
-                }
+                <i class="fas fa-mobile-alt"></i>
             </div>
 
-            <!-- Content -->
-            <div class="otp-content">
-                <h2 class="otp-title">Xác nhận tài khoản</h2>
-                <p class="otp-description">
-                    Mã OTP đã được gửi đến @verificationType: 
+            <!-- Header -->
+            <div class="otp-header">
+                <h2>Xác thực tài khoản</h2>
+                <p class="otp-subtitle">
+                    Nhập mã OTP đã được gửi đến @(verificationType == "email" ? "email" : "số điện thoại")
                     <span class="contact-info">@maskedContact</span>
                 </p>
+            </div>
 
-                <!-- OTP Input Form -->
-                <form @onsubmit="HandleVerification" @onsubmit:preventDefault="true" class="otp-form">
+            <!-- OTP Form -->
+            <form class="otp-form" @onsubmit="HandleVerification" @onsubmit:preventDefault="true">
+                <!-- OTP Input -->
+                <div class="form-group">
                     <div class="otp-inputs" @ref="otpContainer">
-                        @for (int i = 0; i < 6; i++)
-                        {
-                            var index = i; // Capture for lambda
-                            <input type="text" 
-                                   @key="@i"
-                                   @ref="otpInputs[i]"
-                                   @bind="otpDigits[i]"
-                                   @oninput="@(async (e) => await OnOtpInput(e, index))"
-                                   @onkeydown="@(async (e) => await OnOtpKeyDown(e, index))"
-                                   @onpaste="@(async (e) => await OnOtpPaste(e, index))"
-                                   class="otp-input @(GetOtpInputClass(i))"
-                                   maxlength="1"
-                                   inputmode="numeric"
-                                   pattern="[0-9]" />
-                        }
+                        <input type="text" 
+                               @key="0"
+                               @ref="otpInput0"
+                               @bind="otpDigits[0]"
+                               @oninput="@(async (e) => await OnOtpInput(e, 0))"
+                               @onkeydown="@(async (e) => await OnOtpKeyDown(e, 0))"
+                               @onpaste="@(async (e) => await OnOtpPaste(e, 0))"
+                               class="otp-input @(GetOtpInputClass(0))"
+                               maxlength="1"
+                               inputmode="numeric"
+                               pattern="[0-9]" />
+                        
+                        <input type="text" 
+                               @key="1"
+                               @ref="otpInput1"
+                               @bind="otpDigits[1]"
+                               @oninput="@(async (e) => await OnOtpInput(e, 1))"
+                               @onkeydown="@(async (e) => await OnOtpKeyDown(e, 1))"
+                               @onpaste="@(async (e) => await OnOtpPaste(e, 1))"
+                               class="otp-input @(GetOtpInputClass(1))"
+                               maxlength="1"
+                               inputmode="numeric"
+                               pattern="[0-9]" />
+                        
+                        <input type="text" 
+                               @key="2"
+                               @ref="otpInput2"
+                               @bind="otpDigits[2]"
+                               @oninput="@(async (e) => await OnOtpInput(e, 2))"
+                               @onkeydown="@(async (e) => await OnOtpKeyDown(e, 2))"
+                               @onpaste="@(async (e) => await OnOtpPaste(e, 2))"
+                               class="otp-input @(GetOtpInputClass(2))"
+                               maxlength="1"
+                               inputmode="numeric"
+                               pattern="[0-9]" />
+                        
+                        <input type="text" 
+                               @key="3"
+                               @ref="otpInput3"
+                               @bind="otpDigits[3]"
+                               @oninput="@(async (e) => await OnOtpInput(e, 3))"
+                               @onkeydown="@(async (e) => await OnOtpKeyDown(e, 3))"
+                               @onpaste="@(async (e) => await OnOtpPaste(e, 3))"
+                               class="otp-input @(GetOtpInputClass(3))"
+                               maxlength="1"
+                               inputmode="numeric"
+                               pattern="[0-9]" />
+                        
+                        <input type="text" 
+                               @key="4"
+                               @ref="otpInput4"
+                               @bind="otpDigits[4]"
+                               @oninput="@(async (e) => await OnOtpInput(e, 4))"
+                               @onkeydown="@(async (e) => await OnOtpKeyDown(e, 4))"
+                               @onpaste="@(async (e) => await OnOtpPaste(e, 4))"
+                               class="otp-input @(GetOtpInputClass(4))"
+                               maxlength="1"
+                               inputmode="numeric"
+                               pattern="[0-9]" />
+                        
+                        <input type="text" 
+                               @key="5"
+                               @ref="otpInput5"
+                               @bind="otpDigits[5]"
+                               @oninput="@(async (e) => await OnOtpInput(e, 5))"
+                               @onkeydown="@(async (e) => await OnOtpKeyDown(e, 5))"
+                               @onpaste="@(async (e) => await OnOtpPaste(e, 5))"
+                               class="otp-input @(GetOtpInputClass(5))"
+                               maxlength="1"
+                               inputmode="numeric"
+                               pattern="[0-9]" />
                     </div>
 
                     @if (isInvalid)
@@ -62,76 +132,76 @@
                             @errorMessage
                         </div>
                     }
+                </div>
 
-                    <!-- Timer & Resend -->
-                    <div class="otp-timer">
-                        @if (timeLeft > 0)
-                        {
-                            <p class="timer-text">
-                                Gửi lại mã sau <span class="countdown">@FormatTime(timeLeft)</span>
-                            </p>
-                        }
-                        else
-                        {
-                            <button type="button" 
-                                    class="resend-btn" 
-                                    @onclick="ResendOtp"
-                                    disabled="@isResending">
-                                @if (isResending)
-                                {
-                                    <i class="fas fa-spinner fa-spin"></i>
-                                    <span>Đang gửi...</span>
-                                }
-                                else
-                                {
-                                    <i class="fas fa-redo"></i>
-                                    <span>Gửi lại mã OTP</span>
-                                }
-                            </button>
-                        }
-                    </div>
+                <!-- Timer & Resend -->
+                <div class="otp-timer">
+                    @if (timeLeft > 0)
+                    {
+                        <p class="timer-text">
+                            Gửi lại mã sau <span class="countdown">@FormatTime(timeLeft)</span>
+                        </p>
+                    }
+                    else
+                    {
+                        <button type="button" 
+                                class="resend-btn" 
+                                @onclick="ResendOtp"
+                                disabled="@isResending">
+                            @if (isResending)
+                            {
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Đang gửi...</span>
+                            }
+                            else
+                            {
+                                <i class="fas fa-redo"></i>
+                                <span>Gửi lại mã OTP</span>
+                            }
+                        </button>
+                    }
+                </div>
 
-                    <!-- Verify Button -->
-                    <button type="submit" 
-                            class="btn-primary otp-verify-btn" 
-                            disabled="@(isVerifying || !IsOtpComplete())">
-                        @if (isVerifying)
-                        {
-                            <i class="fas fa-spinner fa-spin"></i>
-                            <span>Đang xác nhận...</span>
-                        }
-                        else
-                        {
-                            <span>XÁC NHẬN</span>
-                        }
-                    </button>
+                <!-- Verify Button -->
+                <button type="submit" 
+                        class="btn-primary verify-btn @(IsOtpComplete() ? "active" : "")"
+                        disabled="@(!IsOtpComplete() || isVerifying)">
+                    @if (isVerifying)
+                    {
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Đang xác thực...</span>
+                    }
+                    else
+                    {
+                        <span>XÁC NHẬN</span>
+                    }
+                </button>
 
-                    <!-- Change Contact -->
-                    <div class="otp-footer">
-                        <a href="@GetChangeContactLink()" class="change-contact-link">
-                            <i class="fas fa-edit"></i>
-                            Thay đổi @(verificationType == "email" ? "email" : "số điện thoại")
-                        </a>
-                    </div>
-                </form>
-            </div>
+                <!-- Change Contact -->
+                <div class="otp-footer">
+                    <a href="@GetChangeContactLink()" class="change-contact-link">
+                        <i class="fas fa-edit"></i>
+                        Thay đổi @(verificationType == "email" ? "email" : "số điện thoại")
+                    </a>
+                </div>
+            </form>
         </div>
+    </div>
 
-        <!-- Success Animation (Hidden by default) -->
-        <div class="success-animation @(showSuccess ? "show" : "")" @ref="successElement">
-            <div class="success-circle">
-                <i class="fas fa-check"></i>
-            </div>
-            <h3>Xác nhận thành công!</h3>
-            <p>Tài khoản của bạn đã được kích hoạt.</p>
+    <!-- Success Animation (Hidden by default) -->
+    <div class="success-animation @(showSuccess ? "show" : "")" @ref="successElement">
+        <div class="success-circle">
+            <i class="fas fa-check"></i>
         </div>
+        <h3>Xác nhận thành công!</h3>
+        <p>Tài khoản của bạn đã được kích hoạt.</p>
     </div>
 </div>
 
 @code {
     private ElementReference otpContainer;
     private ElementReference successElement;
-    private ElementReference[] otpInputs = new ElementReference[6];
+    private ElementReference otpInput0, otpInput1, otpInput2, otpInput3, otpInput4, otpInput5;
     private string[] otpDigits = new string[6];
     private Timer? countdownTimer;
     
@@ -165,26 +235,22 @@
                 }
             }
         }
+
+        // Set verification type and contact
+        if (query.ContainsKey("type"))
+        {
+            verificationType = query["type"];
+        }
         
-        if (query.TryGetValue("email", out var email))
+        if (query.ContainsKey("contact"))
         {
-            verificationType = "email";
-            contact = email ?? "";
-            maskedContact = MaskEmail(contact);
-        }
-        else if (query.TryGetValue("phone", out var phone))
-        {
-            verificationType = "phone";
-            contact = phone ?? "";
-            maskedContact = MaskPhone(contact);
-        }
-        else
-        {
-            // No valid parameters, redirect back
-            Navigation.NavigateTo("/register");
-            return;
+            contact = query["contact"];
+            maskedContact = verificationType == "email" 
+                ? MaskEmail(contact) 
+                : MaskPhone(contact);
         }
 
+        // Start countdown
         StartCountdown();
     }
 
@@ -195,9 +261,10 @@
             await JSRuntime.InvokeVoidAsync("addAuthPageClass");
             
             // Auto-focus first input
-            if (otpInputs[0].Id != null)
+            var firstInput = GetOtpInput(0);
+            if (firstInput.Id != null)
             {
-                await JSRuntime.InvokeVoidAsync("focusElement", otpInputs[0]);
+                await JSRuntime.InvokeVoidAsync("focusElement", firstInput);
             }
         }
     }
@@ -238,7 +305,7 @@
         // Auto-focus next input
         if (!string.IsNullOrEmpty(value) && index < 5)
         {
-            await JSRuntime.InvokeVoidAsync("focusElement", otpInputs[index + 1]);
+            await JSRuntime.InvokeVoidAsync("focusElement", GetOtpInput(index + 1));
         }
 
         // Auto-submit when all 6 digits are entered
@@ -259,7 +326,7 @@
             if (string.IsNullOrEmpty(otpDigits[index]) && index > 0)
             {
                 otpDigits[index - 1] = "";
-                await JSRuntime.InvokeVoidAsync("focusElement", otpInputs[index - 1]);
+                await JSRuntime.InvokeVoidAsync("focusElement", GetOtpInput(index - 1));
             }
             else
             {
@@ -271,11 +338,11 @@
         // Arrow key navigation
         else if (e.Key == "ArrowLeft" && index > 0)
         {
-            await JSRuntime.InvokeVoidAsync("focusElement", otpInputs[index - 1]);
+            await JSRuntime.InvokeVoidAsync("focusElement", GetOtpInput(index - 1));
         }
         else if (e.Key == "ArrowRight" && index < 5)
         {
-            await JSRuntime.InvokeVoidAsync("focusElement", otpInputs[index + 1]);
+            await JSRuntime.InvokeVoidAsync("focusElement", GetOtpInput(index + 1));
         }
     }
 
@@ -293,15 +360,14 @@
         {
             otpDigits[i] = digits[i].ToString();
         }
-        
-        // Focus last filled input or first empty input
-        var lastIndex = Math.Min(digits.Length - 1, 5);
-        if (lastIndex >= 0)
+
+        // Focus the next empty input or the last one
+        var nextIndex = Math.Min(digits.Length, 5);
+        if (nextIndex < 6)
         {
-            await JSRuntime.InvokeVoidAsync("focusElement", otpInputs[lastIndex]);
+            await JSRuntime.InvokeVoidAsync("focusElement", GetOtpInput(nextIndex));
         }
 
-        isInvalid = false;
         StateHasChanged();
 
         // Auto-submit if complete
@@ -309,6 +375,103 @@
         {
             await Task.Delay(100);
             await HandleVerification();
+        }
+    }
+
+    private async Task HandleVerification()
+    {
+        if (!IsOtpComplete()) return;
+
+        isVerifying = true;
+        errorMessage = "";
+        StateHasChanged();
+
+        try
+        {
+            var otpCode = string.Join("", otpDigits);
+            
+            // Tạo request để gọi API
+            var request = new OtpVerificationRequest
+            {
+                OtpCode = otpCode,
+                Contact = contact, // Email từ URL parameter
+                VerificationType = verificationType
+            };
+
+            // Gọi API thông qua AuthService
+            var result = await AuthService.VerifyOtpAsync(request);
+
+            if (result.Success)
+            {
+                // Show success toast
+                await JSRuntime.InvokeVoidAsync("toastService.showSuccess", result.Message);
+
+                // Show success animation
+                showSuccess = true;
+                StateHasChanged();
+
+                // Wait a bit then navigate
+                await Task.Delay(2000);
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                // Show error toast
+                await JSRuntime.InvokeVoidAsync("toastService.showError", result.Message);
+
+                isInvalid = true;
+                errorMessage = result.Message;
+                
+                // Clear inputs after showing error
+                await Task.Delay(1000);
+                Array.Fill(otpDigits, "");
+                isInvalid = false;
+                errorMessage = "";
+                
+                // Focus first input
+                await JSRuntime.InvokeVoidAsync("focusElement", GetOtpInput(0));
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Có lỗi xảy ra. Vui lòng thử lại.";
+        }
+        finally
+        {
+            isVerifying = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ResendOtp()
+    {
+        isResending = true;
+        errorMessage = "";
+        StateHasChanged();
+
+        try
+        {
+            // Simulate API call
+            await Task.Delay(2000);
+            
+            // Reset timer
+            StartCountdown();
+            
+            // Clear current OTP
+            Array.Fill(otpDigits, "");
+            isInvalid = false;
+            
+            // Focus first input
+            await JSRuntime.InvokeVoidAsync("focusElement", GetOtpInput(0));
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Không thể gửi lại mã OTP. Vui lòng thử lại.";
+        }
+        finally
+        {
+            isResending = false;
+            StateHasChanged();
         }
     }
 
@@ -330,114 +493,25 @@
         {
             classes.Add("invalid");
         }
-        
+
         return string.Join(" ", classes);
-    }
-
-    private async Task HandleVerification()
-    {
-        if (!IsOtpComplete()) return;
-
-        isVerifying = true;
-        isInvalid = false;
-        errorMessage = "";
-        
-        try
-        {
-            var otp = string.Join("", otpDigits);
-            
-            // Simulate API call
-            await Task.Delay(1500);
-            
-            // Fake validation - accept "123456" as valid OTP
-            if (otp == "123456")
-            {
-                // Success animation
-                await ShowSuccessAnimation();
-                
-                // Redirect after animation
-                await Task.Delay(2000);
-                Navigation.NavigateTo("/login?verified=true");
-            }
-            else
-            {
-                // Invalid OTP - show error animation
-                isInvalid = true;
-                await JSRuntime.InvokeVoidAsync("addShakeAnimation", otpContainer);
-                
-                // Clear OTP inputs after error
-                await Task.Delay(1500);
-                for (int i = 0; i < 6; i++)
-                {
-                    otpDigits[i] = "";
-                }
-                
-                // Focus first input
-                await JSRuntime.InvokeVoidAsync("focusElement", otpInputs[0]);
-            }
-        }
-        catch (Exception)
-        {
-            errorMessage = "Đã có lỗi xảy ra. Vui lòng thử lại sau.";
-        }
-        finally
-        {
-            isVerifying = false;
-            StateHasChanged();
-        }
-    }
-
-    private async Task ShowSuccessAnimation()
-    {
-        showSuccess = true;
-        StateHasChanged();
-        await JSRuntime.InvokeVoidAsync("playSuccessAnimation", successElement);
-    }
-
-    private async Task ResendOtp()
-    {
-        isResending = true;
-        errorMessage = "";
-        
-        try
-        {
-            // Simulate API call
-            await Task.Delay(1000);
-            
-            // Restart countdown
-            StartCountdown();
-            
-            // Clear current OTP
-            for (int i = 0; i < 6; i++)
-            {
-                otpDigits[i] = "";
-            }
-            
-            await JSRuntime.InvokeVoidAsync("focusElement", otpInputs[0]);
-        }
-        catch (Exception)
-        {
-            errorMessage = "Không thể gửi lại mã OTP. Vui lòng thử lại.";
-        }
-        finally
-        {
-            isResending = false;
-            StateHasChanged();
-        }
     }
 
     private string FormatTime(int seconds)
     {
-        return $"{seconds / 60:00}:{seconds % 60:00}";
+        var minutes = seconds / 60;
+        var remainingSeconds = seconds % 60;
+        return $"{minutes:D2}:{remainingSeconds:D2}";
     }
 
     private string MaskEmail(string email)
     {
-        if (string.IsNullOrEmpty(email)) return "";
-        
+        if (string.IsNullOrEmpty(email) || !email.Contains('@'))
+        {
+            return email;
+        }
+
         var parts = email.Split('@');
-        if (parts.Length != 2) return email;
-        
         var username = parts[0];
         var domain = parts[1];
         
@@ -463,6 +537,20 @@
     private string GetChangeContactLink()
     {
         return verificationType == "email" ? "/register" : "/register";
+    }
+
+    private ElementReference GetOtpInput(int index)
+    {
+        return index switch
+        {
+            0 => otpInput0,
+            1 => otpInput1,
+            2 => otpInput2,
+            3 => otpInput3,
+            4 => otpInput4,
+            5 => otpInput5,
+            _ => throw new ArgumentOutOfRangeException(nameof(index))
+        };
     }
 
     public void Dispose()
