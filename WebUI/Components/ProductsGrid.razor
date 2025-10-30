@@ -1,19 +1,55 @@
 @using WebUI.Models
 @using WebUI.Components
 
-<!-- Products Grid Component -->
+<!-- Products Grid Component with Pagination -->
 <section class="section">
     <div class="section-header">
         <h2 class="section-title">@Title</h2>
-    </div>
-    <div class="products-grid">
-        @foreach (var product in Products)
+        @if (ShowProductCount && TotalProducts > 0)
         {
-            <ProductCard Product="product" 
-                        OnProductSelected="OnProductSelected"
-                        OnQuickView="OnQuickView" />
+            <span class="product-count">(@TotalProducts sản phẩm)</span>
         }
     </div>
+    
+    <div class="products-grid">
+        @if (PaginatedProducts.Any())
+        {
+            @foreach (var product in PaginatedProducts)
+            {
+                <ProductCard Product="product" 
+                            OnProductSelected="OnProductSelected"
+                            OnQuickView="OnQuickView" />
+            }
+        }
+        else
+        {
+            <div class="no-products">
+                <i class="fas fa-box-open"></i>
+                <p>Không có sản phẩm nào được tìm thấy</p>
+            </div>
+        }
+    </div>
+
+    @if (EnablePagination && TotalProducts > PageSize)
+    {
+        @* Temporary pagination info until component is recognized *@
+        <div class="pagination-info-temp">
+            <p>Hiển thị @((CurrentPage - 1) * PageSize + 1) - @(Math.Min(CurrentPage * PageSize, TotalProducts)) trong tổng số @TotalProducts sản phẩm</p>
+            <div class="pagination-controls">
+                <button class="btn btn-outline-secondary" 
+                        @onclick="() => OnPageChanged(CurrentPage - 1)"
+                        disabled="@(CurrentPage <= 1)">
+                    ← Trước
+                </button>
+                <span class="page-indicator">Trang @CurrentPage / @TotalPages</span>
+                <button class="btn btn-outline-secondary" 
+                        @onclick="() => OnPageChanged(CurrentPage + 1)"
+                        disabled="@(CurrentPage >= TotalPages)">
+                    Sau →
+                </button>
+            </div>
+        </div>
+    }
 </section>
 
 @code {
@@ -21,4 +57,51 @@
     [Parameter] public List<Product> Products { get; set; } = new();
     [Parameter] public EventCallback<Product> OnProductSelected { get; set; }
     [Parameter] public EventCallback<Product> OnQuickView { get; set; }
+    [Parameter] public bool EnablePagination { get; set; } = true;
+    [Parameter] public bool ShowProductCount { get; set; } = true;
+    [Parameter] public int PageSize { get; set; } = 12;
+
+    private int CurrentPage { get; set; } = 1;
+    private int TotalProducts => Products?.Count ?? 0;
+
+    private List<Product> PaginatedProducts
+    {
+        get
+        {
+            if (Products == null || !EnablePagination)
+                return Products ?? new List<Product>();
+
+            return Products
+                .Skip((CurrentPage - 1) * PageSize)
+                .Take(PageSize)
+                .ToList();
+        }
+    }
+
+    private async Task OnPageChanged(int newPage)
+    {
+        if (newPage >= 1 && newPage <= TotalPages)
+        {
+            CurrentPage = newPage;
+            StateHasChanged();
+            
+            // Scroll to top of grid smoothly
+            await Task.Delay(100); // Small delay for UI update
+        }
+    }
+
+    private async Task OnPageSizeChanged(int newPageSize)
+    {
+        PageSize = newPageSize;
+        CurrentPage = 1; // Reset to first page when changing page size
+        StateHasChanged();
+    }
+
+    private int TotalPages => (int)Math.Ceiling((double)TotalProducts / PageSize);
+
+    protected override void OnParametersSet()
+    {
+        // Reset to first page when products change
+        CurrentPage = 1;
+    }
 }

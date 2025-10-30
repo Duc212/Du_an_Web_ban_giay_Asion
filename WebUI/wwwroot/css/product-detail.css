@@ -121,9 +121,11 @@
 .main-image {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    object-position: center;
     cursor: zoom-in;
     transition: var(--transition);
+    background: #fff;
 }
 
 .main-image:hover {
@@ -209,7 +211,9 @@
 .thumbnail-item img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    object-position: center;
+    background: #fff;
 }
 
 .thumbnail-item:hover {
@@ -1069,7 +1073,9 @@
     width: 60px;
     height: 60px;
     border-radius: var(--border-radius);
-    object-fit: cover;
+    object-fit: contain;
+    object-position: center;
+    background: #fff;
     cursor: pointer;
     transition: var(--transition);
 }
@@ -1279,15 +1285,24 @@
 
 .related-product-image {
     position: relative;
-    aspect-ratio: 1;
+    aspect-ratio: 1 / 1;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: #f8f8f8;
 }
 
 .related-product-image img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    object-position: center;
+    background: #fff;
+    object-position: center;
     transition: var(--transition);
+    display: block;
 }
 
 .related-product-card:hover .related-product-image img {
@@ -1350,6 +1365,7 @@
     line-height: 1.3;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -1560,7 +1576,9 @@
 .recently-viewed-item img {
     width: 60px;
     height: 60px;
-    object-fit: cover;
+    object-fit: contain;
+    object-position: center;
+    background: #fff;
     border-radius: var(--border-radius);
 }
 
@@ -1752,7 +1770,9 @@
 .modal-thumbnail img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    object-position: center;
+    background: #fff;
 }
 
 /* Product Not Found */

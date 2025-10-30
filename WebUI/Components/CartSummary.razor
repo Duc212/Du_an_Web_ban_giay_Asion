@@ -1,0 +1,324 @@
+@using WebUI.Services
+@inject CartService CartService
+@implements IDisposable
+
+<div class="cart-summary">
+    <div class="cart-icon" @onclick="ToggleCartDropdown">
+        <i class="fas fa-shopping-cart"></i>
+        @if (TotalItems > 0)
+        {
+            <span class="cart-badge">@TotalItems</span>
+        }
+    </div>
+    
+    @if (ShowDropdown && TotalItems > 0)
+    {
+        <div class="cart-dropdown">
+            <div class="cart-header">
+                <h3>Shopping Cart (@TotalItems items)</h3>
+                <button class="close-btn" @onclick="CloseDropdown">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="cart-items">
+                @foreach (var item in CartItems)
+                {
+                    <div class="cart-item">
+                        <div class="item-image">
+                            <img src="@item.Product.ImageUrl" alt="@item.Product.Name" />
+                        </div>
+                        <div class="item-details">
+                            <div class="item-name">@item.Product.Name</div>
+                            <div class="item-options">
+                                @if (!string.IsNullOrEmpty(item.SelectedSize))
+                                {
+                                    <span>Size: @item.SelectedSize</span>
+                                }
+                                @if (!string.IsNullOrEmpty(item.SelectedColor))
+                                {
+                                    <span>Color: @item.SelectedColor</span>
+                                }
+                            </div>
+                            <div class="item-price">
+                                <span class="quantity">@item.Quantity x</span>
+                                <span class="price">@item.Product.PriceFormatted</span>
+                            </div>
+                        </div>
+                        <button class="remove-btn" @onclick="() => RemoveItem(item)" title="Remove item">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                }
+            </div>
+            
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <strong>Total: @FormatPrice(TotalPrice)</strong>
+                </div>
+                <div class="cart-actions">
+                    <button class="btn btn-secondary" @onclick="ClearCart">Clear All</button>
+                    <button class="btn btn-primary" @onclick="GoToCheckout">Checkout</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public bool ShowDropdown { get; set; } = false;
+    
+    private List<CartItem> CartItems = new();
+    private int TotalItems = 0;
+    private decimal TotalPrice = 0;
+
+    protected override void OnInitialized()
+    {
+        CartService.OnCartChanged += UpdateCart;
+        UpdateCart();
+    }
+
+    private void UpdateCart()
+    {
+        CartItems = CartService.GetItems();
+        TotalItems = CartService.GetTotalItems();
+        TotalPrice = CartService.GetTotalPrice();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void ToggleCartDropdown()
+    {
+        ShowDropdown = !ShowDropdown;
+    }
+
+    private void CloseDropdown()
+    {
+        ShowDropdown = false;
+    }
+
+    private void RemoveItem(CartItem item)
+    {
+        CartService.RemoveItem(item.Product.Id, item.SelectedSize, item.SelectedColor);
+    }
+
+    private void ClearCart()
+    {
+        CartService.ClearCart();
+        ShowDropdown = false;
+    }
+
+    private void GoToCheckout()
+    {
+        // TODO: Navigate to checkout page
+        Console.WriteLine("Navigate to checkout");
+        ShowDropdown = false;
+    }
+
+    private string FormatPrice(decimal price)
+    {
+        return price.ToString("N0") + "đ";
+    }
+
+    public void Dispose()
+    {
+        CartService.OnCartChanged -= UpdateCart;
+    }
+}
+
+<style>
+    .cart-summary {
+        position: relative;
+    }
+
+    .cart-icon {
+        position: relative;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 4px;
+        transition: background 0.3s ease;
+    }
+
+    .cart-icon:hover {
+        background: #f5f5f5;
+    }
+
+    .cart-icon i {
+        font-size: 20px;
+        color: #000;
+    }
+
+    .cart-badge {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background: #ff4757;
+        color: white;
+        border-radius: 50%;
+        font-size: 11px;
+        font-weight: bold;
+        min-width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform: translate(50%, -50%);
+    }
+
+    .cart-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        width: 380px;
+        max-height: 500px;
+        z-index: 1000;
+        overflow: hidden;
+    }
+
+    .cart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px;
+        border-bottom: 1px solid #e0e0e0;
+        background: #f8f8f8;
+    }
+
+    .cart-header h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        color: #666;
+    }
+
+    .cart-items {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .cart-item {
+        display: flex;
+        padding: 12px 16px;
+        border-bottom: 1px solid #f0f0f0;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .item-image {
+        width: 50px;
+        height: 50px;
+        flex-shrink: 0;
+    }
+
+    .item-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+
+    .item-details {
+        flex: 1;
+    }
+
+    .item-name {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: #000;
+    }
+
+    .item-options {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 4px;
+    }
+
+    .item-options span:not(:last-child)::after {
+        content: ", ";
+    }
+
+    .item-price {
+        font-size: 12px;
+        color: #000;
+    }
+
+    .quantity {
+        color: #666;
+        margin-right: 4px;
+    }
+
+    .price {
+        font-weight: 600;
+    }
+
+    .remove-btn {
+        background: none;
+        border: none;
+        color: #999;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        transition: color 0.3s ease;
+    }
+
+    .remove-btn:hover {
+        color: #ff4757;
+    }
+
+    .cart-footer {
+        padding: 16px;
+        border-top: 1px solid #e0e0e0;
+        background: #f8f8f8;
+    }
+
+    .cart-total {
+        margin-bottom: 12px;
+        font-size: 16px;
+        text-align: center;
+    }
+
+    .cart-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary {
+        background: #f0f0f0;
+        color: #666;
+    }
+
+    .btn-secondary:hover {
+        background: #e0e0e0;
+    }
+
+    .btn-primary {
+        background: #000;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #333;
+    }
+</style>
