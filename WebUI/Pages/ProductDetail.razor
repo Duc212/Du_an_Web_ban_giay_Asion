@@ -1,8 +1,10 @@
 @page "/product/{ProductId:int}"
 @using WebUI.Models
 @using WebUI.Services
+@using WebUI.Services.Interfaces
 @inject IJSRuntime JSRuntime
 @inject CartService CartService
+@inject IProductService ProductService
 
 <PageTitle>@(CurrentProduct?.Name ?? "Product") - ABC-MART</PageTitle>
 
@@ -56,7 +58,7 @@
         <div class="related-products-section">
             <div class="container">
                 <RelatedProducts CurrentProduct="CurrentProduct" 
-                               Products="GetRelatedProducts()" />
+                               Products="RelatedProductsList" />
             </div>
         </div>
 
@@ -71,7 +73,7 @@
                     }
                 </div>
                 <div class="mobile-buttons">
-                    <button class="btn-add-cart mobile" @onclick="OnAddToCart">
+                    <button class="btn-add-cart mobile" @onclick="OnAddToCartWithOptions">
                         <i class="fas fa-cart-plus"></i>
                         Add to Cart
                     </button>
@@ -105,18 +107,20 @@
     [Parameter] public int ProductId { get; set; }
     
     private Product? CurrentProduct { get; set; }
+    private List<Product> RelatedProductsList { get; set; } = new();
     private int Quantity { get; set; } = 1;
     private string SelectedSize { get; set; } = "";
     private string SelectedColor { get; set; } = "";
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
-        LoadProduct();
+        await LoadProduct();
     }
 
-    private void LoadProduct()
+    private async Task LoadProduct()
     {
-        CurrentProduct = ProductDetailData.GetProductById(ProductId);
+        CurrentProduct = await ProductService.GetProductByIdAsync(ProductId);
+        RelatedProductsList = await ProductService.GetRelatedProductsAsync(CurrentProduct?.Id ?? 0, 6);
     }
 
     private void OnQuantityChanged(int newQuantity)
@@ -171,11 +175,6 @@
     {
         SelectedColor = newColor;
         StateHasChanged();
-    }
-
-    private List<Product> GetRelatedProducts()
-    {
-        return ProductDetailData.GetRelatedProducts(CurrentProduct?.Id ?? 0, 6);
     }
 
     private async Task ShowToast(string type, string title, string message)

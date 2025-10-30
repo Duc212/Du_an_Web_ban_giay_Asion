@@ -1,0 +1,109 @@
+@using WebUI.Models
+@using WebUI.Services
+@inject CartService CartService
+@inject IJSRuntime JSRuntime
+
+<button class="btn-add-to-cart @CssClass" 
+        @onclick="HandleAddToCart" 
+        disabled="@(!Product.InStock)"
+        title="Add to cart">
+    
+    <i class="fas fa-cart-plus"></i>
+    <span>@ButtonText</span>
+</button>
+
+<!-- Size Color Selection Modal -->
+<SizeColorSelectionModal Product="Product" 
+                        IsVisible="ShowModal" 
+                        OnClose="CloseModal"
+                        OnAddToCart="OnModalAddToCart" />
+
+@code {
+    [Parameter] public Product Product { get; set; } = new();
+    [Parameter] public int Quantity { get; set; } = 1;
+    [Parameter] public string? SelectedSize { get; set; }
+    [Parameter] public string? SelectedColor { get; set; }
+    [Parameter] public string ButtonText { get; set; } = "Add";
+    [Parameter] public string CssClass { get; set; } = "";
+    [Parameter] public bool UseDirectAdd { get; set; } = false; // For product detail page
+
+    private bool ShowModal = false;
+
+    private async Task HandleAddToCart()
+    {
+        if (!Product.InStock) return;
+
+        // If this is from product detail page and has size/color selected, add directly
+        if (UseDirectAdd && !string.IsNullOrEmpty(SelectedSize) && !string.IsNullOrEmpty(SelectedColor))
+        {
+            CartService.AddItem(Product, Quantity, SelectedSize, SelectedColor);
+            await ShowToast("✓ Thêm sản phẩm vào giỏ hàng thành công!");
+        }
+        else
+        {
+            // Show modal for size/color selection
+            ShowModal = true;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CloseModal()
+    {
+        ShowModal = false;
+        StateHasChanged();
+    }
+
+    private async Task OnModalAddToCart(string message)
+    {
+        await ShowToast(message);
+    }
+
+    private async Task ShowToast(string message)
+    {
+        await JSRuntime.InvokeVoidAsync("eval", $@"
+            let toast = document.createElement('div');
+            toast.innerHTML = '{message}';
+            toast.style.cssText = 'position:fixed;top:20px;right:20px;background:#4CAF50;color:white;padding:12px 20px;border-radius:4px;z-index:9999;font-weight:600;';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        ");
+    }
+}
+
+<style>
+    .btn-add-to-cart {
+        background: #000;
+        color: #fff;
+        border: none;
+        padding: 8px 16px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        justify-content: center;
+        min-width: 80px;
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    .btn-add-to-cart:hover:not(:disabled) {
+        background: #333;
+    }
+
+    .btn-add-to-cart:disabled {
+        background: #999;
+        cursor: not-allowed;
+    }
+
+    .btn-add-to-cart.compact {
+        padding: 6px 12px;
+        font-size: 10px;
+        min-width: 70px;
+    }
+</style>

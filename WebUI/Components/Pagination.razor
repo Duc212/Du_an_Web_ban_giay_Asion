@@ -1,0 +1,155 @@
+@* Pagination Component *@
+<div class="pagination-wrapper">
+    <div class="pagination-info">
+        <span>Hiển thị @StartItem - @EndItem trong tổng số @TotalItems sản phẩm</span>
+    </div>
+    
+    <nav class="pagination-nav @(IsLoading ? "loading" : "")" aria-label="Pagination Navigation">
+        <ul class="pagination">
+            <!-- Previous Button -->
+            <li class="page-item @(CurrentPage <= 1 || IsLoading ? "disabled" : "")">
+                <button class="page-link" 
+                        @onclick="() => HandlePageChanged(CurrentPage - 1)"
+                        disabled="@(CurrentPage <= 1 || IsLoading)"
+                        title="Trang trước">
+                    @if (IsLoading)
+                    {
+                        <div class="mini-spinner"></div>
+                    }
+                    else
+                    {
+                        <i class="fas fa-chevron-left"></i>
+                    }
+                    <span class="sr-only">Trước</span>
+                </button>
+            </li>
+
+            <!-- Page Numbers -->
+            @foreach (var pageNum in GetVisiblePages())
+            {
+                <li class="page-item @(pageNum == CurrentPage ? "active" : "") @(IsLoading ? "loading" : "")">
+                    <button class="page-link" 
+                            @onclick="() => HandlePageChanged(pageNum)"
+                            disabled="@IsLoading"
+                            title="@($"Trang {pageNum}")">
+                        @pageNum
+                    </button>
+                </li>
+            }
+
+            <!-- Next Button -->
+            <li class="page-item @(CurrentPage >= TotalPages || IsLoading ? "disabled" : "")">
+                <button class="page-link" 
+                        @onclick="() => HandlePageChanged(CurrentPage + 1)"
+                        disabled="@(CurrentPage >= TotalPages || IsLoading)"
+                        title="Trang sau">
+                    @if (IsLoading)
+                    {
+                        <div class="mini-spinner"></div>
+                    }
+                    else
+                    {
+                        <i class="fas fa-chevron-right"></i>
+                    }
+                    <span class="sr-only">Sau</span>
+                </button>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Page Size Selector -->
+    <div class="page-size-selector @(IsLoading ? "loading" : "")">
+        <label for="pageSize">Hiển thị:</label>
+        <select id="pageSize" class="form-select" @onchange="HandlePageSizeChanged" value="@PageSize" disabled="@IsLoading">
+            <option value="6">6 sản phẩm</option>
+            <option value="12">12 sản phẩm</option>
+            <option value="24">24 sản phẩm</option>
+            <option value="48">48 sản phẩm</option>
+        </select>
+        @if (IsLoading)
+        {
+            <div class="selector-spinner"></div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public int CurrentPage { get; set; } = 1;
+    [Parameter] public int TotalItems { get; set; }
+    [Parameter] public int PageSize { get; set; } = 12;
+    [Parameter] public EventCallback<int> OnPageChanged { get; set; }
+    [Parameter] public EventCallback<int> OnPageSizeChanged { get; set; }
+    [Parameter] public bool IsLoading { get; set; } = false;
+
+    private int TotalPages => (int)Math.Ceiling((double)TotalItems / PageSize);
+    private int StartItem => ((CurrentPage - 1) * PageSize) + 1;
+    private int EndItem => Math.Min(CurrentPage * PageSize, TotalItems);
+
+    private async Task HandlePageChanged(int newPage)
+    {
+        if (newPage >= 1 && newPage <= TotalPages && !IsLoading)
+        {
+            await OnPageChanged.InvokeAsync(newPage);
+        }
+    }
+
+    private async Task HandlePageSizeChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int newPageSize) && !IsLoading)
+        {
+            await OnPageSizeChanged.InvokeAsync(newPageSize);
+        }
+    }
+
+    private List<int> GetVisiblePages()
+    {
+        var visiblePages = new List<int>();
+        
+        if (TotalPages <= 7)
+        {
+            // Hiển thị tất cả trang nếu ít hơn 7 trang
+            for (int i = 1; i <= TotalPages; i++)
+            {
+                visiblePages.Add(i);
+            }
+        }
+        else
+        {
+            // Logic phức tạp hơn cho nhiều trang
+            if (CurrentPage <= 4)
+            {
+                // Hiển thị trang đầu
+                for (int i = 1; i <= 5; i++)
+                {
+                    visiblePages.Add(i);
+                }
+                visiblePages.Add(-1); // Ellipsis
+                visiblePages.Add(TotalPages);
+            }
+            else if (CurrentPage >= TotalPages - 3)
+            {
+                // Hiển thị trang cuối
+                visiblePages.Add(1);
+                visiblePages.Add(-1); // Ellipsis
+                for (int i = TotalPages - 4; i <= TotalPages; i++)
+                {
+                    visiblePages.Add(i);
+                }
+            }
+            else
+            {
+                // Hiển thị trang giữa
+                visiblePages.Add(1);
+                visiblePages.Add(-1); // Ellipsis
+                for (int i = CurrentPage - 1; i <= CurrentPage + 1; i++)
+                {
+                    visiblePages.Add(i);
+                }
+                visiblePages.Add(-2); // Ellipsis
+                visiblePages.Add(TotalPages);
+            }
+        }
+
+        return visiblePages.Where(p => p > 0).ToList();
+    }
+}

@@ -1,5 +1,5 @@
 <!-- Sidebar Component -->
-<aside class="sidebar">
+<aside class="sidebar sidebar-sticky">
     <h3>Danh mục sản phẩm</h3>
     <ul>
         <li><a href="#"><i class="fas fa-running"></i> Giày chạy bộ</a></li>
@@ -65,6 +65,44 @@
         </ul>
     }
 </aside>
+
+<style>
+    .sidebar-sticky {
+        position: sticky;
+        top: 20px;
+        height: calc(100vh - 40px);
+        overflow-y: auto;
+        z-index: 100;
+    }
+    
+    /* Smooth scrolling for sidebar content */
+    .sidebar-sticky::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .sidebar-sticky::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+    
+    .sidebar-sticky::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+    
+    .sidebar-sticky::-webkit-scrollbar-thumb:hover {
+        background: #a1a1a1;
+    }
+
+    /* Responsive - disable sticky on mobile */
+    @@media (max-width: 768px) {
+        .sidebar-sticky {
+            position: static !important;
+            height: auto !important;
+            overflow-y: visible !important;
+        }
+    }
+</style>
 
 @code {
     [Parameter] public bool ShowGenderFilter { get; set; } = false;

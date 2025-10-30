@@ -62,6 +62,24 @@ namespace WebUI.Services
             }
         }
 
+        public void RemoveItem(int productId, int quantity, string? size = null, string? color = null)
+        {
+            var item = _items.FirstOrDefault(item =>
+                item.Product.Id == productId &&
+                item.SelectedSize == size &&
+                item.SelectedColor == color);
+
+            if (item != null)
+            {
+                item.Quantity -= quantity;
+                if (item.Quantity <= 0)
+                {
+                    _items.Remove(item);
+                }
+                OnCartChanged?.Invoke();
+            }
+        }
+
         public void UpdateQuantity(int productId, int newQuantity, string? size = null, string? color = null)
         {
             var item = _items.FirstOrDefault(item =>
