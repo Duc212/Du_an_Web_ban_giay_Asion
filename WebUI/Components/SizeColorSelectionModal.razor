@@ -1,0 +1,232 @@
+@using WebUI.Models
+@using WebUI.Services
+@inject CartService CartService
+@inject IJSRuntime JSRuntime
+
+<!-- Bootstrap Modal -->
+<div class="modal fade @(IsVisible ? "show d-block" : "d-none")" tabindex="-1" 
+     style="@(IsVisible ? "background-color: rgba(0,0,0,0.5);" : "")" @onclick="OnBackdropClick">
+    <div class="modal-dialog modal-lg modal-dialog-centered" @onclick:stopPropagation="true">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-shopping-bag text-primary me-2"></i>
+                    Chọn Size & Màu Sắc
+                </h5>
+                <button type="button" class="btn-close" @onclick="CloseModal"></button>
+            </div>
+
+            @if (Product != null)
+            {
+                <!-- Modal Body -->
+                <div class="modal-body pt-2">
+                    <!-- Product Info -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <img src="@Product.ImageUrl" 
+                                     alt="@Product.Name" 
+                                     class="img-fluid rounded shadow-sm"
+                                     style="max-height: 200px; object-fit: cover;">
+                            </div>
+                        </div>
+                        <div class="col-md-8 d-flex flex-column justify-content-center">
+                            <h6 class="fw-bold mb-2">@Product.Name</h6>
+                            <p class="text-muted mb-2">@Product.Brand</p>
+                            <div class="d-flex align-items-center">
+                                <span class="h5 text-primary fw-bold mb-0">@Product.PriceFormatted</span>
+                                @if (Product.OriginalPrice.HasValue)
+                                {
+                                    <span class="text-decoration-line-through text-muted ms-2">@Product.OldPriceFormatted</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Size Selection -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold mb-3">
+                            <i class="fas fa-ruler me-1"></i> Chọn Size:
+                        </label>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var size in AvailableSizes)
+                            {
+                                <button type="button" 
+                                        class="btn @(SelectedSize == size ? "btn-primary" : "btn-outline-secondary") rounded-pill px-3"
+                                        @onclick="() => SelectSize(size)">
+                                    @size
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Color Selection -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold mb-3">
+                            <i class="fas fa-palette me-1"></i> Chọn Màu:
+                        </label>
+                        <div class="d-flex flex-wrap gap-3">
+                            @foreach (var color in AvailableColors)
+                            {
+                                <div class="text-center">
+                                    <button type="button" 
+                                            class="btn p-0 rounded-circle position-relative @(SelectedColor == color ? "border border-primary border-3" : "border")"
+                                            style="width: 50px; height: 50px; background-color: @GetColorCode(color); 
+                                                   @(color == "Trắng" ? "border: 2px solid #dee2e6 !important;" : "")"
+                                            @onclick="() => SelectColor(color)">
+                                        @if (SelectedColor == color)
+                                        {
+                                            <i class="fas fa-check text-white position-absolute top-50 start-50 translate-middle" 
+                                               style="@(color == "Trắng" || color == "Xanh Lá" ? "color: #000 !important;" : "")"></i>
+                                        }
+                                    </button>
+                                    <small class="d-block mt-1 text-muted">@color</small>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Quantity Selection -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold mb-3">
+                            <i class="fas fa-hashtag me-1"></i> Số lượng:
+                        </label>
+                        <div class="input-group w-auto">
+                            <button class="btn btn-outline-secondary" 
+                                    type="button" 
+                                    @onclick="DecreaseQuantity" 
+                                    disabled="@(Quantity <= 1)">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <span class="input-group-text bg-light fw-bold px-4">@Quantity</span>
+                            <button class="btn btn-outline-secondary" 
+                                    type="button" 
+                                    @onclick="IncreaseQuantity">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Selection Summary -->
+                    @if (!string.IsNullOrEmpty(SelectedSize) || !string.IsNullOrEmpty(SelectedColor))
+                    {
+                        <div class="alert alert-light border d-flex align-items-center">
+                            <i class="fas fa-info-circle text-info me-2"></i>
+                            <div>
+                                <strong>Lựa chọn của bạn:</strong>
+                                @if (!string.IsNullOrEmpty(SelectedSize))
+                                {
+                                    <span class="badge bg-primary ms-2">Size: @SelectedSize</span>
+                                }
+                                @if (!string.IsNullOrEmpty(SelectedColor))
+                                {
+                                    <span class="badge bg-secondary ms-2">Màu: @SelectedColor</span>
+                                }
+                                <span class="badge bg-success ms-2">SL: @Quantity</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-secondary me-2" @onclick="CloseModal">
+                        <i class="fas fa-times me-2"></i>Hủy
+                    </button>
+                    <button type="button" 
+                            class="btn btn-primary px-4" 
+                            @onclick="AddToCart" 
+                            disabled="@(string.IsNullOrEmpty(SelectedSize) || string.IsNullOrEmpty(SelectedColor))">
+                        <i class="fas fa-shopping-cart me-2"></i>Thêm vào giỏ hàng
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Product? Product { get; set; }
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<string> OnAddToCart { get; set; }
+
+    private string SelectedSize = "";
+    private string SelectedColor = "";
+    private int Quantity = 1;
+
+    private readonly List<string> AvailableSizes = new() { "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45" };
+    private readonly List<string> AvailableColors = new() { "Đen", "Trắng", "Xám", "Xanh Navy", "Đỏ", "Xanh Lá" };
+
+    protected override void OnParametersSet()
+    {
+        if (IsVisible && Product != null)
+        {
+            // Reset selections when modal opens
+            SelectedSize = "";
+            SelectedColor = "";
+            Quantity = 1;
+        }
+    }
+
+    private void SelectSize(string size)
+    {
+        SelectedSize = size;
+        StateHasChanged();
+    }
+
+    private void SelectColor(string color)
+    {
+        SelectedColor = color;
+        StateHasChanged();
+    }
+
+    private void IncreaseQuantity()
+    {
+        Quantity++;
+    }
+
+    private void DecreaseQuantity()
+    {
+        if (Quantity > 1)
+            Quantity--;
+    }
+
+    private string GetColorCode(string colorName)
+    {
+        return colorName switch
+        {
+            "Đen" => "#000000",
+            "Trắng" => "#ffffff",
+            "Xám" => "#808080",
+            "Xanh Navy" => "#000080",
+            "Đỏ" => "#ff0000",
+            "Xanh Lá" => "#008000",
+            _ => "#cccccc"
+        };
+    }
+
+    private async Task AddToCart()
+    {
+        if (Product != null && !string.IsNullOrEmpty(SelectedSize) && !string.IsNullOrEmpty(SelectedColor))
+        {
+            CartService.AddItem(Product, Quantity, SelectedSize, SelectedColor);
+            
+            // Only trigger the callback, let ProductCard handle the toast notification
+            await OnAddToCart.InvokeAsync($"Thêm thành công! {Product.Name} (Size: {SelectedSize}, Màu: {SelectedColor}) x{Quantity}");
+            await CloseModal();
+        }
+    }
+
+    private async Task CloseModal()
+    {
+        IsVisible = false;
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task OnBackdropClick()
+    {
+        await CloseModal();
+    }
+}

@@ -1,41 +1,74 @@
 @page "/"
+@using WebUI.Services.Interfaces
 @inject NavigationManager Navigation
+@inject IProductService ProductService
 
 <!-- Trend Products Section -->
 <div class="main-content">
     <Sidebar />
     <ProductsGrid Title="Xu Hướng Tuần Này" 
-                  Products="LegacyProductData.TrendProducts"
+                  Products="TrendingProducts"
                   OnProductSelected="OnProductClick"
-                  OnQuickView="OnQuickView" />
+                  OnQuickView="OnQuickView"
+                  EnablePagination="true"
+                  PageSize="12"
+                  ShowProductCount="true" />
 </div>
 
 <!-- Marquee Banner -->
 <MarqueeSection />
 
+<!-- New Products Section -->
+<div class="main-content">
+    <Sidebar ShowGenderFilter="true" />
+    <ProductsGrid Title="Sản Phẩm Mới" 
+                  Products="NewProducts"
+                  OnProductSelected="OnProductClick"
+                  OnQuickView="OnQuickView"
+                  EnablePagination="true"
+                  PageSize="12"
+                  ShowProductCount="true" />
+</div>
+<MarqueeSection />
 <!-- Featured Collections Section -->
 <div class="main-content">
-    <Sidebar ShowGenderFilter="true" 
-             ShowSpecialOffers="true" 
+    <Sidebar ShowSpecialOffers="true" 
              ShowSportsFilter="true" />
     <ProductsGrid Title="Bộ Sưu Tập Nổi Bật" 
-                  Products="LegacyProductData.FeaturedProducts"
+                  Products="FeaturedProducts"
                   OnProductSelected="OnProductClick"
-                  OnQuickView="OnQuickView" />
+                  OnQuickView="OnQuickView"
+                  EnablePagination="true"
+                  PageSize="12"
+                  ShowProductCount="true" />
 </div>
 
 <!-- Sale Banner -->
 <Banner />
 
 @code {
-    protected override void OnInitialized()
+    private List<Product> TrendingProducts { get; set; } = new();
+    private List<Product> FeaturedProducts { get; set; } = new();
+    private List<Product> NewProducts { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
     {
-        Console.WriteLine($"Trend Products count: {LegacyProductData.TrendProducts.Count}");
-        Console.WriteLine($"Featured Products count: {LegacyProductData.FeaturedProducts.Count}");
+        // Load all trending products with pagination support
+        TrendingProducts = await ProductService.GetAllTrendingProductsAsync();
         
-        foreach (var product in LegacyProductData.TrendProducts.Take(3))
+        // Load all featured products with pagination support
+        FeaturedProducts = await ProductService.GetAllFeaturedProductsAsync();
+        
+        // Load new products
+        NewProducts = await ProductService.GetNewProductsAsync();
+
+        Console.WriteLine($"Trend Products count: {TrendingProducts.Count}");
+        Console.WriteLine($"Featured Products count: {FeaturedProducts.Count}");
+        Console.WriteLine($"New Products count: {NewProducts.Count}");
+        
+        foreach (var product in TrendingProducts.Take(3))
         {
-            Console.WriteLine($"Product: {product.Name}, ImageUrl: {product.ImageUrl}");
+            Console.WriteLine($"Product: {product.Name}, Badge: {product.Badge}, Rating: {product.Rating}");
         }
     }
 
