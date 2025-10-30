@@ -1,0 +1,272 @@
+/* Smooth Pagination Styles */
+
+/* Loading States */
+.products-grid-container {
+    position: relative;
+    min-height: 400px;
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(2px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    border-radius: 12px;
+}
+
+.loading-spinner {
+    text-align: center;
+    color: #666;
+}
+
+.loading-spinner .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #dc3545;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+.loading-spinner p {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+}
+
+/* Products Grid Animations */
+.products-grid {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.products-grid.loading {
+    opacity: 0.6;
+    transform: translateY(10px);
+    pointer-events: none;
+}
+
+/* Pagination Animations */
+.pagination-wrapper {
+    transition: all 0.3s ease;
+}
+
+.pagination-nav {
+    transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+.pagination-nav.loading {
+    opacity: 0.7;
+    filter: grayscale(0.3);
+}
+
+.pagination .page-item {
+    transition: all 0.2s ease;
+}
+
+.pagination .page-item.loading {
+    opacity: 0.6;
+}
+
+.pagination .page-link {
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.pagination .page-link:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.2);
+}
+
+.pagination .page-link:active {
+    transform: translateY(0);
+}
+
+.pagination .page-link:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Spinner Animations */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Mini Spinner for Pagination Buttons */
+.mini-spinner {
+    width: 12px;
+    height: 12px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #dc3545;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: inline-block;
+}
+
+/* Page Size Selector Loading */
+.page-size-selector {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.page-size-selector.loading {
+    opacity: 0.7;
+}
+
+.page-size-selector .form-select:disabled {
+    background-color: #f8f9fa;
+    opacity: 0.6;
+}
+
+.selector-spinner {
+    position: absolute;
+    top: 50%;
+    right: 30px;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #dc3545;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+/* Smooth Fade In Animation for Products */
+.products-grid .product-card {
+    animation: fadeInUp 0.4s ease forwards;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.products-grid .product-card:nth-child(1) { animation-delay: 0.1s; }
+.products-grid .product-card:nth-child(2) { animation-delay: 0.15s; }
+.products-grid .product-card:nth-child(3) { animation-delay: 0.2s; }
+.products-grid .product-card:nth-child(4) { animation-delay: 0.25s; }
+.products-grid .product-card:nth-child(5) { animation-delay: 0.3s; }
+.products-grid .product-card:nth-child(6) { animation-delay: 0.35s; }
+.products-grid .product-card:nth-child(7) { animation-delay: 0.4s; }
+.products-grid .product-card:nth-child(8) { animation-delay: 0.45s; }
+.products-grid .product-card:nth-child(9) { animation-delay: 0.5s; }
+.products-grid .product-card:nth-child(10) { animation-delay: 0.55s; }
+.products-grid .product-card:nth-child(11) { animation-delay: 0.6s; }
+.products-grid .product-card:nth-child(12) { animation-delay: 0.65s; }
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Reset animation when loading */
+.products-grid.loading .product-card {
+    animation: none;
+    opacity: 0.6;
+    transform: translateY(0);
+}
+
+/* Enhanced Page Item Animations */
+.pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    border-color: #dc3545;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+    transform: scale(1.05);
+}
+
+.pagination .page-item:hover:not(.disabled):not(.active) .page-link {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+/* Smooth scroll behavior */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Loading pulse effect for pagination info */
+.pagination-info {
+    transition: opacity 0.3s ease;
+}
+
+.pagination-nav.loading + .pagination-info {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* No products animation */
+.no-products {
+    animation: fadeIn 0.5s ease;
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+
+.no-products i {
+    font-size: 48px;
+    color: #ddd;
+    margin-bottom: 20px;
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .loading-spinner .spinner {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .pagination .page-link:hover:not(:disabled) {
+        transform: none; /* Disable hover transforms on mobile */
+    }
+    
+    .products-grid .product-card {
+        animation-delay: 0.1s; /* Reduce delays on mobile */
+    }
+}
+
+/* Performance optimizations */
+.products-grid,
+.pagination-wrapper,
+.loading-overlay {
+    will-change: transform, opacity;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    .products-grid,
+    .pagination .page-link,
+    .loading-spinner .spinner,
+    .mini-spinner,
+    .selector-spinner {
+        animation: none;
+        transition: none;
+    }
+    
+    .products-grid .product-card {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+}
