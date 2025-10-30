@@ -1,0 +1,408 @@
+/* ==========================================
+   USER DROPDOWN COMPONENT STYLES
+   ========================================== */
+
+.user-dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+
+/* User Icon & Avatar */
+.user-icon {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    position: relative;
+    padding: 4px;
+}
+
+.user-icon:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+/* Ensure dropdown stays visible on hover */
+.user-dropdown-container:hover .user-dropdown {
+    display: block !important;
+}
+
+.user-icon i {
+    font-size: 18px;
+    color: #333;
+    transition: color 0.3s ease;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FF4D4D, #FF6B6B);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(255, 77, 77, 0.3);
+}
+
+.user-avatar-large {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FF4D4D, #FF6B6B);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 18px;
+    box-shadow: 0 4px 12px rgba(255, 77, 77, 0.3);
+    margin-right: 12px;
+}
+
+.avatar-text {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Dropdown Menu */
+.user-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    min-width: 280px;
+    z-index: 1000;
+    overflow: hidden;
+    animation: dropdownSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Invisible bridge to connect icon and dropdown */
+.user-dropdown::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: transparent;
+}
+
+.user-dropdown::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    right: 16px;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    transform: rotate(45deg);
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    border-left: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Authenticated User Info */
+.user-info {
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.user-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-email {
+    font-size: 13px;
+    color: #666;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Guest Welcome */
+.guest-welcome {
+    padding: 20px;
+    text-align: center;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.guest-welcome h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 4px 0;
+}
+
+.guest-welcome p {
+    font-size: 13px;
+    color: #666;
+    margin: 0;
+}
+
+/* Auth Buttons */
+.auth-buttons {
+    padding: 16px;
+    display: flex;
+    gap: 8px;
+}
+
+.btn-login,
+.btn-register {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-login {
+    background: #FF4D4D;
+    color: white;
+}
+
+.btn-login:hover {
+    background: #e43e3e;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.btn-register {
+    background: transparent;
+    color: #FF4D4D;
+    border: 1px solid #FF4D4D;
+}
+
+.btn-register:hover {
+    background: #FF4D4D;
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Dropdown Items */
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    text-decoration: none;
+    color: #333;
+    font-size: 14px;
+    font-weight: 400;
+    transition: all 0.2s ease;
+    border: none;
+    background: none;
+    width: 100%;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background: rgba(255, 77, 77, 0.08);
+    color: #FF4D4D;
+}
+
+.dropdown-item i {
+    width: 18px;
+    height: 18px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    transition: color 0.2s ease;
+}
+
+.dropdown-item:hover i {
+    color: #FF4D4D;
+}
+
+.dropdown-item span {
+    flex: 1;
+    text-align: left;
+}
+
+/* Logout Button */
+.logout-btn {
+    color: #dc3545 !important;
+    font-weight: 500;
+}
+
+.logout-btn:hover {
+    background: rgba(220, 53, 69, 0.08) !important;
+    color: #dc3545 !important;
+}
+
+.logout-btn i {
+    color: #dc3545 !important;
+}
+
+.logout-btn:hover i {
+    color: #dc3545 !important;
+}
+
+/* Divider */
+.dropdown-divider {
+    height: 1px;
+    background: rgba(0, 0, 0, 0.08);
+    margin: 8px 0;
+}
+
+/* Animations */
+@keyframes dropdownSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Mobile-first approach - click to toggle on mobile */
+@media (max-width: 768px) {    
+    .user-dropdown {
+        min-width: 260px;
+        right: -20px;
+        top: calc(100% + 4px);
+    }
+    
+    .user-info {
+        padding: 16px;
+    }
+    
+    .guest-welcome {
+        padding: 16px;
+    }
+    
+    .auth-buttons {
+        padding: 12px;
+        flex-direction: column;
+    }
+    
+    .btn-login,
+    .btn-register {
+        width: 100%;
+    }
+    
+    /* Remove hover bridge on mobile */
+    .user-dropdown::after {
+        display: none;
+    }
+}
+
+/* Desktop hover enhancement */
+@media (min-width: 769px) {
+    .user-dropdown-container:hover .user-dropdown {
+        display: block;
+    }
+    
+    /* Larger hover bridge for desktop */
+    .user-dropdown::after {
+        height: 12px;
+        top: -12px;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .user-dropdown {
+        background: #2d3748;
+        border-color: rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    
+    .user-dropdown::before {
+        background: #2d3748;
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .user-info,
+    .guest-welcome {
+        background: linear-gradient(135deg, #374151, #4b5563);
+    }
+    
+    .user-name {
+        color: #f7fafc;
+    }
+    
+    .user-email {
+        color: #a0aec0;
+    }
+    
+    .guest-welcome h4 {
+        color: #f7fafc;
+    }
+    
+    .guest-welcome p {
+        color: #a0aec0;
+    }
+    
+    .dropdown-item {
+        color: #e2e8f0;
+    }
+    
+    .dropdown-item:hover {
+        background: rgba(255, 77, 77, 0.15);
+        color: #FF6B6B;
+    }
+    
+    .dropdown-item i {
+        color: #a0aec0;
+    }
+    
+    .dropdown-item:hover i {
+        color: #FF6B6B;
+    }
+    
+    .dropdown-divider {
+        background: rgba(255, 255, 255, 0.1);
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .user-dropdown {
+        border: 2px solid #333;
+    }
+    
+    .dropdown-item {
+        border-bottom: 1px solid #eee;
+    }
+    
+    .dropdown-item:hover {
+        background: #000;
+        color: #fff;
+    }
+}
