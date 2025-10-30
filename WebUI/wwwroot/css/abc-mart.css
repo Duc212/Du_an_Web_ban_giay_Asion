@@ -121,9 +121,9 @@ body {
 
 /* Main Layout */
 .main-content {
-    max-width: 1400px;
+    max-width: 1600px;
     margin: 0 auto;
-    padding: 40px 20px;
+    padding: 40px 40px;
     display: flex;
     gap: 32px;
 }
@@ -202,10 +202,8 @@ body {
 /* Products Grid */
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 32px;
-    max-width: 1200px;
-    margin: 0 auto;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
 }
 
 .product-card {

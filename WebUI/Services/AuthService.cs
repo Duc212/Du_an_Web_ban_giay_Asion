@@ -36,56 +36,93 @@ namespace WebUI.Services
         {
             try
             {
-                // Simulate API delay
-                await Task.Delay(1500);
-
-                // Fake validation - replace with actual API call
-                if (request.EmailOrPhone == "admin@abc.com" && request.Password == "123456")
+                // Tạo API request DTO
+                var apiRequest = new
                 {
-                    var user = new User
+                    userName = request.EmailOrPhone,
+                    password = request.Password
+                };
+
+                // Serialize request to JSON
+                var jsonContent = JsonSerializer.Serialize(apiRequest);
+
+                // Tạo HTTP content
+                var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+
+                // Gọi API
+                var response = await _httpClient.PostAsync("https://localhost:7134/api/Auth/Login", content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Parse API response
+                    var apiResponse = JsonSerializer.Deserialize<ApiResponse<LoginApiResult>>(responseContent, new JsonSerializerOptions
                     {
-                        Id = Guid.NewGuid().ToString(),
-                        FullName = "Admin User",
-                        Email = "admin@abc.com",
-                        Phone = "+84123456789",
-                        IsEmailVerified = true,
-                        IsPhoneVerified = true,
-                        LastLoginAt = DateTime.UtcNow
-                    };
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    });
 
-                    var token = GenerateFakeToken();
-                    var refreshToken = GenerateFakeToken();
-
-                    var result = new LoginResult
+                    if (apiResponse?.Success == true && apiResponse.Data != null)
                     {
-                        Token = token,
-                        RefreshToken = refreshToken,
-                        ExpiresAt = DateTime.UtcNow.AddHours(24),
-                        User = user
-                    };
+                        var apiData = apiResponse.Data;
+                        
+                        // Tạo User object từ API response
+                        var user = new User
+                        {
+                            Id = apiData.UserId ?? Guid.NewGuid().ToString(),
+                            FullName = apiData.FullName ?? "User",
+                            Email = apiData.Email ?? request.EmailOrPhone,
+                            Phone = apiData.Phone ?? "",
+                            IsEmailVerified = true,
+                            IsPhoneVerified = true,
+                            LastLoginAt = DateTime.UtcNow
+                        };
 
-                    // Store in localStorage
-                    await StoreAuthDataAsync(token, user);
+                        var result = new LoginResult
+                        {
+                            Token = apiData.Token,
+                            RefreshToken = apiData.RefreshToken ?? "",
+                            ExpiresAt = DateTime.UtcNow.AddHours(24),
+                            User = user
+                        };
+
+                        // Store in localStorage
+                        await StoreAuthDataAsync(apiData.Token, user);
+                        
+                        _currentToken = apiData.Token;
+                        _currentUser = user;
+                        
+                        AuthStateChanged?.Invoke(this, true);
+
+                        return new AuthResponse<LoginResult>
+                        {
+                            Success = true,
+                            Message = apiResponse.Message ?? "Đăng nhập thành công",
+                            Data = result
+                        };
+                    }
                     
-                    _currentToken = token;
-                    _currentUser = user;
-                    
-                    AuthStateChanged?.Invoke(this, true);
+                    return new AuthResponse<LoginResult>
+                    {
+                        Success = false,
+                        Message = apiResponse?.Message ?? "Đăng nhập thất bại",
+                        Errors = new List<string> { "Login failed" }
+                    };
+                }
+                else
+                {
+                    // Parse error response
+                    var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    });
 
                     return new AuthResponse<LoginResult>
                     {
-                        Success = true,
-                        Message = "Đăng nhập thành công",
-                        Data = result
+                        Success = false,
+                        Message = errorResponse?.Message ?? "Email/Số điện thoại hoặc mật khẩu không chính xác",
+                        Errors = new List<string> { "Invalid credentials" }
                     };
                 }
-
-                return new AuthResponse<LoginResult>
-                {
-                    Success = false,
-                    Message = "Email/Số điện thoại hoặc mật khẩu không chính xác",
-                    Errors = new List<string> { "Invalid credentials" }
-                };
             }
             catch (Exception ex)
             {
@@ -236,7 +273,7 @@ namespace WebUI.Services
                 if (response.IsSuccessStatusCode)
                 {
                     // Parse API response
-                    var apiResponse = JsonSerializer.Deserialize<ApiResponse<string>>(responseContent, new JsonSerializerOptions
+                    var apiResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
                     {
                         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                     });
