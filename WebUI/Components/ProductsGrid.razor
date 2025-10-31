@@ -1,6 +1,5 @@
 @using WebUI.Models
 @using WebUI.Components
-@inject IJSRuntime JSRuntime
 
 <!-- Products Grid Component with Pagination -->
 <section class="section">
@@ -12,45 +11,44 @@
         }
     </div>
     
-    <div class="products-grid-container">
-        @if (IsLoading)
+    <div class="products-grid">
+        @if (PaginatedProducts.Any())
         {
-            <div class="loading-overlay">
-                <div class="loading-spinner">
-                    <div class="spinner"></div>
-                    <p>Đang tải sản phẩm...</p>
-                </div>
+            @foreach (var product in PaginatedProducts)
+            {
+                <ProductCard Product="product" 
+                            OnProductSelected="OnProductSelected"
+                            OnQuickView="OnQuickView" />
+            }
+        }
+        else
+        {
+            <div class="no-products">
+                <i class="fas fa-box-open"></i>
+                <p>Không có sản phẩm nào được tìm thấy</p>
             </div>
         }
-        
-        <div class="products-grid @(IsLoading ? "loading" : "")">
-            @if (PaginatedProducts.Any())
-            {
-                @foreach (var product in PaginatedProducts)
-                {
-                    <ProductCard Product="product" 
-                                OnProductSelected="OnProductSelected"
-                                OnQuickView="OnQuickView" />
-                }
-            }
-            else if (!IsLoading)
-            {
-                <div class="no-products">
-                    <i class="fas fa-box-open"></i>
-                    <p>Không có sản phẩm nào được tìm thấy</p>
-                </div>
-            }
-        </div>
     </div>
 
     @if (EnablePagination && TotalProducts > PageSize)
     {
-        <Pagination CurrentPage="@CurrentPage"
-                    TotalItems="@TotalProducts"
-                    PageSize="@PageSize"
-                    OnPageChanged="@OnPageChanged"
-                    OnPageSizeChanged="@OnPageSizeChanged"
-                    IsLoading="@IsLoading" />
+        @* Temporary pagination info until component is recognized *@
+        <div class="pagination-info-temp">
+            <p>Hiển thị @((CurrentPage - 1) * PageSize + 1) - @(Math.Min(CurrentPage * PageSize, TotalProducts)) trong tổng số @TotalProducts sản phẩm</p>
+            <div class="pagination-controls">
+                <button class="btn btn-outline-secondary" 
+                        @onclick="() => OnPageChanged(CurrentPage - 1)"
+                        disabled="@(CurrentPage <= 1)">
+                    ← Trước
+                </button>
+                <span class="page-indicator">Trang @CurrentPage / @TotalPages</span>
+                <button class="btn btn-outline-secondary" 
+                        @onclick="() => OnPageChanged(CurrentPage + 1)"
+                        disabled="@(CurrentPage >= TotalPages)">
+                    Sau →
+                </button>
+            </div>
+        </div>
     }
 </section>
 
@@ -64,9 +62,6 @@
     [Parameter] public int PageSize { get; set; } = 12;
 
     private int CurrentPage { get; set; } = 1;
-    private bool IsLoading { get; set; } = false;
-    private string GridId = Guid.NewGuid().ToString("N")[..8];
-    
     private int TotalProducts => Products?.Count ?? 0;
 
     private List<Product> PaginatedProducts
@@ -85,51 +80,21 @@
 
     private async Task OnPageChanged(int newPage)
     {
-        if (newPage >= 1 && newPage <= TotalPages && !IsLoading)
+        if (newPage >= 1 && newPage <= TotalPages)
         {
-            IsLoading = true;
-            StateHasChanged();
-
-            // Simulate loading time for smooth transition
-            await Task.Delay(300);
-
             CurrentPage = newPage;
-            IsLoading = false;
             StateHasChanged();
             
             // Scroll to top of grid smoothly
-            await ScrollToGridTop();
+            await Task.Delay(100); // Small delay for UI update
         }
     }
 
     private async Task OnPageSizeChanged(int newPageSize)
     {
-        if (!IsLoading)
-        {
-            IsLoading = true;
-            StateHasChanged();
-            
-            await Task.Delay(200);
-            
-            PageSize = newPageSize;
-            CurrentPage = 1; // Reset to first page when changing page size
-            IsLoading = false;
-            StateHasChanged();
-            
-            await ScrollToGridTop();
-        }
-    }
-
-    private async Task ScrollToGridTop()
-    {
-        try
-        {
-            await JSRuntime.InvokeVoidAsync("smoothScrollToElementWithOffset", ".products-grid-container", 80);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Scroll error: {ex.Message}");
-        }
+        PageSize = newPageSize;
+        CurrentPage = 1; // Reset to first page when changing page size
+        StateHasChanged();
     }
 
     private int TotalPages => (int)Math.Ceiling((double)TotalProducts / PageSize);
@@ -138,6 +103,5 @@
     {
         // Reset to first page when products change
         CurrentPage = 1;
-        IsLoading = false;
     }
 }
