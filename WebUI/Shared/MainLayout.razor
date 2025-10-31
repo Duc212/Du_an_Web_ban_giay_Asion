@@ -1,7 +1,9 @@
 @inherits LayoutComponentBase
 @using WebUI.Components
 @using WebUI.Services
+@using WebUI.Services.Interfaces
 @inject ILoadingService LoadingService
+@inject IAuthService AuthService
 @implements IDisposable
 
 <div class="page">
@@ -28,9 +30,12 @@
     ProgressValue="LoadingService.ProgressValue" />
 
 @code {
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         LoadingService.OnStateChanged += StateHasChanged;
+        
+        // Initialize AuthService để load auth state từ localStorage
+        await AuthService.InitializeAsync();
     }
 
     public void Dispose()

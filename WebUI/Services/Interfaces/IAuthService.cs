@@ -93,5 +93,10 @@ namespace WebUI.Services.Interfaces
         /// Đăng nhập với Google OAuth
         /// </summary>
         Task<AuthResponse<LoginResult>> LoginWithGoogleAsync(GoogleLoginRequest request);
+
+        /// <summary>
+        /// Khởi tạo AuthService - load auth state từ localStorage
+        /// </summary>
+        Task InitializeAsync();
     }
 }
