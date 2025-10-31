@@ -10,5 +10,6 @@ namespace BUS.Services.Interfaces
         Task<CommonResponse<string>> Register(RegisterReq req);
         Task<CommonResponse<bool>> VerifyRegister(VerifyRegisterReq req);
         Task<CommonResponse<bool>> CreateUserFromAdmin(CreateUserReq req);
+        Task<CommonResponse<LoginRes>> GoogleLogin(GoogleLoginReq req);
     }
 }

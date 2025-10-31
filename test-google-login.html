@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Login Test</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        body {
+         font-family: Arial, sans-serif;
+       max-width: 800px;
+            margin: 50px auto;
+       padding: 20px;
+   }
+        .container {
+            border: 1px solid #ddd;
+          padding: 20px;
+      border-radius: 8px;
+      }
+        .token-display {
+      background: #f5f5f5;
+  padding: 10px;
+   border-radius: 4px;
+            word-break: break-all;
+            margin: 10px 0;
+        font-family: monospace;
+     font-size: 12px;
+        }
+        .btn {
+      background: #4285f4;
+    color: white;
+   padding: 10px 20px;
+    border: none;
+      border-radius: 4px;
+ cursor: pointer;
+            margin-top: 10px;
+     }
+        .btn:hover {
+            background: #357ae8;
+        }
+  .success {
+            color: green;
+    margin-top: 10px;
+        }
+        .error {
+       color: red;
+            margin-top: 10px;
+        }
+  </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Google Login Test - ID Token</h1>
+        
+        <div id="g_id_onload"
+     data-client_id="649687014087-rqiegn4lsi51rksuk4get3uubqua1qbr.apps.googleusercontent.com"
+             data-callback="handleCredentialResponse">
+    </div>
+        
+        <div class="g_id_signin" 
+           data-type="standard"
+         data-size="large"
+             data-theme="outline"
+        data-text="sign_in_with"
+           data-shape="rectangular"
+  data-logo_alignment="left">
+   </div>
+
+        <h3>ID Token (Copy this):</h3>
+ <div class="token-display" id="idToken">Waiting for login...</div>
+
+        <button class="btn" onclick="testBackend()">Test v?i Backend API</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        let currentIdToken = null;
+
+ // Callback khi user ??ng nh?p thành công
+        function handleCredentialResponse(response) {
+            currentIdToken = response.credential;
+            document.getElementById('idToken').textContent = currentIdToken;
+       
+            // Decode JWT ?? xem thông tin (không c?n validate ? ?ây)
+    const payload = parseJwt(currentIdToken);
+            console.log('User Info:', payload);
+  
+            alert('? ID Token ?ã ???c l?y! B?n có th? copy ?? test ho?c click "Test v?i Backend API"');
+   }
+
+        // Parse JWT token
+        function parseJwt(token) {
+       try {
+     const base64Url = token.split('.')[1];
+              const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+           return JSON.parse(jsonPayload);
+            } catch (e) {
+ return null;
+  }
+        }
+
+   // Test v?i backend API
+      async function testBackend() {
+      if (!currentIdToken) {
+                alert('?? Vui lòng ??ng nh?p Google tr??c!');
+                return;
+            }
+
+         const resultDiv = document.getElementById('result');
+       resultDiv.innerHTML = '<p>?ang g?i API...</p>';
+
+          try {
+      const response = await fetch('https://localhost:7134/api/Auth/GoogleLogin', {
+    method: 'POST',
+     headers: {
+     'Content-Type': 'application/json',
+               },
+     body: JSON.stringify({
+      idToken: currentIdToken
+       })
+});
+
+ const data = await response.json();
+        
+       if (data.success) {
+      resultDiv.innerHTML = `
+ <div class="success">
+              <h3>? ??ng nh?p thành công!</h3>
+<p><strong>Message:</strong> ${data.message}</p>
+              <p><strong>User ID:</strong> ${data.data.userID}</p>
+       <p><strong>Roles:</strong> ${data.data.roleName.join(', ')}</p>
+      <div class="token-display">
+             <strong>Access Token:</strong><br>
+           ${data.data.accessToken}
+ </div>
+        <div class="token-display">
+      <strong>Refresh Token:</strong><br>
+       ${data.data.refreshToken}
+      </div>
+     </div>
+           `;
+    } else {
+  resultDiv.innerHTML = `
+      <div class="error">
+            <h3>? L?i!</h3>
+   <p>${data.message}</p>
+  </div>
+    `;
+    }
+       } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+          <h3>? L?i k?t n?i!</h3>
+     <p>${error.message}</p>
+       <p>??m b?o API ?ang ch?y t?i https://localhost:7134</p>
+    </div>
+        `;
+  }
+  }
+
+     // Copy token to clipboard
+        function copyToken() {
+          if (currentIdToken) {
+     navigator.clipboard.writeText(currentIdToken);
+    alert('? ?ã copy ID Token!');
+            }
+        }
+    </script>
+</body>
+</html>

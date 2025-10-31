@@ -1,5 +1,8 @@
 @inherits LayoutComponentBase
 @using WebUI.Components
+@using WebUI.Services
+@inject ILoadingService LoadingService
+@implements IDisposable
 
 <div class="page">
     <TopBar />
@@ -14,3 +17,24 @@
 </div>
 
 <ToastNotification />
+
+<!-- Global Loading Spinner -->
+<LoadingSpinner 
+    IsVisible="LoadingService.IsLoading"
+    Title="LoadingService.Title"
+    Message="LoadingService.Message"
+    IconClass="LoadingService.IconClass"
+    ShowProgress="LoadingService.ShowProgress"
+    ProgressValue="LoadingService.ProgressValue" />
+
+@code {
+    protected override void OnInitialized()
+    {
+        LoadingService.OnStateChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        LoadingService.OnStateChanged -= StateHasChanged;
+    }
+}

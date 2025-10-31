@@ -1,11 +1,13 @@
 @page "/login"
 @layout AuthLayout
 @using WebUI.Services.Interfaces
+@using WebUI.Services
 @using WebUI.Models
 @using System.ComponentModel.DataAnnotations
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 @inject IAuthService AuthService
+@inject GoogleAuthService GoogleAuth
 
 <div class="auth-container">
     <div class="auth-split">
@@ -271,8 +273,20 @@
 
     private async Task LoginWithGoogle()
     {
-        // Implement Google OAuth login
-        await JSRuntime.InvokeVoidAsync("console.log", "Google login clicked");
+        try
+        {
+            // Tạo URL xác thực Google
+            var authUrl = await GoogleAuth.InitiateGoogleLogin(Navigation.BaseUri);
+            
+            // Redirect đến Google OAuth
+            Navigation.NavigateTo(authUrl, forceLoad: true);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Không thể kết nối đến Google. Vui lòng thử lại.";
+            await JSRuntime.InvokeVoidAsync("console.error", "Google login error:", ex.Message);
+            StateHasChanged();
+        }
     }
 
     private async Task LoginWithFacebook()

@@ -88,5 +88,10 @@ namespace WebUI.Services.Interfaces
         /// Event khi trạng thái auth thay đổi
         /// </summary>
         event EventHandler<bool>? AuthStateChanged;
+
+        /// <summary>
+        /// Đăng nhập với Google OAuth
+        /// </summary>
+        Task<AuthResponse<LoginResult>> LoginWithGoogleAsync(GoogleLoginRequest request);
     }
 }

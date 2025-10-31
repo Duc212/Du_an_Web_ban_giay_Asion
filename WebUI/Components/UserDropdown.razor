@@ -9,7 +9,11 @@
         @if (IsAuthenticated)
         {
             <div class="user-avatar">
-                @if (!string.IsNullOrEmpty(CurrentUser?.FullName))
+                @if (!string.IsNullOrEmpty(CurrentUser?.Picture))
+                {
+                    <img src="@CurrentUser.Picture" alt="@CurrentUser.FullName" class="avatar-image" />
+                }
+                else if (!string.IsNullOrEmpty(CurrentUser?.FullName))
                 {
                     <span class="avatar-text">@GetAvatarText(CurrentUser.FullName)</span>
                 }
@@ -36,7 +40,14 @@
                 <!-- Authenticated User Menu -->
                 <div class="user-info">
                     <div class="user-avatar-large">
-                        <span class="avatar-text">@GetAvatarText(CurrentUser?.FullName ?? "")</span>
+                        @if (!string.IsNullOrEmpty(CurrentUser?.Picture))
+                        {
+                            <img src="@CurrentUser.Picture" alt="@CurrentUser.FullName" class="avatar-image-large" />
+                        }
+                        else
+                        {
+                            <span class="avatar-text">@GetAvatarText(CurrentUser?.FullName ?? "")</span>
+                        }
                     </div>
                     <div class="user-details">
                         <p class="user-name">@CurrentUser?.FullName</p>

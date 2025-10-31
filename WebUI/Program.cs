@@ -14,7 +14,16 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 
+// Register Configuration Service
+builder.Services.AddScoped<ConfigurationService>();
+
 // Register Auth Service - will be initialized on first use
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+// Register Google Auth Service
+builder.Services.AddScoped<GoogleAuthService>();
+
+// Register Loading Service
+builder.Services.AddScoped<ILoadingService, LoadingService>();
 
 await builder.Build().RunAsync();

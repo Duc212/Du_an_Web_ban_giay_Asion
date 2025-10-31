@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.JSInterop;
 using WebUI.Models;
 using WebUI.Services.Interfaces;
+using WebUI.Constants;
 
 namespace WebUI.Services
 {
@@ -13,30 +14,34 @@ namespace WebUI.Services
     {
         private readonly HttpClient _httpClient;
         private readonly IJSRuntime _jsRuntime;
+        private readonly ConfigurationService _configService;
+        private readonly ILoadingService _loadingService;
         private User? _currentUser;
         private string? _currentToken;
-        private const string TOKEN_KEY = "abc_mart_token";
-        private const string USER_KEY = "abc_mart_user";
 
-        public AuthService(HttpClient httpClient, IJSRuntime jsRuntime)
+        public AuthService(HttpClient httpClient, IJSRuntime jsRuntime, ConfigurationService configService, ILoadingService loadingService)
         {
             _httpClient = httpClient;
             _jsRuntime = jsRuntime;
+            _configService = configService;
+            _loadingService = loadingService;
         }
 
         public bool IsAuthenticated => !string.IsNullOrEmpty(_currentToken) && _currentUser != null;
-        
+
         public string? CurrentToken => _currentToken;
-        
+
         public User? CurrentUser => _currentUser;
-        
+
         public event EventHandler<bool>? AuthStateChanged;
 
         public async Task<AuthResponse<LoginResult>> LoginAsync(LoginRequest request)
         {
+            // Show loading
+            _loadingService.Show("Đang đăng nhập", "Vui lòng chờ trong giây lát...");
+            
             try
             {
-                // Tạo API request DTO
                 var apiRequest = new
                 {
                     userName = request.EmailOrPhone,
@@ -50,7 +55,8 @@ namespace WebUI.Services
                 var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
 
                 // Gọi API
-                var response = await _httpClient.PostAsync("https://localhost:7134/api/Auth/Login", content);
+                var apiSettings = await _configService.GetApiSettingsAsync();
+                var response = await _httpClient.PostAsync(apiSettings.GetFullUrl(ApiEndpoints.Login), content);
                 var responseContent = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -64,33 +70,39 @@ namespace WebUI.Services
                     if (apiResponse?.Success == true && apiResponse.Data != null)
                     {
                         var apiData = apiResponse.Data;
+
+                        // Tạo User object từ API response - xử lý cả 2 format
+                        var userId = apiData.UserId ?? apiData.UserID?.ToString() ?? Guid.NewGuid().ToString();
+                        var token = apiData.AccessToken ?? apiData.Token ?? "";
+                        var roles = apiData.Roles ?? apiData.RoleName;
                         
-                        // Tạo User object từ API response
                         var user = new User
                         {
-                            Id = apiData.UserId ?? Guid.NewGuid().ToString(),
+                            Id = userId,
                             FullName = apiData.FullName ?? "User",
                             Email = apiData.Email ?? request.EmailOrPhone,
                             Phone = apiData.Phone ?? "",
-                            IsEmailVerified = true,
+                            Picture = apiData.Picture, // Avatar URL từ API
+                            IsEmailVerified = apiData.IsEmailVerified,
                             IsPhoneVerified = true,
-                            LastLoginAt = DateTime.UtcNow
+                            LastLoginAt = DateTime.UtcNow,
+                            Roles = roles
                         };
 
                         var result = new LoginResult
                         {
-                            Token = apiData.Token,
+                            Token = token,
                             RefreshToken = apiData.RefreshToken ?? "",
                             ExpiresAt = DateTime.UtcNow.AddHours(24),
                             User = user
                         };
 
                         // Store in localStorage
-                        await StoreAuthDataAsync(apiData.Token, user);
-                        
-                        _currentToken = apiData.Token;
+                        await StoreAuthDataAsync(token, user);
+
+                        _currentToken = token;
                         _currentUser = user;
-                        
+
                         AuthStateChanged?.Invoke(this, true);
 
                         return new AuthResponse<LoginResult>
@@ -100,7 +112,7 @@ namespace WebUI.Services
                             Data = result
                         };
                     }
-                    
+
                     return new AuthResponse<LoginResult>
                     {
                         Success = false,
@@ -133,6 +145,11 @@ namespace WebUI.Services
                     Errors = new List<string> { ex.Message }
                 };
             }
+            finally
+            {
+                // Hide loading
+                _loadingService.Hide();
+            }
         }
 
         public async Task<AuthResponse<RegisterResult>> RegisterAsync(RegisterRequest request)
@@ -160,7 +177,8 @@ namespace WebUI.Services
                 var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
 
                 // Gọi API
-                var response = await _httpClient.PostAsync("https://localhost:7134/api/Auth/Register", content);
+                var apiSettings = await _configService.GetApiSettingsAsync();
+                var response = await _httpClient.PostAsync(apiSettings.GetFullUrl(ApiEndpoints.Register), content);
                 var responseContent = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -267,7 +285,8 @@ namespace WebUI.Services
                 var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
 
                 // Gọi API
-                var response = await _httpClient.PostAsync("https://localhost:7134/api/Auth/Verify", content);
+                var apiSettings = await _configService.GetApiSettingsAsync();
+                var response = await _httpClient.PostAsync(apiSettings.GetFullUrl(ApiEndpoints.Verify), content);
                 var responseContent = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -349,9 +368,6 @@ namespace WebUI.Services
         {
             try
             {
-                // Simulate API delay
-                await Task.Delay(1000);
-
                 return new AuthResponse<bool>
                 {
                     Success = true,
@@ -374,9 +390,6 @@ namespace WebUI.Services
         {
             try
             {
-                // Simulate API delay
-                await Task.Delay(1500);
-
                 return new AuthResponse<bool>
                 {
                     Success = true,
@@ -425,12 +438,12 @@ namespace WebUI.Services
             try
             {
                 // Clear localStorage
-                await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", TOKEN_KEY);
-                await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", USER_KEY);
-                
+                await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", LocalStorageKeys.AuthToken);
+                await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", LocalStorageKeys.UserData);
+
                 _currentToken = null;
                 _currentUser = null;
-                
+
                 AuthStateChanged?.Invoke(this, false);
 
                 return new AuthResponse<bool>
@@ -465,7 +478,7 @@ namespace WebUI.Services
                 var result = new LoginResult
                 {
                     Token = newToken,
-                    RefreshToken = newRefreshToken,
+                    RefreshToken = GenerateFakeToken(),
                     ExpiresAt = DateTime.UtcNow.AddHours(24),
                     User = _currentUser ?? new User()
                 };
@@ -590,21 +603,20 @@ namespace WebUI.Services
                 };
 
                 var token = GenerateFakeToken();
-                var refreshToken = GenerateFakeToken();
 
                 var result = new LoginResult
                 {
                     Token = token,
-                    RefreshToken = refreshToken,
+                    RefreshToken = GenerateFakeToken(),
                     ExpiresAt = DateTime.UtcNow.AddHours(24),
                     User = user
                 };
 
                 await StoreAuthDataAsync(token, user);
-                
+
                 _currentToken = token;
                 _currentUser = user;
-                
+
                 AuthStateChanged?.Invoke(this, true);
 
                 return new AuthResponse<LoginResult>
@@ -643,21 +655,20 @@ namespace WebUI.Services
                 };
 
                 var token = GenerateFakeToken();
-                var refreshToken = GenerateFakeToken();
 
                 var result = new LoginResult
                 {
                     Token = token,
-                    RefreshToken = refreshToken,
+                    RefreshToken = GenerateFakeToken(),
                     ExpiresAt = DateTime.UtcNow.AddHours(24),
                     User = user
                 };
 
                 await StoreAuthDataAsync(token, user);
-                
+
                 _currentToken = token;
                 _currentUser = user;
-                
+
                 AuthStateChanged?.Invoke(this, true);
 
                 return new AuthResponse<LoginResult>
@@ -681,22 +692,22 @@ namespace WebUI.Services
         // Private helper methods
         private static string GenerateFakeToken()
         {
-            return Convert.ToBase64String(Guid.NewGuid().ToByteArray()) + 
+            return Convert.ToBase64String(Guid.NewGuid().ToByteArray()) +
                    Convert.ToBase64String(Guid.NewGuid().ToByteArray());
         }
 
         private async Task StoreAuthDataAsync(string token, User user)
         {
-            await _jsRuntime.InvokeVoidAsync("localStorage.setItem", TOKEN_KEY, token);
-            await _jsRuntime.InvokeVoidAsync("localStorage.setItem", USER_KEY, JsonSerializer.Serialize(user));
+            await _jsRuntime.InvokeVoidAsync("localStorage.setItem", LocalStorageKeys.AuthToken, token);
+            await _jsRuntime.InvokeVoidAsync("localStorage.setItem", LocalStorageKeys.UserData, JsonSerializer.Serialize(user));
         }
 
         private async Task LoadAuthDataAsync()
         {
             try
             {
-                var token = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", TOKEN_KEY);
-                var userJson = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", USER_KEY);
+                var token = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", LocalStorageKeys.AuthToken);
+                var userJson = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", LocalStorageKeys.UserData);
 
                 if (!string.IsNullOrEmpty(token) && !string.IsNullOrEmpty(userJson))
                 {
@@ -707,7 +718,139 @@ namespace WebUI.Services
             }
             catch
             {
-                // Ignore errors when loading auth data
+            }
+        }
+
+        public async Task<AuthResponse<LoginResult>> LoginWithGoogleAsync(GoogleLoginRequest request)
+        {
+            // Show loading
+            _loadingService.Show("Đang đăng nhập với Google", "Xác thực thông tin tài khoản...");
+            
+            try
+            {
+                // Tạo API request DTO - backend expect idToken
+                var apiRequest = new
+                {
+                    idToken = request.AccessToken, 
+                    email = request.Email,
+                    name = request.Name,
+                    googleId = request.GoogleId,
+                    picture = request.Picture
+                };
+
+                // Serialize request to JSON
+                var jsonContent = JsonSerializer.Serialize(apiRequest, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+
+                // Tạo HTTP content
+                var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+
+                // Gọi API backend
+                var apiSettings = await _configService.GetApiSettingsAsync();
+                var response = await _httpClient.PostAsync(apiSettings.GetFullUrl(ApiEndpoints.GoogleLogin), content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Parse API response
+                    var apiResponse = JsonSerializer.Deserialize<ApiResponse<LoginApiResult>>(responseContent, new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    });
+
+                    if (apiResponse?.Success == true && apiResponse.Data != null)
+                    {
+                        var apiData = apiResponse.Data;
+
+                        // Tạo User object từ API response - xử lý cả 2 format
+                        var userId = apiData.UserId ?? apiData.UserID?.ToString() ?? Guid.NewGuid().ToString();
+                        var token = apiData.AccessToken ?? apiData.Token ?? "";
+                        var roles = apiData.Roles ?? apiData.RoleName;
+                        
+                        var user = new User
+                        {
+                            Id = userId,
+                            FullName = apiData.FullName ?? request.Name,
+                            Email = apiData.Email ?? request.Email,
+                            Phone = apiData.Phone ?? "",
+                            Picture = apiData.Picture ?? request.Picture, // Ưu tiên picture từ API, fallback về Google
+                            IsEmailVerified = apiData.IsEmailVerified,
+                            IsPhoneVerified = true,
+                            LastLoginAt = DateTime.UtcNow,
+                            Roles = roles
+                        };
+
+                        var result = new LoginResult
+                        {
+                            Token = token,
+                            RefreshToken = apiData.RefreshToken ?? "",
+                            ExpiresAt = DateTime.UtcNow.AddHours(24),
+                            User = user
+                        };
+
+                        // Store in localStorage
+                        await StoreAuthDataAsync(token, user);
+
+                        _currentToken = token;
+                        _currentUser = user;
+
+                        AuthStateChanged?.Invoke(this, true);
+
+                        return new AuthResponse<LoginResult>
+                        {
+                            Success = true,
+                            Message = apiResponse.Message ?? "Đăng nhập Google thành công",
+                            Data = result
+                        };
+                    }
+
+                    return new AuthResponse<LoginResult>
+                    {
+                        Success = false,
+                        Message = apiResponse?.Message ?? "Đăng nhập Google thất bại",
+                        Errors = new List<string> { "Google login failed" }
+                    };
+                }
+                else
+                {
+                    // Parse error response
+                    var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    });
+
+                    return new AuthResponse<LoginResult>
+                    {
+                        Success = false,
+                        Message = errorResponse?.Message ?? "Đăng nhập Google thất bại",
+                        Errors = new List<string> { "Google authentication failed" }
+                    };
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                return new AuthResponse<LoginResult>
+                {
+                    Success = false,
+                    Message = "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.",
+                    Errors = new List<string> { ex.Message }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new AuthResponse<LoginResult>
+                {
+                    Success = false,
+                    Message = "Có lỗi xảy ra trong quá trình đăng nhập Google",
+                    Errors = new List<string> { ex.Message }
+                };
+            }
+            finally
+            {
+                // Hide loading
+                _loadingService.Hide();
             }
         }
 

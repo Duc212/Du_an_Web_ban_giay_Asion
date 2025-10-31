@@ -10,6 +10,7 @@ using Helper.CacheCore.Interfaces;
 using Helper.Utils;
 using Helper.Utils.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Google.Apis.Auth;
 
 namespace BUS.Services
 {
@@ -21,6 +22,7 @@ namespace BUS.Services
         private readonly IRepositoryAsync<UserRole> _userRoleRepository;
         private readonly IRepositoryAsync<Role> _roleRepository;
         private readonly IMemoryCacheSystem _cache;
+        private readonly IAvatarUtils _avatarUtils;
 
         public AuthServices(
             IRepositoryAsync<User> userRepository,
@@ -28,7 +30,8 @@ namespace BUS.Services
             IMailServices mailServices,
             IMemoryCacheSystem cache,
             IRepositoryAsync<UserRole> userRoleRepository,
-            IRepositoryAsync<Role> roleRepository)
+            IRepositoryAsync<Role> roleRepository,
+            IAvatarUtils avatarUtils)
         {
             _userRepository = userRepository;
             _tokenUtils = tokenUtils;
@@ -36,6 +39,7 @@ namespace BUS.Services
             _cache = cache;
             _userRoleRepository = userRoleRepository;
             _roleRepository = roleRepository;
+            _avatarUtils = avatarUtils;
         }
 
         public async Task<CommonResponse<bool>> CreateUserFromAdmin(CreateUserReq req)
@@ -146,6 +150,11 @@ namespace BUS.Services
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
                 UserID = user.UserID,
+                FullName = user.FullName,
+                Email = user.Email,
+                Phone = user.Phone,
+                Picture = null,
+                IsEmailVerified = true,
                 RoleName = roles
             };
 
@@ -178,6 +187,8 @@ namespace BUS.Services
 
                 var encryptedPassword = CryptoHelperUtil.Encrypt(req.Password);
 
+                var avatarUrl = _avatarUtils.GenerateAvatarUrl(req.FullName);
+
                 var tempData = new
                 {
                     req.FullName,
@@ -186,6 +197,7 @@ namespace BUS.Services
                     req.Email,
                     req.Phone,
                     req.DateOfBirth,
+                    Picture = avatarUrl,
                     Code = code
                 };
 
@@ -234,12 +246,14 @@ namespace BUS.Services
                     Email = cachedData.Email,
                     Phone = cachedData.Phone,
                     DateOfBirth = cachedData.DateOfBirth,
+                    Picture = cachedData.Picture,
                     Status = (int)UserStatusEnums.Active,
                     CreatedAt = DateTime.UtcNow
                 };
 
                 await _userRepository.AddAsync(user);
                 await _userRepository.SaveChangesAsync();
+
                 var userRole = new UserRole
                 {
                     UserID = user.UserID,
@@ -247,6 +261,7 @@ namespace BUS.Services
                 };
                 await _userRoleRepository.AddAsync(userRole);
                 await _userRepository.SaveChangesAsync();
+
                 _cache.Remove($"register:{req.Email}");
 
                 response.Success = true;
@@ -258,6 +273,117 @@ namespace BUS.Services
                 response.Success = false;
                 response.Message = $"Lỗi xác nhận đăng ký: {ex.Message}";
                 response.Data = false;
+            }
+
+            return response;
+        }
+
+        public async Task<CommonResponse<LoginRes>> GoogleLogin(GoogleLoginReq req)
+        {
+            var response = new CommonResponse<LoginRes>();
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(req.IdToken))
+                {
+                    response.Success = false;
+                    response.Message = "Token không hợp lệ!";
+                    return response;
+                }
+
+                GoogleJsonWebSignature.Payload payload;
+                try
+                {
+                    payload = await GoogleJsonWebSignature.ValidateAsync(req.IdToken);
+                }
+                catch (Exception ex)
+                {
+                    response.Success = false;
+                    response.Message = $"Token Google không hợp lệ! Chi tiết: {ex.Message}";
+                    return response;
+                }
+
+                if (payload == null || string.IsNullOrEmpty(payload.Email))
+                {
+                    response.Success = false;
+                    response.Message = "Không thể xác thực Google token!";
+                    return response;
+                }
+
+                var existingUser = await _userRepository.AsQueryable()
+         .FirstOrDefaultAsync(x => x.Email == payload.Email);
+
+                User user;
+                bool isNewUser = false;
+
+                if (existingUser == null)
+                {
+                    isNewUser = true;
+                    user = new User
+                    {
+                        FullName = payload.Name,
+                        Username = payload.Email.Split('@')[0] + "_" + Guid.NewGuid().ToString()[..6],
+                        Password = CryptoHelperUtil.Encrypt(Guid.NewGuid().ToString()),
+                        Email = payload.Email,
+                        Phone = " ",
+                        DateOfBirth = DateTime.UtcNow.AddYears(-18),
+                        Picture = payload.Picture,
+                        Status = (int)UserStatusEnums.Active,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    await _userRepository.AddAsync(user);
+                    await _userRepository.SaveChangesAsync();
+
+                    var userRole = new UserRole
+                    {
+                        UserID = user.UserID,
+                        RoleID = (int)RoleEnums.User
+                    };
+
+                    await _userRoleRepository.AddAsync(userRole);
+                    await _userRoleRepository.SaveChangesAsync();
+                }
+                else
+                {
+                    user = existingUser;
+
+                    if (!string.IsNullOrEmpty(payload.Picture))
+                    {
+                        user.Picture = payload.Picture;
+                        await _userRepository.UpdateAsync(user);
+                        await _userRepository.SaveChangesAsync();
+                    }
+                }
+
+                var roles = await (from ur in _userRoleRepository.AsQueryable()
+                                   join r in _roleRepository.AsQueryable() on ur.RoleID equals r.RoleID
+                                   where ur.UserID == user.UserID
+                                   select r.Name)
+       .ToListAsync();
+
+                var accessToken = _tokenUtils.GenerateToken(user.UserID);
+                var refreshToken = _tokenUtils.GenerateRefreshToken(user.UserID);
+
+                response.Success = true;
+                response.Message = isNewUser ? "Đăng nhập Google thành công! Tài khoản mới đã được tạo." : "Đăng nhập Google thành công!";
+                response.Data = new LoginRes
+                {
+                    AccessToken = accessToken,
+                    RefreshToken = refreshToken,
+                    UserID = user.UserID,
+                    FullName = user.FullName,
+                    Email = user.Email,
+                    Phone = user.Phone,
+                    Picture = user.Picture,
+                    IsEmailVerified = true,
+                    RoleName = roles
+                };
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = $"Lỗi khi đăng nhập Google: {ex.Message}";
             }
 
             return response;

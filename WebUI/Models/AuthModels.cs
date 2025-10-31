@@ -63,12 +63,18 @@ namespace WebUI.Models
     // DTO for Login API Response
     public class LoginApiResult
     {
-        public string Token { get; set; } = "";
+        public string? AccessToken { get; set; } = "";
+        public string? Token { get; set; } = "";  // Backup cho trường hợp backend dùng "token"
         public string? RefreshToken { get; set; }
         public string? UserId { get; set; }
+        public int? UserID { get; set; }  // Backend dùng UserID thay vì UserId
         public string? FullName { get; set; }
         public string? Email { get; set; }
         public string? Phone { get; set; }
+        public string? Picture { get; set; }
+        public bool IsEmailVerified { get; set; } = false;
+        public string[]? Roles { get; set; }
+        public string[]? RoleName { get; set; }  // Backend dùng RoleName thay vì Roles
     }
 
     // DTO for OTP Verification API
@@ -76,6 +82,16 @@ namespace WebUI.Models
     {
         public string Email { get; set; } = "";
         public string Code { get; set; } = "";
+    }
+
+    // DTO for Google Login
+    public class GoogleLoginRequest
+    {
+        public string Email { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string GoogleId { get; set; } = "";
+        public string Picture { get; set; } = "";
+        public string AccessToken { get; set; } = "";
     }
 
     // API Response Models
@@ -128,10 +144,12 @@ namespace WebUI.Models
         public string FullName { get; set; } = "";
         public string Email { get; set; } = "";
         public string Phone { get; set; } = "";
+        public string? Picture { get; set; } // Avatar URL
         public bool IsEmailVerified { get; set; } = false;
         public bool IsPhoneVerified { get; set; } = false;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? LastLoginAt { get; set; }
+        public string[]? Roles { get; set; }
     }
 
     public class ForgotPasswordRequest

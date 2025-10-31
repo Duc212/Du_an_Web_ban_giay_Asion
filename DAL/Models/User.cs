@@ -30,6 +30,8 @@ namespace DAL.Models
         [MaxLength(20)]
         public string Phone { get; set; }
         public DateTime DateOfBirth { get; set; }
+        [MaxLength(500)]
+        public string? Picture { get; set; }
         [Required]
         public int Status { get; set; }
         public DateTime CreatedAt { get; set; } 
