@@ -1,0 +1,321 @@
+/* Auth Banner Styles */
+.auth-banner-side {
+    position: relative;
+    overflow: hidden;
+}
+
+.banner-content {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Real Banner Background */
+.banner-image-real {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, 
+        #667eea 0%, 
+        #764ba2 25%, 
+        #f093fb 50%, 
+        #f5576c 75%, 
+        #4facfe 100%);
+    background-size: 400% 400%;
+    animation: gradientShift 8s ease infinite;
+}
+
+.banner-image-real::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(120, 219, 226, 0.2) 0%, transparent 50%);
+}
+
+.banner-image-real::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03' fill-rule='evenodd'%3E%3Cpath d='m0 40l40-40h-40z'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Sneaker Icons Floating */
+.sneaker-icons {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.sneaker-icon {
+    position: absolute;
+    font-size: 2rem;
+    color: rgba(255, 255, 255, 0.1);
+    animation: float 6s ease-in-out infinite;
+}
+
+.sneaker-icon:nth-child(1) {
+    top: 10%;
+    left: 15%;
+    animation-delay: 0s;
+    font-size: 1.5rem;
+}
+
+.sneaker-icon:nth-child(2) {
+    top: 20%;
+    right: 20%;
+    animation-delay: 2s;
+    font-size: 2.2rem;
+}
+
+.sneaker-icon:nth-child(3) {
+    top: 60%;
+    left: 10%;
+    animation-delay: 4s;
+    font-size: 1.8rem;
+}
+
+.sneaker-icon:nth-child(4) {
+    bottom: 15%;
+    right: 15%;
+    animation-delay: 1s;
+    font-size: 2rem;
+}
+
+.sneaker-icon:nth-child(5) {
+    top: 40%;
+    left: 80%;
+    animation-delay: 3s;
+    font-size: 1.6rem;
+}
+
+.sneaker-icon:nth-child(6) {
+    bottom: 40%;
+    left: 25%;
+    animation-delay: 5s;
+    font-size: 2.4rem;
+}
+
+/* Brand Logos */
+.brand-logos {
+    position: absolute;
+    bottom: 10%;
+    right: 8%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    opacity: 0.6;
+}
+
+.brand-logo {
+    width: 60px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.7rem;
+    color: white;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: brandFloat 4s ease-in-out infinite;
+}
+
+.brand-logo:nth-child(1) { animation-delay: 0s; }
+.brand-logo:nth-child(2) { animation-delay: 1.3s; }
+.brand-logo:nth-child(3) { animation-delay: 0.7s; }
+.brand-logo:nth-child(4) { animation-delay: 2s; }
+
+/* Animations */
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+    25% {
+        transform: translateY(-20px) rotate(5deg);
+    }
+    50% {
+        transform: translateY(-10px) rotate(-5deg);
+    }
+    75% {
+        transform: translateY(-15px) rotate(3deg);
+    }
+}
+
+@keyframes brandFloat {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Register Theme - Different Colors */
+.register-theme {
+    background: linear-gradient(135deg, 
+        #11998e 0%, 
+        #38ef7d 25%, 
+        #ee0979 50%, 
+        #ff6a00 75%, 
+        #fcb045 100%);
+    background-size: 400% 400%;
+    animation: registerGradientShift 10s ease infinite;
+}
+
+.register-theme::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 80%, rgba(17, 153, 142, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(238, 9, 121, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(56, 239, 125, 0.2) 0%, transparent 50%);
+}
+
+.register-theme .sneaker-icon {
+    color: rgba(255, 255, 255, 0.15);
+}
+
+.register-theme .brand-logos {
+    opacity: 0.7;
+}
+
+.register-theme .brand-logo {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+@keyframes registerGradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Particles Effect */
+.particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    animation: particleFloat 8s linear infinite;
+}
+
+.particle:nth-child(1) {
+    left: 10%;
+    animation-delay: 0s;
+    animation-duration: 8s;
+}
+
+.particle:nth-child(2) {
+    left: 20%;
+    animation-delay: 2s;
+    animation-duration: 6s;
+}
+
+.particle:nth-child(3) {
+    left: 30%;
+    animation-delay: 4s;
+    animation-duration: 10s;
+}
+
+.particle:nth-child(4) {
+    left: 40%;
+    animation-delay: 1s;
+    animation-duration: 7s;
+}
+
+.particle:nth-child(5) {
+    left: 50%;
+    animation-delay: 3s;
+    animation-duration: 9s;
+}
+
+.particle:nth-child(6) {
+    left: 60%;
+    animation-delay: 5s;
+    animation-duration: 8s;
+}
+
+.particle:nth-child(7) {
+    left: 70%;
+    animation-delay: 2.5s;
+    animation-duration: 6.5s;
+}
+
+.particle:nth-child(8) {
+    left: 80%;
+    animation-delay: 4.5s;
+    animation-duration: 7.5s;
+}
+
+@keyframes particleFloat {
+    0% {
+        transform: translateY(100vh) scale(0);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+        transform: translateY(90vh) scale(1);
+    }
+    90% {
+        opacity: 1;
+        transform: translateY(-10vh) scale(1);
+    }
+    100% {
+        transform: translateY(-20vh) scale(0);
+        opacity: 0;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sneaker-icon {
+        font-size: 1.2rem;
+    }
+    
+    .brand-logos {
+        bottom: 5%;
+        right: 5%;
+        gap: 10px;
+    }
+    
+    .brand-logo {
+        width: 50px;
+        height: 35px;
+        font-size: 0.6rem;
+    }
+}
