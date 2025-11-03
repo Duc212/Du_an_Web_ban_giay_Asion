@@ -23,7 +23,7 @@
                     {
                         <div class="cart-item-card">
                             <div class="item-image">
-                                <img src="@item.Product.ImageUrl" alt="@item.Product.Name" />
+                                <img src="@item.Product.PrimaryImageUrl" alt="@item.Product.Name" />
                                 @if (item.Product.HasBadge)
                                 {
                                     <span class="item-badge @(item.Product.IsSale ? "sale" : "")">@item.Product.Badge</span>
@@ -212,7 +212,7 @@
                             @foreach (var product in RecommendedProducts.Take(3))
                             {
                                 <div class="recommended-item" @onclick="() => ViewProduct(product.Id)">
-                                    <img src="@product.ImageUrl" alt="@product.Name" />
+                                    <img src="@product.PrimaryImageUrl" alt="@product.Name" />
                                     <div class="recommended-info">
                                         <p class="recommended-name">@product.Name</p>
                                         <p class="recommended-price">@product.PriceFormatted</p>

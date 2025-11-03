@@ -25,10 +25,11 @@
                     <div class="row mb-4">
                         <div class="col-md-4">
                             <div class="text-center">
-                                <img src="@Product.ImageUrl" 
+                                <img src="@CurrentImageUrl" 
                                      alt="@Product.Name" 
                                      class="img-fluid rounded shadow-sm"
-                                     style="max-height: 200px; object-fit: cover;">
+                                     style="max-height: 200px; object-fit: cover; transition: opacity 0.3s ease;"
+                                     onerror="this.src='@Product.PrimaryImageUrl'">
                             </div>
                         </div>
                         <div class="col-md-8 d-flex flex-column justify-content-center">
@@ -54,6 +55,7 @@
                             {
                                 <button type="button" 
                                         class="btn @(SelectedSize == size ? "btn-primary" : "btn-outline-secondary") rounded-pill px-3"
+                                        style="min-width: 50px; max-width: 60px; height: 38px; padding: 6px 12px !important; border-width: 1px !important; font-size: 14px; transform: none !important; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;"
                                         @onclick="() => SelectSize(size)">
                                     @size
                                 </button>
@@ -73,15 +75,15 @@
                                     <button type="button" 
                                             class="btn p-0 rounded-circle position-relative @(SelectedColor == color ? "border border-primary border-3" : "border")"
                                             style="width: 50px; height: 50px; background-color: @GetColorCode(color); 
-                                                   @(color == "Trắng" ? "border: 2px solid #dee2e6 !important;" : "")"
+                                                   @(color.ToUpper() == "#FFFFFF" ? "border: 2px solid #dee2e6 !important;" : "")"
                                             @onclick="() => SelectColor(color)">
                                         @if (SelectedColor == color)
                                         {
                                             <i class="fas fa-check text-white position-absolute top-50 start-50 translate-middle" 
-                                               style="@(color == "Trắng" || color == "Xanh Lá" ? "color: #000 !important;" : "")"></i>
+                                               style="@(color.ToUpper() == "#FFFFFF" || color.ToUpper() == "#008000" ? "color: #000 !important;" : "")"></i>
                                         }
                                     </button>
-                                    <small class="d-block mt-1 text-muted">@color</small>
+                                    <small class="d-block mt-1 text-muted">@GetColorName(color)</small>
                                 </div>
                             }
                         </div>
@@ -155,9 +157,11 @@
     private string SelectedSize = "";
     private string SelectedColor = "";
     private int Quantity = 1;
+    private string CurrentImageUrl = "";
 
-    private readonly List<string> AvailableSizes = new() { "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45" };
-    private readonly List<string> AvailableColors = new() { "Đen", "Trắng", "Xám", "Xanh Navy", "Đỏ", "Xanh Lá" };
+    // Get available sizes and colors from product data
+    private List<string> AvailableSizes => Product?.Sizes ?? new List<string>();
+    private List<string> AvailableColors => Product?.Colors ?? new List<string>();
 
     protected override void OnParametersSet()
     {
@@ -167,6 +171,7 @@
             SelectedSize = "";
             SelectedColor = "";
             Quantity = 1;
+            CurrentImageUrl = Product.PrimaryImageUrl; // Set default image
         }
     }
 
@@ -179,6 +184,7 @@
     private void SelectColor(string color)
     {
         SelectedColor = color;
+        UpdateImageByColor(color);
         StateHasChanged();
     }
 
@@ -193,18 +199,52 @@
             Quantity--;
     }
 
-    private string GetColorCode(string colorName)
+    private string GetColorCode(string colorInput)
     {
-        return colorName switch
+        // The API already provides hex color codes, so return as is
+        return colorInput;
+    }
+
+    private string GetColorName(string colorInput)
+    {
+        // Convert hex codes from API to readable Vietnamese names
+        return colorInput.ToUpper() switch
         {
-            "Đen" => "#000000",
-            "Trắng" => "#ffffff",
-            "Xám" => "#808080",
-            "Xanh Navy" => "#000080",
-            "Đỏ" => "#ff0000",
-            "Xanh Lá" => "#008000",
-            _ => "#cccccc"
+            "#000000" => "Đen",
+            "#FFFFFF" => "Trắng",
+            "#808080" => "Xám", 
+            "#000080" => "Xanh Navy",
+            "#FF0000" => "Đỏ",
+            "#008000" => "Xanh Lá",
+            "#0000FF" => "Xanh Dương",
+            "#FFFF00" => "Vàng",
+            "#FFA500" => "Cam",
+            "#800080" => "Tím",
+            "#A52A2A" => "Nâu",
+            "#FFC0CB" => "Hồng",
+            "#00FF00" => "Xanh Lá Cây",
+            "#C0C0C0" => "Bạc",
+            _ => "Màu khác"
         };
+    }
+
+    private void UpdateImageByColor(string color)
+    {
+        if (Product?.ColorImages != null && Product.ColorImages.Any())
+        {
+            if (Product.ColorImages.ContainsKey(color) && Product.ColorImages[color].Any())
+            {
+                CurrentImageUrl = Product.ColorImages[color].First();
+            }
+            else
+            {
+                CurrentImageUrl = Product.PrimaryImageUrl;
+            }
+        }
+        else
+        {
+            CurrentImageUrl = Product?.PrimaryImageUrl ?? "";
+        }
     }
 
     private async Task AddToCart()

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using System.ComponentModel.DataAnnotations;
 namespace DAL.Models
 {
     public class Product
@@ -29,5 +23,6 @@ namespace DAL.Models
         public Gender? Gender { get; set; }
 
         public ICollection<ProductVariant> Variants { get; set; } = new List<ProductVariant>();
+        public ICollection<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
     }
 }

@@ -432,7 +432,7 @@
                 await JSRuntime.InvokeVoidAsync("focusElement", GetOtpInput(0));
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             errorMessage = "Có lỗi xảy ra. Vui lòng thử lại.";
         }
@@ -464,7 +464,7 @@
             // Focus first input
             await JSRuntime.InvokeVoidAsync("focusElement", GetOtpInput(0));
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             errorMessage = "Không thể gửi lại mã OTP. Vui lòng thử lại.";
         }

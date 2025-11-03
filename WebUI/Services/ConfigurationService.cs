@@ -70,5 +70,11 @@ namespace WebUI.Services
             var config = await GetConfigurationAsync();
             return config.AppSettings;
         }
+
+        public async Task<string> GetApiBaseUrlAsync()
+        {
+            var apiSettings = await GetApiSettingsAsync();
+            return apiSettings.BaseUrl ?? "https://localhost:7134";
+        }
     }
 }

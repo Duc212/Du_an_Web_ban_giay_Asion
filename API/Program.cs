@@ -72,6 +72,7 @@ builder.Services.AddTransient<IAuthServices, AuthServices>();
 builder.Services.AddTransient<ITokenUtils, TokenUtils>();
 builder.Services.AddTransient<IMailServices, MailServices>();
 builder.Services.AddTransient<IAvatarUtils, AvatarUtils>();
+builder.Services.AddTransient<IProductServices, ProductServices>();
 
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<UserService>();

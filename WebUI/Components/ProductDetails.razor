@@ -56,7 +56,7 @@
                 @foreach (var size in AvailableSizes)
                 {
                     <button class="size-btn @(SelectedSize == size ? "selected" : "")"
-                            @onclick="async () => await SelectSize(size)">
+                            @onclick="() => SelectSize(size)">
                         @size
                     </button>
                 }
@@ -70,10 +70,16 @@
             <div class="color-options">
                 @foreach (var color in AvailableColors)
                 {
-                    <button class="color-btn @(SelectedColor == color.Name ? "selected" : "")"
-                            style="background-color: @color.Value"
+                    <button class="color-btn @(SelectedColor == color.Value ? "selected" : "")"
+                            style="background-color: @color.Value; @(color.Value.ToUpper() == "#FFFFFF" ? "border: 2px solid #dee2e6;" : "")"
                             title="@color.Name"
-                            @onclick="async () => await SelectColor(color.Name)">
+                            @onclick="() => SelectColor(color.Value)">
+                        @if (SelectedColor == color.Value)
+                        {
+                            <i class="fas fa-check" 
+                               style="color: @(color.Value.ToUpper() == "#FFFFFF" || color.Value.ToUpper() == "#FFFF00" ? "#000" : "#fff"); 
+                                      font-size: 12px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                        }
                     </button>
                 }
             </div>
@@ -230,10 +236,10 @@
                 .ToList();
             StockQuantity = Product.StockQuantity;
             
-            // Initialize with parent's values or defaults
+            // Initialize with parent's values
             Quantity = InitialQuantity > 0 ? InitialQuantity : 1;
-            SelectedSize = !string.IsNullOrEmpty(InitialSize) ? InitialSize : (AvailableSizes.FirstOrDefault() ?? "");
-            SelectedColor = !string.IsNullOrEmpty(InitialColor) ? InitialColor : (AvailableColors.FirstOrDefault().Value ?? "");
+            SelectedSize = !string.IsNullOrEmpty(InitialSize) ? InitialSize : "";
+            SelectedColor = !string.IsNullOrEmpty(InitialColor) ? InitialColor : "";
         }
     }
 
@@ -327,16 +333,24 @@
 
     private string GetColorName(string colorHex)
     {
-        return colorHex switch
+        // Convert hex codes from API to readable Vietnamese names (same as modal)
+        return colorHex.ToUpper() switch
         {
-            "#000000" => "Black",
-            "#FFFFFF" => "White", 
-            "#FF0000" => "Red",
-            "#0066CC" => "Blue",
-            "#4169E1" => "Royal Blue",
-            "#708090" => "Slate Gray",
-            "#000080" => "Navy",
-            _ => "Color"
+            "#000000" => "Đen",
+            "#FFFFFF" => "Trắng",
+            "#808080" => "Xám", 
+            "#000080" => "Xanh Navy",
+            "#FF0000" => "Đỏ",
+            "#008000" => "Xanh Lá",
+            "#0000FF" => "Xanh Dương",
+            "#FFFF00" => "Vàng",
+            "#FFA500" => "Cam",
+            "#800080" => "Tím",
+            "#A52A2A" => "Nâu",
+            "#FFC0CB" => "Hồng",
+            "#00FF00" => "Xanh Lá Cây",
+            "#C0C0C0" => "Bạc",
+            _ => "Màu khác"
         };
     }
 }

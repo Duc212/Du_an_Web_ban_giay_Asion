@@ -28,7 +28,7 @@
                 <div class="product-layout">
                     <!-- Left: Product Images -->
                     <div class="product-images-section">
-                        <ProductImageGallery Product="CurrentProduct" />
+                        <ProductImageGallery Product="CurrentProduct" SelectedColor="@SelectedColor" />
                     </div>
 
                     <!-- Right: Product Details -->
@@ -173,8 +173,9 @@
 
     private void OnColorChanged(string newColor)
     {
+        Console.WriteLine($"DEBUG - ProductDetail OnColorChanged: '{newColor}'");
         SelectedColor = newColor;
-        StateHasChanged();
+        StateHasChanged(); // This will cause ProductImageGallery to re-render with new SelectedColor
     }
 
     private async Task ShowToast(string type, string title, string message)

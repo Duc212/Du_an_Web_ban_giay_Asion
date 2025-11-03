@@ -435,9 +435,10 @@
 }
 
 .size-btn.selected {
-    border-color: var(--primary-color);
-    background: var(--primary-color);
+    background-color: var(--primary-color);
     color: white;
+    border-color: var(--primary-color);
+    font-weight: 600;
 }
 
 .size-guide-link {
@@ -465,10 +466,15 @@
     cursor: pointer;
     transition: var(--transition);
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .color-btn.selected {
     border-color: var(--primary-color);
+    border-width: 4px;
+    transform: scale(1.1);
 }
 
 .color-btn:hover {

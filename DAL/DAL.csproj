@@ -26,4 +26,8 @@
     <ProjectReference Include="..\Helper\Helper.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="DTOs\ProductVariants\Req\" />
+  </ItemGroup>
+
 </Project>

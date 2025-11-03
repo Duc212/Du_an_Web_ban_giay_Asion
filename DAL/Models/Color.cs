@@ -14,6 +14,7 @@ namespace DAL.Models
         public int ColorID { get; set; }
         [Required, Unicode(true), MaxLength(30)]
         public string Name { get; set; }
+        public string HexCode { get; set; }
 
         public ICollection<ProductVariant> ProductVariants { get; set; } = new List<ProductVariant>();
     }

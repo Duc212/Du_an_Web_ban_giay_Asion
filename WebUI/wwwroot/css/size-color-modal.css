@@ -24,7 +24,7 @@
     background: white;
     border-radius: 12px;
     width: 90%;
-    max-width: 500px;
+    max-width: 550px;
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
@@ -130,26 +130,29 @@
 }
 
 .size-btn {
-    padding: 10px 16px;
-    border: 2px solid #ddd;
+    padding: 8px 12px;
+    border: 2px solid #e0e0e0;
     background: white;
-    color: #333;
-    font-weight: 600;
+    color: #555;
+    font-weight: 500;
     border-radius: 6px;
     cursor: pointer;
-    transition: all 0.2s ease;
-    min-width: 50px;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    min-width: 45px;
     text-align: center;
+    font-size: 14px;
 }
 
 .size-btn:hover {
-    border-color: #333;
+    border-color: #007bff;
+    color: #007bff;
+    background: rgba(0, 123, 255, 0.05);
 }
 
 .size-btn.selected {
-    background: #333;
+    background: #007bff;
     color: white;
-    border-color: #333;
+    border-color: #007bff;
 }
 
 .color-options {
@@ -159,26 +162,28 @@
 }
 
 .color-btn {
-    width: 50px;
-    height: 50px;
-    border: 3px solid #ddd;
+    width: 45px;
+    height: 45px;
+    border: 2px solid #e0e0e0;
     border-radius: 50%;
     cursor: pointer;
     position: relative;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .color-btn:hover {
-    border-color: #333;
-    transform: scale(1.05);
+    border-color: #007bff;
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .color-btn.selected {
-    border-color: #333;
-    box-shadow: 0 0 0 2px rgba(51, 51, 51, 0.2);
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+    transform: scale(1.1);
 }
 
 .color-name {
@@ -293,6 +298,7 @@
 @media (max-width: 768px) {
     .modal-content {
         width: 95%;
+        max-width: 450px;
         margin: 20px;
     }
     
@@ -305,6 +311,7 @@
         flex-direction: column;
         align-items: center;
         text-align: center;
+        gap: 12px;
     }
     
     .size-options,
@@ -314,28 +321,34 @@
     
     .modal-footer {
         flex-direction: column;
+        gap: 10px;
     }
     
     .btn-cancel,
     .btn-add-cart {
         flex: none;
+        width: 100%;
     }
 }
 
 @media (max-width: 480px) {
+    .modal-content {
+        width: 98%;
+        max-width: 400px;
+    }
+    
     .size-btn {
-        min-width: 45px;
-        padding: 8px 12px;
+        min-width: 40px;
+        padding: 6px 10px;
+        font-size: 13px;
     }
     
     .color-btn {
-        width: 45px;
-        height: 45px;
+        width: 40px;
+        height: 40px;
     }
     
-    .qty-btn {
-        width: 32px;
-        height: 32px;
+    .modal-header h4 {
         font-size: 16px;
     }
 }

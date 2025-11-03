@@ -57,5 +57,10 @@ namespace WebUI.Services.Interfaces
         /// Lấy sản phẩm mới
         /// </summary>
         Task<List<Product>> GetNewProductsAsync();
+
+        /// <summary>
+        /// Lấy sản phẩm với phân trang từ API
+        /// </summary>
+        Task<ProductApiResponse> GetProductsWithPaginationAsync(int currentPage = 1, int recordPerPage = 12);
     }
 }

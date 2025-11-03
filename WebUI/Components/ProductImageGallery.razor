@@ -1,4 +1,4 @@
-@using WebUI.Models
+﻿@using WebUI.Models
 
 <!-- Product Image Gallery Component -->
 <div class="product-image-gallery">
@@ -87,6 +87,7 @@
 
 @code {
     [Parameter] public Product Product { get; set; } = new();
+    [Parameter] public string SelectedColor { get; set; } = "";
 
     private string SelectedImageUrl { get; set; } = "";
     private bool ShowImageModal { get; set; } = false;
@@ -95,26 +96,69 @@
     {
         if (Product != null)
         {
-            SelectedImageUrl = Product.ImageUrl;
+            UpdateImageByColor();
         }
+    }
+
+    private void UpdateImageByColor()
+    {
+        if (!string.IsNullOrEmpty(SelectedColor) && Product?.ColorImages != null && Product.ColorImages.ContainsKey(SelectedColor))
+        {
+            var colorImages = Product.ColorImages[SelectedColor];
+            if (colorImages != null && colorImages.Any())
+            {
+                SelectedImageUrl = colorImages.First();
+                return;
+            }
+        }
+        
+        // Fallback to primary image
+        SelectedImageUrl = Product?.PrimaryImageUrl ?? "";
     }
 
     private List<string> GetProductImages()
     {
-        var images = new List<string> { Product.ImageUrl };
+        var images = new List<string>();
         
-        // Add additional product images (simulated)
-        // In real app, Product would have multiple images property
-        var baseUrl = Product.ImageUrl;
-        if (baseUrl.Contains("trungsneaker.com"))
+        // If a color is selected, prioritize that color's images
+        if (!string.IsNullOrEmpty(SelectedColor) && Product?.ColorImages != null && Product.ColorImages.ContainsKey(SelectedColor))
         {
-            // Add more variants for demo
-            images.Add("https://trungsneaker.com/wp-content/uploads/2021/08/Nike-Air-Force-1-Low-Triple-White-CW2288-111.jpg");
-            images.Add("https://trungsneaker.com/wp-content/uploads/2021/08/Nike-Air-Force-1-Low-Triple-Black-CW2288-001.jpg");
-            images.Add("https://trungsneaker.com/wp-content/uploads/2023/10/Giay-New-Balance-550-White-Green-BBW550VG-1.jpg");
+            var colorImages = Product.ColorImages[SelectedColor];
+            if (colorImages != null && colorImages.Any())
+            {
+                images.AddRange(colorImages);
+            }
         }
         
-        return images.Distinct().ToList();
+        // Add Images array from API if available
+        if (Product?.Images != null && Product.Images.Any())
+        {
+            images.AddRange(Product.Images);
+        }
+        
+        // Add all other color images if available
+        if (Product?.ColorImages != null && Product.ColorImages.Any())
+        {
+            foreach (var kvp in Product.ColorImages)
+            {
+                // Skip the already added selected color
+                if (kvp.Key == SelectedColor) continue;
+                
+                if (kvp.Value != null && kvp.Value.Any())
+                {
+                    images.AddRange(kvp.Value);
+                }
+            }
+        }
+        
+        // Fallback to PrimaryImageUrl if no images found
+        if (!images.Any())
+        {
+            images.Add(Product?.PrimaryImageUrl ?? "");
+        }
+        
+        // Remove duplicates and empty strings
+        return images.Where(img => !string.IsNullOrEmpty(img)).Distinct().ToList();
     }
 
     private void SelectImage(string imageUrl)

@@ -37,7 +37,7 @@
                                     @product.Badge
                                 </span>
                             }
-                            <img src="@product.ImageUrl" alt="@product.Name" />
+                            <img src="@product.PrimaryImageUrl" alt="@product.Name" />
                             
                             <!-- Quick Actions Overlay -->
                             <div class="quick-actions-overlay">
@@ -148,7 +148,7 @@
                 @foreach (var recentProduct in RecentlyViewedProducts.Take(4))
                 {
                     <div class="recently-viewed-item" @onclick="() => OnProductClick(recentProduct)">
-                        <img src="@recentProduct.ImageUrl" alt="@recentProduct.Name" />
+                        <img src="@recentProduct.PrimaryImageUrl" alt="@recentProduct.Name" />
                         <div class="recently-viewed-info">
                             <span class="recent-name">@TruncateProductName(recentProduct.Name)</span>
                             <span class="recent-price">@recentProduct.Price</span>
