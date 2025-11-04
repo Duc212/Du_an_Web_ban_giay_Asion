@@ -1,7 +1,10 @@
 @page "/cart"
 @using WebUI.Models
+@using WebUI.Models.Cart
 @using WebUI.Services
+@using WebUI.Services.Interfaces
 @inject CartService CartService
+@inject IAuthService AuthService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 
@@ -11,16 +14,99 @@
     <div class="container">
         <div class="cart-header">
             <h1>Giỏ hàng của bạn</h1>
-            <p class="cart-count">@CartItems.Count sản phẩm</p>
+            <p class="cart-count">@GetCartItemCount() sản phẩm</p>
+            @if (AuthService.IsAuthenticated)
+            {
+                <span class="cart-source-badge">API Cart</span>
+            }
+            else
+            {
+                <span class="cart-source-badge guest">Local Cart</span>
+            }
         </div>
 
-        @if (CartItems.Any())
+        @if (IsLoadingCart)
+        {
+            <div class="loading-cart" style="text-align: center; padding: 50px;">
+                <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--primary-color);"></i>
+                <p style="margin-top: 20px; font-size: 1.1rem;">Đang tải giỏ hàng...</p>
+            </div>
+        }
+        else if (HasCartItems())
         {
             <div class="cart-content">
                 <!-- Cart Items List -->
                 <div class="cart-items-section">
-                    @foreach (var item in CartItems)
+                    @if (ApiCart?.Items.Any() == true)
                     {
+                        @* Render API Cart Items *@
+                        @foreach (var apiItem in ApiCart.Items)
+                        {
+                            <div class="cart-item-card">
+                                <div class="item-image">
+                                    <img src="@apiItem.ImageUrl" alt="@apiItem.ProductName" />
+                                </div>
+
+                                <div class="item-details">
+                                    <div class="item-info">
+                                        <h3 class="item-name">@apiItem.ProductName</h3>
+                                        <p class="item-brand">@apiItem.Brand</p>
+                                        
+                                        <div class="item-specifications">
+                                            <div class="spec-item">
+                                                <span class="spec-label">Size:</span>
+                                                <span class="spec-value">@apiItem.Size</span>
+                                            </div>
+                                            <div class="spec-item">
+                                                <span class="spec-label">Màu sắc:</span>
+                                                <div class="color-indicator">
+                                                    <div class="color-swatch" style="background-color: @apiItem.ColorHex"></div>
+                                                    <span class="color-name">@apiItem.Color</span>
+                                                </div>
+                                            </div>
+                                            <div class="spec-item">
+                                                <span class="spec-label">Mã sản phẩm:</span>
+                                                <span class="spec-value">#@apiItem.ProductID.ToString().PadLeft(6, '0')</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Quantity Controls -->
+                                    <div class="item-quantity">
+                                        <button class="qty-btn" disabled>
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <input type="number" value="@apiItem.Quantity" min="1" max="@apiItem.StockQuantity" readonly />
+                                        <button class="qty-btn" disabled>
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+
+                                    <!-- Price -->
+                                    <div class="item-price">
+                                        <span class="price-current">@apiItem.PriceFormatted</span>
+                                    </div>
+
+                                    <div class="item-actions">
+                                        <button class="btn-remove" @onclick="() => RemoveApiCartItem(apiItem.CartItemID)" title="Xóa khỏi giỏ">
+                                            <i class="fas fa-trash"></i>
+                                            Xóa
+                                        </button>
+                                    </div>
+
+                                    <div class="item-total">
+                                        <span class="total-label">Thành tiền:</span>
+                                        <span class="total-amount">@apiItem.TotalPriceFormatted</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        @* Render Local Cart Items *@
+                        @foreach (var item in CartItems)
+                        {
                         <div class="cart-item-card">
                             <div class="item-image">
                                 <img src="@item.Product.PrimaryImageUrl" alt="@item.Product.Name" />
@@ -120,6 +206,7 @@
                                 </div>
                             </div>
                         </div>
+                        }
                     }
 
                     <!-- Cart Actions -->
@@ -242,14 +329,24 @@
 </div>
 
 @code {
+    // Local cart (for guest users)
     private List<CartItem> CartItems = new();
+    
+    // API cart (for authenticated users)
+    private CartSummaryResponse? ApiCart = null;
+    private bool IsLoadingCart = false;
+    
     private List<Product> RecommendedProducts = new();
     private string PromoCode = string.Empty;
     private string PromoMessage = string.Empty;
     private bool PromoSuccess = false;
 
-    private int TotalItems => CartItems.Sum(item => item.Quantity);
-    private decimal Subtotal => CartItems.Sum(item => item.Product.Price * item.Quantity);
+    // Helper methods for hybrid cart
+    private int GetCartItemCount() => ApiCart?.UniqueProductCount ?? CartItems.Count;
+    private bool HasCartItems() => (ApiCart?.Items.Any() == true) || CartItems.Any();
+    
+    private int TotalItems => ApiCart?.TotalItems ?? CartItems.Sum(item => item.Quantity);
+    private decimal Subtotal => ApiCart?.TotalAmount ?? CartItems.Sum(item => item.Product.Price * item.Quantity);
     private decimal TotalDiscount => CartItems.Sum(item => (item.Product.OriginalPrice ?? item.Product.Price) - item.Product.Price) * CartItems.Where(c => c.Product.OriginalPrice.HasValue).Sum(c => c.Quantity);
     private decimal ShippingFee => Subtotal >= 500000 ? 0 : 30000;
     private decimal Total => Subtotal + ShippingFee;
@@ -260,8 +357,13 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // Subscribe to cart changes
         CartService.OnCartChanged += UpdateCart;
-        UpdateCart();
+        
+        // Subscribe to auth state changes để reload cart khi login/logout
+        AuthService.AuthStateChanged += OnAuthStateChanged;
+        
+        await LoadCartAsync();
         
         // Load recommended products (mock data for now)
         RecommendedProducts = new List<Product>
@@ -272,10 +374,60 @@
         };
     }
 
-    private void UpdateCart()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        CartItems = CartService.GetItems();
-        InvokeAsync(StateHasChanged);
+        if (firstRender)
+        {
+            await Task.Delay(200);
+            if (AuthService.IsAuthenticated && ApiCart == null)
+            {
+                await LoadCartAsync();
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async void OnAuthStateChanged(object? sender, bool isAuthenticated)
+    {
+        await LoadCartAsync();
+    }
+
+    /// <summary>
+    /// Load cart: API cart nếu đã login, local cart nếu guest
+    /// </summary>
+    private async Task LoadCartAsync()
+    {
+        await Task.Delay(100);
+        
+        IsLoadingCart = true;
+        StateHasChanged();
+        
+        if (AuthService.IsAuthenticated)
+        {
+            ApiCart = await CartService.GetCartFromApiAsync();
+            
+            if (ApiCart != null)
+            {
+                CartItems.Clear();
+            }
+            else
+            {
+                CartItems = CartService.GetItems();
+            }
+        }
+        else
+        {
+            ApiCart = null;
+            CartItems = CartService.GetItems();
+        }
+        
+        IsLoadingCart = false;
+        StateHasChanged();
+    }
+
+    private async void UpdateCart()
+    {
+        await LoadCartAsync();
     }
 
     private string GetColorName(string colorCode)
@@ -352,9 +504,20 @@
         await RemoveItem(item);
     }
 
-    private void ClearCart()
+    private async Task ClearCart()
     {
-        CartService.ClearCart();
+        if (AuthService.IsAuthenticated && ApiCart != null)
+        {
+            var success = await CartService.ClearCartAsync();
+            if (success)
+            {
+                await LoadCartAsync();
+            }
+        }
+        else
+        {
+            CartService.ClearCart();
+        }
     }
 
     private void ContinueShopping()
@@ -389,8 +552,26 @@
         Navigation.NavigateTo($"/product/{productId}");
     }
 
+    /// <summary>
+    /// Xóa item từ API cart
+    /// </summary>
+    private async Task RemoveApiCartItem(int cartItemId)
+    {
+        var success = await CartService.RemoveCartItemAsync(cartItemId);
+        
+        if (success)
+        {
+            await LoadCartAsync();
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Không thể xóa sản phẩm. Vui lòng thử lại.");
+        }
+    }
+
     public void Dispose()
     {
         CartService.OnCartChanged -= UpdateCart;
+        AuthService.AuthStateChanged -= OnAuthStateChanged;
     }
 }

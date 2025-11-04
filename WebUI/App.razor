@@ -1,4 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Components.Web
+@using WebUI.Services.Interfaces
+@inject IAuthService AuthService
 
 <Router AppAssembly="@typeof(App).Assembly">
   <Found Context="routeData">
@@ -23,3 +25,10 @@
         </LayoutView>
     </NotFound>
 </Router>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthService.InitializeAsync();
+    }
+}

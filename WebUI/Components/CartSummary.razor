@@ -1,5 +1,8 @@
 @using WebUI.Services
+@using WebUI.Services.Interfaces
+@using WebUI.Models.Cart
 @inject CartService CartService
+@inject IAuthService AuthService
 @implements IDisposable
 
 <div class="cart-summary">
@@ -15,40 +18,84 @@
     {
         <div class="cart-dropdown">
             <div class="cart-header">
-                <h3>Shopping Cart (@TotalItems items)</h3>
+                <h3>Shopping Cart (@TotalItems items) @(AuthService.IsAuthenticated ? "🔐" : "👤")</h3>
                 <button class="close-btn" @onclick="CloseDropdown">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             
+            @if (IsLoadingCart)
+            {
+                <div style="padding: 20px; text-align: center;">
+                    <i class="fas fa-spinner fa-spin"></i> Loading cart...
+                </div>
+            }
+            else
+            {
             <div class="cart-items">
-                @foreach (var item in CartItems)
+                @if (AuthService.IsAuthenticated && ApiCart?.Items != null)
                 {
-                    <div class="cart-item">
-                        <div class="item-image">
-                            <img src="@item.Product.PrimaryImageUrl" alt="@item.Product.Name" />
-                        </div>
-                        <div class="item-details">
-                            <div class="item-name">@item.Product.Name</div>
-                            <div class="item-options">
-                                @if (!string.IsNullOrEmpty(item.SelectedSize))
-                                {
-                                    <span>Size: @item.SelectedSize</span>
-                                }
-                                @if (!string.IsNullOrEmpty(item.SelectedColor))
-                                {
-                                    <span>Color: @item.SelectedColor</span>
-                                }
+                    @* Render API cart items for authenticated users *@
+                    @foreach (var item in ApiCart.Items)
+                    {
+                        <div class="cart-item">
+                            <div class="item-image">
+                                <img src="@item.ImageUrl" alt="@item.ProductName" />
                             </div>
-                            <div class="item-price">
-                                <span class="quantity">@item.Quantity x</span>
-                                <span class="price">@item.Product.PriceFormatted</span>
+                            <div class="item-details">
+                                <div class="item-name">@item.ProductName</div>
+                                <div class="item-options">
+                                    @if (!string.IsNullOrEmpty(item.Size))
+                                    {
+                                        <span>Size: @item.Size</span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(item.Color))
+                                    {
+                                        <span>Color: @item.Color</span>
+                                    }
+                                </div>
+                                <div class="item-price">
+                                    <span class="quantity">@item.Quantity x</span>
+                                    <span class="price">@FormatPrice(item.Price)</span>
+                                </div>
                             </div>
+                            <button class="remove-btn" @onclick="() => RemoveApiCartItem(item.CartItemID)" title="Remove item">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
-                        <button class="remove-btn" @onclick="() => RemoveItem(item)" title="Remove item">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
+                    }
+                }
+                else
+                {
+                    @* Render local cart items for guests *@
+                    @foreach (var item in CartItems)
+                    {
+                        <div class="cart-item">
+                            <div class="item-image">
+                                <img src="@item.Product.PrimaryImageUrl" alt="@item.Product.Name" />
+                            </div>
+                            <div class="item-details">
+                                <div class="item-name">@item.Product.Name</div>
+                                <div class="item-options">
+                                    @if (!string.IsNullOrEmpty(item.SelectedSize))
+                                    {
+                                        <span>Size: @item.SelectedSize</span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(item.SelectedColor))
+                                    {
+                                        <span>Color: @item.SelectedColor</span>
+                                    }
+                                </div>
+                                <div class="item-price">
+                                    <span class="quantity">@item.Quantity x</span>
+                                    <span class="price">@item.Product.PriceFormatted</span>
+                                </div>
+                            </div>
+                            <button class="remove-btn" @onclick="() => RemoveItem(item)" title="Remove item">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    }
                 }
             </div>
             
@@ -61,6 +108,7 @@
                     <button class="btn btn-primary" @onclick="GoToCheckout">Checkout</button>
                 </div>
             </div>
+            }
         </div>
     }
 </div>
@@ -69,26 +117,122 @@
     [Parameter] public bool ShowDropdown { get; set; } = false;
     
     private List<CartItem> CartItems = new();
+    private CartSummaryResponse? ApiCart = null;
     private int TotalItems = 0;
     private decimal TotalPrice = 0;
+    private bool IsLoadingCart = false;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        Console.WriteLine("[CartSummary] OnInitializedAsync - Subscribing to events");
         CartService.OnCartChanged += UpdateCart;
-        UpdateCart();
+        AuthService.AuthStateChanged += OnAuthStateChanged;
+        
+        // Initial load - might not have auth yet
+        await LoadCartAsync();
     }
 
-    private void UpdateCart()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        CartItems = CartService.GetItems();
-        TotalItems = CartService.GetTotalItems();
-        TotalPrice = CartService.GetTotalPrice();
-        InvokeAsync(StateHasChanged);
+        if (firstRender)
+        {
+            Console.WriteLine($"[CartSummary] First render - IsAuthenticated: {AuthService?.IsAuthenticated}");
+            Console.WriteLine($"[CartSummary] First render - CurrentToken exists: {AuthService?.CurrentToken != null}");
+            Console.WriteLine($"[CartSummary] First render - ApiCart: {(ApiCart != null ? "EXISTS" : "NULL")}");
+            Console.WriteLine($"[CartSummary] First render - TotalItems: {TotalItems}");
+            
+            // Poll for auth state multiple times với delay
+            for (int i = 0; i < 5; i++)
+            {
+                await Task.Delay(100 * (i + 1)); // 100ms, 200ms, 300ms, 400ms, 500ms
+                
+                Console.WriteLine($"[CartSummary] Poll {i + 1}/5 - IsAuthenticated: {AuthService?.IsAuthenticated}");
+                
+                if (AuthService?.IsAuthenticated == true && ApiCart == null)
+                {
+                    Console.WriteLine($"[CartSummary] Poll {i + 1} - Authenticated detected, reloading cart...");
+                    await LoadCartAsync();
+                    await InvokeAsync(StateHasChanged);
+                    break; // Stop polling once we loaded
+                }
+            }
+        }
     }
 
-    private void ToggleCartDropdown()
+    private async void OnAuthStateChanged(object? sender, bool isAuthenticated)
+    {
+        await LoadCartAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadCartAsync()
+    {
+        Console.WriteLine("========== [CartSummary] LoadCartAsync START ==========");
+        Console.WriteLine($"[CartSummary] AuthService.IsAuthenticated: {AuthService?.IsAuthenticated}");
+        
+        IsLoadingCart = true;
+        try
+        {
+            if (AuthService.IsAuthenticated)
+            {
+                Console.WriteLine("[CartSummary] 🔐 Loading cart from API...");
+                // Load cart from API for authenticated users
+                ApiCart = await CartService.GetCartFromApiAsync();
+                TotalItems = ApiCart?.TotalItems ?? 0;
+                TotalPrice = ApiCart?.TotalAmount ?? 0;
+                
+                Console.WriteLine($"[CartSummary] ✅ API Cart loaded - TotalItems: {TotalItems}, Items count: {ApiCart?.Items?.Count ?? 0}");
+            }
+            else
+            {
+                Console.WriteLine("[CartSummary] 👤 Loading local cart...");
+                // Load cart from local storage for guests
+                CartItems = CartService.GetItems();
+                TotalItems = CartService.GetTotalItems();
+                TotalPrice = CartService.GetTotalPrice();
+                ApiCart = null;
+                
+                Console.WriteLine($"[CartSummary] Local cart loaded - TotalItems: {TotalItems}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[CartSummary] ❌ Error loading cart: {ex.Message}");
+            // Fallback to local cart on error
+            CartItems = CartService.GetItems();
+            TotalItems = CartService.GetTotalItems();
+            TotalPrice = CartService.GetTotalPrice();
+            ApiCart = null;
+        }
+        finally
+        {
+            IsLoadingCart = false;
+            Console.WriteLine($"[CartSummary] Final TotalItems: {TotalItems}");
+            Console.WriteLine("========== [CartSummary] LoadCartAsync END ==========");
+        }
+    }
+
+    private async void UpdateCart()
+    {
+        await LoadCartAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ToggleCartDropdown()
     {
         ShowDropdown = !ShowDropdown;
+        
+        Console.WriteLine($"[CartSummary] Cart clicked - TotalItems: {TotalItems}, ShowDropdown: {ShowDropdown}");
+        Console.WriteLine($"[CartSummary] IsAuthenticated: {AuthService?.IsAuthenticated}");
+        Console.WriteLine($"[CartSummary] ApiCart: {(ApiCart != null ? "EXISTS" : "NULL")}");
+        
+        // Khi mở dropdown, reload cart nếu authenticated nhưng chưa có API cart
+        if (ShowDropdown && AuthService?.IsAuthenticated == true && (ApiCart == null || TotalItems == 0))
+        {
+            Console.WriteLine("[CartSummary] Dropdown opened - Reloading cart from API...");
+            await LoadCartAsync();
+            StateHasChanged();
+        }
     }
 
     private void CloseDropdown()
@@ -96,15 +240,46 @@
         ShowDropdown = false;
     }
 
-    private void RemoveItem(CartItem item)
+    private async Task RemoveItem(CartItem item)
     {
-        CartService.RemoveItem(item.Product.Id, item.SelectedSize, item.SelectedColor);
+        if (AuthService.IsAuthenticated)
+        {
+            // For API cart, we need the cartItemId
+            // Since local CartItem doesn't have it, we'll fallback to local remove
+            CartService.RemoveItem(item.Product.Id, item.SelectedSize, item.SelectedColor);
+        }
+        else
+        {
+            CartService.RemoveItem(item.Product.Id, item.SelectedSize, item.SelectedColor);
+        }
+        await LoadCartAsync();
     }
 
-    private void ClearCart()
+    private async Task RemoveApiCartItem(int cartItemId)
     {
-        CartService.ClearCart();
+        try
+        {
+            await CartService.RemoveCartItemAsync(cartItemId);
+            await LoadCartAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error removing cart item: {ex.Message}");
+        }
+    }
+
+    private async Task ClearCart()
+    {
+        if (AuthService.IsAuthenticated)
+        {
+            await CartService.ClearCartAsync();
+        }
+        else
+        {
+            CartService.ClearCart();
+        }
         ShowDropdown = false;
+        await LoadCartAsync();
     }
 
     private void GoToCheckout()
@@ -122,6 +297,7 @@
     public void Dispose()
     {
         CartService.OnCartChanged -= UpdateCart;
+        AuthService.AuthStateChanged -= OnAuthStateChanged;
     }
 }
 

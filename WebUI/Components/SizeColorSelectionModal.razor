@@ -251,10 +251,17 @@
     {
         if (Product != null && !string.IsNullOrEmpty(SelectedSize) && !string.IsNullOrEmpty(SelectedColor))
         {
-            CartService.AddItem(Product, Quantity, SelectedSize, SelectedColor);
+            var response = await CartService.AddToCartAsync(Product, Quantity, SelectedSize, SelectedColor);
             
-            // Only trigger the callback, let ProductCard handle the toast notification
-            await OnAddToCart.InvokeAsync($"Thêm thành công! {Product.Name} (Size: {SelectedSize}, Màu: {SelectedColor}) x{Quantity}");
+            if (response?.Success == true)
+            {
+                await OnAddToCart.InvokeAsync($"Thêm thành công! {Product.Name} (Size: {SelectedSize}, Màu: {SelectedColor}) x{Quantity}");
+            }
+            else
+            {
+                await OnAddToCart.InvokeAsync($"Không thể thêm vào giỏ hàng. {response?.Message ?? "Vui lòng thử lại."}");
+            }
+            
             await CloseModal();
         }
     }

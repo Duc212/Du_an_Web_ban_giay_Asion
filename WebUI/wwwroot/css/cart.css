@@ -15,6 +15,7 @@
 .cart-header {
     text-align: center;
     margin-bottom: 40px;
+    position: relative;
 }
 
 .cart-header h1 {
@@ -28,6 +29,26 @@
     color: #666;
     font-size: 1.1rem;
     margin: 0;
+}
+
+.cart-source-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 10px;
+    background: #28a745;
+    color: white;
+}
+
+.cart-source-badge.guest {
+    background: #6c757d;
+}
+
+.loading-cart {
+    text-align: center;
+    padding: 50px;
 }
 
 /* Cart Content Layout */

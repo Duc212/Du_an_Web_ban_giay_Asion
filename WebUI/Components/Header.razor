@@ -1,6 +1,9 @@
 @using WebUI.Components
 @using WebUI.Services
+@using WebUI.Services.Interfaces
+@using WebUI.Models.Cart
 @inject CartService CartService
+@inject IAuthService AuthService
 @inject NavigationManager Navigation
 @implements IDisposable
 
@@ -50,21 +53,45 @@
             @if (CartItemsCount > 0)
             {
                 <div class="cart-items-list">
-                    @foreach (var item in CartService.GetItems())
+                    @if (AuthService?.IsAuthenticated == true && ApiCart?.Items != null)
                     {
-                        <div class="cart-item-row">
-                            <img src="@item.Product.PrimaryImageUrl" alt="@item.Product.Name" class="item-thumb" />
-                            <div class="item-info">
-                                <h4>@item.Product.Name</h4>
-                                <p>@item.Product.Brand</p>
-                                <div class="item-price-qty">
-                                    <span>@item.Product.PriceFormatted x @item.Quantity</span>
+                        @* Render API Cart Items *@
+                        @foreach (var apiItem in ApiCart.Items)
+                        {
+                            <div class="cart-item-row">
+                                <img src="@apiItem.ImageUrl" alt="@apiItem.ProductName" class="item-thumb" />
+                                <div class="item-info">
+                                    <h4>@apiItem.ProductName</h4>
+                                    <p>@apiItem.Brand</p>
+                                    <div class="item-price-qty">
+                                        <span>@apiItem.PriceFormatted x @apiItem.Quantity</span>
+                                    </div>
                                 </div>
+                                <button class="remove-item-btn" @onclick="() => RemoveApiCartItem(apiItem.CartItemID)">
+                                    <i class="fas fa-times"></i>
+                                </button>
                             </div>
-                            <button class="remove-item-btn" @onclick="() => RemoveCartItem(item.Product.Id)">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
+                        }
+                    }
+                    else
+                    {
+                        @* Render Local Cart Items *@
+                        @foreach (var item in LocalCartItems)
+                        {
+                            <div class="cart-item-row">
+                                <img src="@item.Product.PrimaryImageUrl" alt="@item.Product.Name" class="item-thumb" />
+                                <div class="item-info">
+                                    <h4>@item.Product.Name</h4>
+                                    <p>@item.Product.Brand</p>
+                                    <div class="item-price-qty">
+                                        <span>@item.Product.PriceFormatted x @item.Quantity</span>
+                                    </div>
+                                </div>
+                                <button class="remove-item-btn" @onclick="() => RemoveCartItem(item.Product.Id)">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        }
                     }
                 </div>
                 
@@ -92,17 +119,55 @@
 @code {
     private int CartItemsCount = 0;
     private bool ShowCartSummary = false;
+    private CartSummaryResponse? ApiCart = null;
+    private List<WebUI.Services.CartItem> LocalCartItems = new();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        CartService.OnCartChanged += UpdateCartCount;
-        UpdateCartCount();
+        CartService.OnCartChanged += UpdateCart;
+        AuthService.AuthStateChanged += OnAuthStateChanged;
+        
+        // Wait for AuthService to initialize
+        await Task.Delay(100);
+        await LoadCartAsync();
     }
 
-    private void UpdateCartCount()
+    private async void OnAuthStateChanged(object? sender, bool isAuthenticated)
     {
-        CartItemsCount = CartService.GetTotalItems();
-        InvokeAsync(StateHasChanged);
+        await LoadCartAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadCartAsync()
+    {
+        try
+        {
+            if (AuthService?.IsAuthenticated == true)
+            {
+                ApiCart = await CartService.GetCartFromApiAsync();
+                CartItemsCount = ApiCart?.TotalItems ?? 0;
+                LocalCartItems.Clear();
+            }
+            else
+            {
+                ApiCart = null;
+                LocalCartItems = CartService.GetItems();
+                CartItemsCount = CartService.GetTotalItems();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Header] Error loading cart: {ex.Message}");
+            LocalCartItems = CartService.GetItems();
+            CartItemsCount = CartService.GetTotalItems();
+            ApiCart = null;
+        }
+    }
+
+    private async void UpdateCart()
+    {
+        await LoadCartAsync();
+        await InvokeAsync(StateHasChanged);
     }
 
     private void OnSearchClick()
@@ -115,10 +180,15 @@
         // This method is no longer needed since UserDropdown handles user interaction
     }
 
-    private void OnCartClick()
+    private async Task OnCartClick()
     {
         ShowCartSummary = !ShowCartSummary;
-        Console.WriteLine($"Cart clicked - {CartItemsCount} items, ShowCart: {ShowCartSummary}");
+        
+        if (ShowCartSummary)
+        {
+            await LoadCartAsync();
+        }
+        
         StateHasChanged();
     }
 
@@ -133,8 +203,23 @@
         CartService.RemoveItem(productId);
     }
 
+    private async Task RemoveApiCartItem(int cartItemId)
+    {
+        var success = await CartService.RemoveCartItemAsync(cartItemId);
+        
+        if (success)
+        {
+            await LoadCartAsync();
+            StateHasChanged();
+        }
+    }
+
     private string GetCartTotal()
     {
+        if (AuthService?.IsAuthenticated == true && ApiCart != null)
+        {
+            return $"{ApiCart.TotalAmount:N0}đ";
+        }
         return $"{CartService.GetTotalPrice():N0}đ";
     }
 
@@ -154,6 +239,7 @@
 
     public void Dispose()
     {
-        CartService.OnCartChanged -= UpdateCartCount;
+        CartService.OnCartChanged -= UpdateCart;
+        AuthService.AuthStateChanged -= OnAuthStateChanged;
     }
 }

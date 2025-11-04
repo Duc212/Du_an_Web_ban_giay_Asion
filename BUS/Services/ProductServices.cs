@@ -72,13 +72,13 @@ namespace BUS.Services
 
                 // Get product images with Color information
                 var productImages = await _productImageRepository.AsNoTrackingQueryable()
-             .Where(img => productIds.Contains(img.ProductID) && img.IsActive)
-                .Include(img => img.Color)
-              .OrderBy(img => img.DisplayOrder)
-    .ToListAsync();
+                         .Where(img => productIds.Contains(img.ProductID) && img.IsActive)
+                            .Include(img => img.Color)
+                          .OrderBy(img => img.DisplayOrder)
+                .ToListAsync();
 
                 var variantGroups = variants.GroupBy(v => v.ProductID)
-               .ToDictionary(g => g.Key, g => g.ToList());
+   .ToDictionary(g => g.Key, g => g.ToList());
 
                 var imageGroups = productImages.GroupBy(img => img.ProductID)
                 .ToDictionary(g => g.Key, g => g.ToList());
@@ -173,9 +173,9 @@ namespace BUS.Services
                                        StockQuantity = productVariants.Sum(v => v.StockQuantity),
                                        Sizes = availableSizes,
                                        Colors = availableColors,
-                                       Rating = GetProductRating(item.product.ProductID), 
-                                       ReviewCount = GetProductReviewCount(item.product.ProductID), 
-                                       Features = GetProductFeatures(item.product.ProductID), 
+                                       Rating = GetProductRating(item.product.ProductID),
+                                       ReviewCount = GetProductReviewCount(item.product.ProductID),
+                                       Features = GetProductFeatures(item.product.ProductID),
                                        Images = imageUrls,
                                        ColorImages = colorImages,
                                        Badge = DetermineBadge(item.product, productVariants)

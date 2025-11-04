@@ -50,40 +50,58 @@
     <!-- Product Options (Size, Color, etc.) -->
     <div class="product-options">
         <!-- Size Selection -->
-        <div class="option-group">
-            <label class="option-label">Size:</label>
-            <div class="size-options">
-                @foreach (var size in AvailableSizes)
-                {
-                    <button class="size-btn @(SelectedSize == size ? "selected" : "")"
-                            @onclick="() => SelectSize(size)">
-                        @size
-                    </button>
-                }
+        @if (AvailableSizes?.Any() == true)
+        {
+            <div class="option-group">
+                <label class="option-label">
+                    Size: 
+                    @if (string.IsNullOrEmpty(SelectedSize))
+                    {
+                        <span style="color: red; font-size: 0.85em;">(Required)</span>
+                    }
+                </label>
+                <div class="size-options">
+                    @foreach (var size in AvailableSizes)
+                    {
+                        <button class="size-btn @(SelectedSize == size ? "selected" : "")"
+                                @onclick="() => SelectSize(size)">
+                            @size
+                        </button>
+                    }
+                </div>
+                <a href="#size-guide" class="size-guide-link">Size Guide</a>
             </div>
-            <a href="#size-guide" class="size-guide-link">Size Guide</a>
-        </div>
+        }
 
         <!-- Color Selection -->
-        <div class="option-group">
-            <label class="option-label">Color:</label>
-            <div class="color-options">
-                @foreach (var color in AvailableColors)
-                {
-                    <button class="color-btn @(SelectedColor == color.Value ? "selected" : "")"
-                            style="background-color: @color.Value; @(color.Value.ToUpper() == "#FFFFFF" ? "border: 2px solid #dee2e6;" : "")"
-                            title="@color.Name"
-                            @onclick="() => SelectColor(color.Value)">
-                        @if (SelectedColor == color.Value)
-                        {
-                            <i class="fas fa-check" 
-                               style="color: @(color.Value.ToUpper() == "#FFFFFF" || color.Value.ToUpper() == "#FFFF00" ? "#000" : "#fff"); 
-                                      font-size: 12px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
-                        }
-                    </button>
-                }
+        @if (AvailableColors?.Any() == true)
+        {
+            <div class="option-group">
+                <label class="option-label">
+                    Color: 
+                    @if (string.IsNullOrEmpty(SelectedColor))
+                    {
+                        <span style="color: red; font-size: 0.85em;">(Required)</span>
+                    }
+                </label>
+                <div class="color-options">
+                    @foreach (var color in AvailableColors)
+                    {
+                        <button class="color-btn @(SelectedColor == color.Value ? "selected" : "")"
+                                style="background-color: @color.Value; @(color.Value.ToUpper() == "#FFFFFF" ? "border: 2px solid #dee2e6;" : "")"
+                                title="@color.Name"
+                                @onclick="() => SelectColor(color.Value)">
+                            @if (SelectedColor == color.Value)
+                            {
+                                <i class="fas fa-check" 
+                                   style="color: @(color.Value.ToUpper() == "#FFFFFF" || color.Value.ToUpper() == "#FFFF00" ? "#000" : "#fff"); 
+                                          font-size: 12px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                            }
+                        </button>
+                    }
+                </div>
             </div>
-        </div>
+        }
     </div>
 
     <!-- Quantity & Stock -->
@@ -96,19 +114,19 @@
                 </button>
                 <input type="number" @bind="Quantity" @bind:event="oninput" 
                        @onchange="OnQuantityInputChanged"
-                       min="1" max="@MaxQuantity" class="qty-input" />
-                <button class="qty-btn plus" @onclick="IncreaseQuantity" disabled="@(Quantity >= MaxQuantity)">
+                       min="1" max="@Product.StockQuantity" class="qty-input" />
+                <button class="qty-btn plus" @onclick="IncreaseQuantity" disabled="@(Quantity >= Product.StockQuantity)">
                     <i class="fas fa-plus"></i>
                 </button>
             </div>
         </div>
         
         <div class="stock-info">
-            @if (StockQuantity > 0)
+            @if (Product.StockQuantity > 0)
             {
                 <span class="stock-available">
                     <i class="fas fa-check-circle"></i>
-                    @StockQuantity in stock
+                    @Product.StockQuantity in stock
                 </span>
             }
             else
@@ -123,16 +141,26 @@
 
     <!-- Action Buttons -->
     <div class="product-actions">
-        <button class="btn-add-cart @(StockQuantity == 0 ? "disabled" : "")"
+        @{
+            var canAddToCart = Product.StockQuantity > 0 
+                && !string.IsNullOrEmpty(SelectedSize) 
+                && !string.IsNullOrEmpty(SelectedColor);
+            var disabledReason = Product.StockQuantity == 0 ? "Out of stock" 
+                : string.IsNullOrEmpty(SelectedSize) ? "Please select a size" 
+                : string.IsNullOrEmpty(SelectedColor) ? "Please select a color"
+                : "";
+        }
+        <button class="btn-add-cart @(!canAddToCart ? "disabled" : "")"
                 @onclick="HandleAddToCart"
-                disabled="@(StockQuantity == 0)">
+                disabled="@(!canAddToCart)"
+                title="@disabledReason">
             <i class="fas fa-cart-plus"></i>
-            <span>Add to Cart</span>
+            <span>@(canAddToCart ? "Add to Cart" : disabledReason)</span>
         </button>
         
-        <button class="btn-buy-now @(StockQuantity == 0 ? "disabled" : "")"
+        <button class="btn-buy-now @(Product.StockQuantity == 0 ? "disabled" : "")"
                 @onclick="HandleBuyNow"
-                disabled="@(StockQuantity == 0)">
+                disabled="@(Product.StockQuantity == 0)">
             <i class="fas fa-bolt"></i>
             <span>Buy Now</span>
         </button>
@@ -144,7 +172,26 @@
         </button>
     </div>
 
-    <!-- Product Features -->
+
+
+    <!-- Product Features from API -->
+    @if (Product?.Features?.Any() == true)
+    {
+        <div class="product-highlights">
+            <h4 class="highlights-title">Product Features</h4>
+            <ul class="highlights-list">
+                @foreach (var feature in Product.Features)
+                {
+                    <li class="highlight-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>@feature</span>
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+
+    <!-- Service Features -->
     <div class="product-features">
         <div class="feature-item">
             <i class="fas fa-truck"></i>
@@ -215,31 +262,22 @@
     private string SelectedColor { get; set; } = "";
     private bool IsInWishlist { get; set; } = false;
 
-    // Product Data
-    private decimal ProductRating { get; set; } = 4.5m;
-    private int ReviewCount { get; set; } = 128;
-    private int StockQuantity { get; set; } = 25;
-    private int MaxQuantity { get; set; } = 10;
-
-    // Available Options
-    private List<string> AvailableSizes { get; set; } = new() { "38", "39", "40", "41", "42", "43", "44", "45" };
+    // Available Options (will be populated from Product data)
+    private List<string> AvailableSizes { get; set; } = new();
     private List<(string Name, string Value)> AvailableColors { get; set; } = new();
 
     protected override void OnParametersSet()
     {
         if (Product != null && !string.IsNullOrEmpty(Product.Name))
         {
-            // Initialize from Product data
             AvailableSizes = Product.Sizes ?? new List<string>();
             AvailableColors = (Product.Colors ?? new List<string>())
                 .Select(c => (GetColorName(c), c))
                 .ToList();
-            StockQuantity = Product.StockQuantity;
             
-            // Initialize with parent's values
             Quantity = InitialQuantity > 0 ? InitialQuantity : 1;
-            SelectedSize = !string.IsNullOrEmpty(InitialSize) ? InitialSize : "";
-            SelectedColor = !string.IsNullOrEmpty(InitialColor) ? InitialColor : "";
+            SelectedSize = InitialSize ?? "";
+            SelectedColor = InitialColor ?? "";
         }
     }
 
@@ -261,6 +299,7 @@
     private async Task SelectSize(string size)
     {
         SelectedSize = size;
+        Console.WriteLine($"[ProductDetails] Size selected: '{size}'");
         await OnSizeChanged.InvokeAsync(size);
         StateHasChanged();
     }
@@ -268,13 +307,14 @@
     private async Task SelectColor(string color)
     {
         SelectedColor = color;
-        await OnColorChanged.InvokeAsync(color);
+        Console.WriteLine($"[ProductDetails] Color selected: '{color}'");
+        await OnColorChanged.InvokeAsync(SelectedColor);
         StateHasChanged();
     }
 
     private async Task IncreaseQuantity()
     {
-        if (Quantity < MaxQuantity)
+        if (Quantity < Product.StockQuantity)
         {
             Quantity++;
             await OnQuantityChanged.InvokeAsync(Quantity);
@@ -294,7 +334,7 @@
     {
         if (int.TryParse(e.Value?.ToString(), out int newQuantity))
         {
-            if (newQuantity >= 1 && newQuantity <= MaxQuantity)
+            if (newQuantity >= 1 && newQuantity <= Product.StockQuantity)
             {
                 Quantity = newQuantity;
                 await OnQuantityChanged.InvokeAsync(Quantity);
@@ -320,15 +360,13 @@
 
     private void ShareProduct(string platform)
     {
-        // Implement social sharing logic
-        Console.WriteLine($"Sharing on {platform}");
+        Console.WriteLine($"[ProductDetails] Sharing on {platform}");
     }
 
     private async Task CopyProductLink()
     {
-        // Copy current URL to clipboard
-        var url = "https://abc-mart.com/product/" + Product.Name.Replace(" ", "-").ToLower();
-        Console.WriteLine($"Copied link: {url}");
+        var url = $"https://abc-mart.com/product/{Product.Name.Replace(" ", "-").ToLower()}";
+        Console.WriteLine($"[ProductDetails] Copied link: {url}");
     }
 
     private string GetColorName(string colorHex)

@@ -1,4 +1,8 @@
+using System.Net.Http.Json;
+using System.Text.Json;
 using WebUI.Models;
+using WebUI.Models.Cart;
+using WebUI.Services.Interfaces;
 
 namespace WebUI.Services
 {
@@ -14,8 +18,18 @@ namespace WebUI.Services
     public class CartService
     {
         private readonly List<CartItem> _items = new();
+        private readonly HttpClient _httpClient;
+        private readonly ConfigurationService _configService;
+        private readonly IAuthService? _authService;
         
         public event Action? OnCartChanged;
+
+        public CartService(HttpClient httpClient, ConfigurationService configService, IAuthService authService)
+        {
+            _httpClient = httpClient;
+            _configService = configService;
+            _authService = authService;
+        }
 
         public List<CartItem> GetItems() => _items.ToList();
         
@@ -113,6 +127,289 @@ namespace WebUI.Services
                 item.Product.Id == productId &&
                 item.SelectedSize == size &&
                 item.SelectedColor == color);
+        }
+
+        /// <summary>
+        /// Thêm sản phẩm vào giỏ hàng - Hybrid approach
+        /// - Nếu đã login: Call API
+        /// - Nếu chưa login (guest): Dùng local storage
+        /// </summary>
+        public async Task<AddToCartResponse> AddToCartAsync(Product product, int quantity = 1, string? size = null, string? color = null)
+        {
+            try
+            {
+                bool isLoggedIn = _authService != null && _authService.IsAuthenticated;
+
+                if (isLoggedIn)
+                {
+                    return await AddToCartViaApiAsync(product, quantity, size, color);
+                }
+                else
+                {
+                    AddItemLocally(product, quantity, size, color);
+                    return new AddToCartResponse
+                    {
+                        Success = true,
+                        Message = "Đã thêm sản phẩm vào giỏ hàng (local)",
+                        CartSummary = new CartSummary
+                        {
+                            TotalItems = _items.Count,
+                            TotalQuantity = GetTotalItems(),
+                            TotalAmount = GetTotalPrice(),
+                            Discount = 0,
+                            FinalAmount = GetTotalPrice()
+                        }
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CartService] Error in AddToCartAsync: {ex.Message}");
+                AddItemLocally(product, quantity, size, color);
+                return new AddToCartResponse
+                {
+                    Success = true,
+                    Message = "Đã thêm sản phẩm vào giỏ hàng (local fallback)",
+                    CartSummary = new CartSummary
+                    {
+                        TotalItems = _items.Count,
+                        TotalQuantity = GetTotalItems(),
+                        TotalAmount = GetTotalPrice(),
+                        Discount = 0,
+                        FinalAmount = GetTotalPrice()
+                    }
+                };
+            }
+        }
+
+        /// <summary>
+        /// Call API để thêm vào giỏ hàng (cho user đã login)
+        /// </summary>
+        private async Task<AddToCartResponse> AddToCartViaApiAsync(Product product, int quantity, string? size, string? color)
+        {
+            try
+            {
+                var apiBaseUrl = await _configService.GetApiBaseUrlAsync();
+                var sessionId = GetOrCreateSessionId();
+
+                var request = new AddToCartRequest
+                {
+                    ProductId = product.Id,
+                    Quantity = quantity,
+                    SelectedSize = size ?? "",
+                    SelectedColor = color ?? "",
+                    SessionId = sessionId,
+                    // Cache fields (không gửi lên API nhưng có thể dùng sau)
+                    ProductName = product.Name,
+                    Price = product.Price,
+                    ImageUrl = product.PrimaryImageUrl
+                };
+
+                var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{apiBaseUrl}/api/Cart/AddToCart")
+                {
+                    Content = JsonContent.Create(request)
+                };
+
+                if (_authService != null && !string.IsNullOrEmpty(_authService.CurrentToken))
+                {
+                    httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                        "Bearer", 
+                        _authService.CurrentToken
+                    );
+                }
+
+                var response = await _httpClient.SendAsync(httpRequest);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<AddToCartResponse>();
+                    if (result != null && result.Success)
+                    {
+                        OnCartChanged?.Invoke();
+                        return result;
+                    }
+                }
+                AddItemLocally(product, quantity, size, color);
+                return new AddToCartResponse
+                {
+                    Success = true,
+                    Message = "Đã thêm sản phẩm vào giỏ hàng (API failed, using local)",
+                    CartSummary = new CartSummary
+                    {
+                        TotalItems = _items.Count,
+                        TotalQuantity = GetTotalItems(),
+                        TotalAmount = GetTotalPrice(),
+                        Discount = 0,
+                        FinalAmount = GetTotalPrice()
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CartService] Exception in AddToCartViaApiAsync: {ex.Message}");
+                AddItemLocally(product, quantity, size, color);
+                return new AddToCartResponse
+                {
+                    Success = true,
+                    Message = "Đã thêm sản phẩm vào giỏ hàng (API error, using local)",
+                    CartSummary = new CartSummary
+                    {
+                        TotalItems = _items.Count,
+                        TotalQuantity = GetTotalItems(),
+                        TotalAmount = GetTotalPrice(),
+                        Discount = 0,
+                        FinalAmount = GetTotalPrice()
+                    }
+                };
+            }
+        }
+
+        /// <summary>
+        /// Thêm item vào local cart (logic cũ)
+        /// </summary>
+        private void AddItemLocally(Product product, int quantity, string? size, string? color)
+        {
+            AddItem(product, quantity, size, color);
+        }
+
+        /// <summary>
+        /// Get hoặc tạo session ID cho guest user
+        /// </summary>
+        private string GetOrCreateSessionId()
+        {
+            // TODO: Implement proper session management
+            // For now, generate a simple GUID
+            return Guid.NewGuid().ToString();
+        }
+
+        /// <summary>
+        /// Lấy giỏ hàng từ API (cho user đã login)
+        /// GET /api/Cart/GetCart - Returns CommonResponse<CartSummaryRes>
+        /// </summary>
+        public async Task<CartSummaryResponse?> GetCartFromApiAsync()
+        {
+            try
+            {
+                if (_authService == null || !_authService.IsAuthenticated)
+                {
+                    return null;
+                }
+
+                var apiBaseUrl = await _configService.GetApiBaseUrlAsync();
+                var httpRequest = new HttpRequestMessage(HttpMethod.Get, $"{apiBaseUrl}/api/Cart/GetCart");
+
+                if (!string.IsNullOrEmpty(_authService.CurrentToken))
+                {
+                    httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                        "Bearer",
+                        _authService.CurrentToken
+                    );
+                }
+
+                var response = await _httpClient.SendAsync(httpRequest);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<CartSummaryResponse>>(
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                    );
+                    
+                    return apiResponse?.Data;
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CartService] Error getting cart from API: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Xóa item khỏi giỏ hàng qua API
+        /// POST /api/Cart/RemoveCartItem?cartItemId={id}
+        /// </summary>
+        public async Task<bool> RemoveCartItemAsync(int cartItemId)
+        {
+            try
+            {
+                if (_authService == null || !_authService.IsAuthenticated)
+                {
+                    return false;
+                }
+
+                var apiBaseUrl = await _configService.GetApiBaseUrlAsync();
+                var httpRequest = new HttpRequestMessage(
+                    HttpMethod.Post, 
+                    $"{apiBaseUrl}/api/Cart/RemoveCartItem?cartItemId={cartItemId}"
+                );
+
+                if (!string.IsNullOrEmpty(_authService.CurrentToken))
+                {
+                    httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                        "Bearer",
+                        _authService.CurrentToken
+                    );
+                }
+
+                var response = await _httpClient.SendAsync(httpRequest);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    OnCartChanged?.Invoke();
+                    return true;
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CartService] Error removing cart item: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Xóa toàn bộ giỏ hàng qua API
+        /// POST /api/Cart/ClearCart
+        /// </summary>
+        public async Task<bool> ClearCartAsync()
+        {
+            try
+            {
+                if (_authService == null || !_authService.IsAuthenticated)
+                {
+                    ClearCart();
+                    return true;
+                }
+
+                var apiBaseUrl = await _configService.GetApiBaseUrlAsync();
+                var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{apiBaseUrl}/api/Cart/ClearCart");
+
+                if (!string.IsNullOrEmpty(_authService.CurrentToken))
+                {
+                    httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                        "Bearer",
+                        _authService.CurrentToken
+                    );
+                }
+
+                var response = await _httpClient.SendAsync(httpRequest);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    OnCartChanged?.Invoke();
+                    return true;
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CartService] Error clearing cart: {ex.Message}");
+                return false;
+            }
         }
     }
 }
