@@ -187,6 +187,13 @@ namespace BUS.Services
                     return new CommonResponse<GetOrderDetailRes> { Success = false, Message = "Order not found" };
 
                 var first = data.First();
+                
+                // Lấy payment method từ OrderPayment nếu có
+                var paymentMethod = await (from op in _orderRepository.DbContext.Set<OrderPayment>()
+                                           join p in _orderRepository.DbContext.Set<Payment>() on op.PaymentID equals p.PaymentID
+                                           where op.OrderID == OrderID && op.Status == "Completed"
+                                           select p.PaymentMethod)
+                                           .FirstOrDefaultAsync();
 
                 var orderRes = new GetOrderDetailRes
                 {
@@ -195,7 +202,7 @@ namespace BUS.Services
                     UserName = first.u.Username,
                     FullName = first.u.FullName,
                     PhoneNumber = first.u.Phone,
-                    PaymentMethod = first.o.Payment?.PaymentMethod ?? string.Empty,
+                    PaymentMethod = paymentMethod ?? "Chưa thanh toán",
                     ShippingProvider = first.shipment?.ShippingProvider,
                     TrackingNumber = first.shipment?.TrackingNumber,
                     ShippedDate = first.shipment?.ShippedDate,

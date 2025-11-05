@@ -1,8 +1,9 @@
 @using WebUI.Models
 @using WebUI.Components
+@inject IJSRuntime JSRuntime
 
 <!-- Products Grid Component with Pagination -->
-<section class="section">
+<section class="section" id="products-section-@Title.Replace(" ", "-")">
     <div class="section-header">
         <h2 class="section-title">@Title</h2>
         @if (ShowProductCount && TotalProducts > 0)
@@ -10,45 +11,56 @@
             <span class="product-count">(@TotalProducts sản phẩm)</span>
         }
     </div>
+
+    @if (ShowFilters)
+    {
+        <FilterBar SearchTerm="@SearchTerm"
+                   SortBy="@SortBy"
+                   PriceRange="@PriceRange"
+                   ResultsCount="@FilteredProducts.Count"
+                   OnSearchChanged="@HandleSearchChanged"
+                   OnSortByChanged="@HandleSortChanged"
+                   OnPriceRangeChanged="@HandlePriceRangeChanged" />
+    }
     
-    <div class="products-grid">
-        @if (PaginatedProducts.Any())
+    <div class="products-grid-container">
+        @if (IsLoading)
         {
-            @foreach (var product in PaginatedProducts)
-            {
-                <ProductCard Product="product" 
-                            OnProductSelected="OnProductSelected"
-                            OnQuickView="OnQuickView" />
-            }
-        }
-        else
-        {
-            <div class="no-products">
-                <i class="fas fa-box-open"></i>
-                <p>Không có sản phẩm nào được tìm thấy</p>
+            <div class="loading-overlay">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Đang tải...</p>
+                </div>
             </div>
         }
+        
+        <div class="products-grid @(IsLoading ? "loading" : "")">
+            @if (PaginatedProducts.Any())
+            {
+                @foreach (var product in PaginatedProducts)
+                {
+                    <ProductCard Product="product" 
+                                OnProductSelected="OnProductSelected"
+                                OnQuickView="OnQuickView" />
+                }
+            }
+            else if (!IsLoading)
+            {
+                <div class="no-products">
+                    <i class="fas fa-box-open"></i>
+                    <p>Không có sản phẩm nào được tìm thấy</p>
+                </div>
+            }
+        </div>
     </div>
 
     @if (EnablePagination && TotalProducts > PageSize)
     {
-        @* Temporary pagination info until component is recognized *@
-        <div class="pagination-info-temp">
-            <p>Hiển thị @((CurrentPage - 1) * PageSize + 1) - @(Math.Min(CurrentPage * PageSize, TotalProducts)) trong tổng số @TotalProducts sản phẩm</p>
-            <div class="pagination-controls">
-                <button class="btn btn-outline-secondary" 
-                        @onclick="() => OnPageChanged(CurrentPage - 1)"
-                        disabled="@(CurrentPage <= 1)">
-                    ← Trước
-                </button>
-                <span class="page-indicator">Trang @CurrentPage / @TotalPages</span>
-                <button class="btn btn-outline-secondary" 
-                        @onclick="() => OnPageChanged(CurrentPage + 1)"
-                        disabled="@(CurrentPage >= TotalPages)">
-                    Sau →
-                </button>
-            </div>
-        </div>
+        <Pagination CurrentPage="@CurrentPage"
+                    TotalItems="@TotalProducts"
+                    PageSize="@PageSize"
+                    IsLoading="@IsLoading"
+                    OnPageChanged="@OnPageChanged" />
     }
 </section>
 
@@ -59,34 +71,125 @@
     [Parameter] public EventCallback<Product> OnQuickView { get; set; }
     [Parameter] public bool EnablePagination { get; set; } = true;
     [Parameter] public bool ShowProductCount { get; set; } = true;
+    [Parameter] public bool ShowFilters { get; set; } = false;
     [Parameter] public int PageSize { get; set; } = 12;
 
     private int CurrentPage { get; set; } = 1;
-    private int TotalProducts => Products?.Count ?? 0;
+    private bool IsLoading { get; set; } = false;
+    private string SearchTerm { get; set; } = string.Empty;
+    private string SortBy { get; set; } = string.Empty;
+    private string PriceRange { get; set; } = string.Empty;
+    
+    private int TotalProducts => FilteredProducts?.Count ?? 0;
+
+    // Filter and sort products
+    private List<Product> FilteredProducts
+    {
+        get
+        {
+            if (Products == null) return new List<Product>();
+            
+            var filtered = Products.AsEnumerable();
+
+            // Search filter
+            if (!string.IsNullOrWhiteSpace(SearchTerm))
+            {
+                var searchLower = SearchTerm.ToLower();
+                filtered = filtered.Where(p => 
+                    p.Name.ToLower().Contains(searchLower) ||
+                    p.Brand.ToLower().Contains(searchLower) ||
+                    p.Description.ToLower().Contains(searchLower));
+            }
+
+            // Price range filter
+            if (!string.IsNullOrWhiteSpace(PriceRange))
+            {
+                var parts = PriceRange.Split('-');
+                if (parts.Length == 2 && 
+                    decimal.TryParse(parts[0], out var minPrice) && 
+                    decimal.TryParse(parts[1], out var maxPrice))
+                {
+                    filtered = filtered.Where(p => p.Price >= minPrice && p.Price <= maxPrice);
+                }
+            }
+
+            // Sort
+            filtered = SortBy switch
+            {
+                "name-asc" => filtered.OrderBy(p => p.Name),
+                "name-desc" => filtered.OrderByDescending(p => p.Name),
+                "price-asc" => filtered.OrderBy(p => p.Price),
+                "price-desc" => filtered.OrderByDescending(p => p.Price),
+                "rating-desc" => filtered.OrderByDescending(p => p.Rating),
+                "newest" => filtered.OrderByDescending(p => p.Id),
+                _ => filtered
+            };
+
+            return filtered.ToList();
+        }
+    }
 
     private List<Product> PaginatedProducts
     {
         get
         {
-            if (Products == null || !EnablePagination)
-                return Products ?? new List<Product>();
+            if (FilteredProducts == null || !EnablePagination)
+                return FilteredProducts ?? new List<Product>();
 
-            return Products
+            return FilteredProducts
                 .Skip((CurrentPage - 1) * PageSize)
                 .Take(PageSize)
                 .ToList();
         }
     }
 
+    private async Task HandleSearchChanged(string searchTerm)
+    {
+        SearchTerm = searchTerm;
+        CurrentPage = 1;
+        StateHasChanged();
+    }
+
+    private async Task HandleSortChanged(string sortBy)
+    {
+        SortBy = sortBy;
+        CurrentPage = 1;
+        StateHasChanged();
+    }
+
+    private async Task HandlePriceRangeChanged(string priceRange)
+    {
+        PriceRange = priceRange;
+        CurrentPage = 1;
+        StateHasChanged();
+    }
+
     private async Task OnPageChanged(int newPage)
     {
-        if (newPage >= 1 && newPage <= TotalPages)
+        if (newPage >= 1 && newPage <= TotalPages && !IsLoading && newPage != CurrentPage)
         {
-            CurrentPage = newPage;
+            // Start loading state
+            IsLoading = true;
             StateHasChanged();
             
-            // Scroll to top of grid smoothly
-            await Task.Delay(100); // Small delay for UI update
+            // Small delay to show loading state before scroll
+            await Task.Delay(100);
+            
+            // Scroll to section smoothly
+            var sectionId = $"products-section-{Title.Replace(" ", "-")}";
+            await JSRuntime.InvokeVoidAsync("eval", $"document.getElementById('{sectionId}')?.scrollIntoView({{ behavior: 'smooth', block: 'start' }})");
+            
+            // Simulate loading delay for smooth transition (can be removed if using real API)
+            await Task.Delay(600);
+            
+            // Update page
+            CurrentPage = newPage;
+            
+            // Small delay before removing loading state for smooth fade-in
+            await Task.Delay(100);
+            
+            IsLoading = false;
+            StateHasChanged();
         }
     }
 

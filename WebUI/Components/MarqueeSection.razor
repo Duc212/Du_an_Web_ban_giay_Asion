@@ -1,22 +1,138 @@
-<!-- Marquee Section Component -->
-<div class="marquee-section">
-    <div class="marquee-content">
-        @foreach (var text in MarqueeTexts)
+@* Modern Marquee Section Component *@
+<section class="marquee-modern">
+    <div class="marquee-track">
+        @foreach (var item in MarqueeItems)
         {
-            <span class="marquee-text">@text</span>
+            <div class="marquee-item">
+                <span class="marquee-icon">@item.Icon</span>
+                <span class="marquee-text">@item.Text</span>
+            </div>
         }
         @* Duplicate for seamless scrolling *@
-        @foreach (var text in MarqueeTexts)
+        @foreach (var item in MarqueeItems)
         {
-            <span class="marquee-text">@text</span>
+            <div class="marquee-item">
+                <span class="marquee-icon">@item.Icon</span>
+                <span class="marquee-text">@item.Text</span>
+            </div>
         }
     </div>
-</div>
+</section>
+
+<style>
+    .marquee-modern {
+        background: #1a1a1a;
+        padding: 24px 0;
+        overflow: hidden;
+        position: relative;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .marquee-modern::before,
+    .marquee-modern::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        width: 120px;
+        height: 100%;
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    .marquee-modern::before {
+        left: 0;
+        background: linear-gradient(90deg, #1a1a1a 0%, transparent 100%);
+    }
+
+    .marquee-modern::after {
+        right: 0;
+        background: linear-gradient(90deg, transparent 0%, #1a1a1a 100%);
+    }
+
+    .marquee-track {
+        display: flex;
+        gap: 0;
+        animation: marqueeScroll 30s linear infinite;
+        width: max-content;
+    }
+
+    .marquee-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 48px;
+        white-space: nowrap;
+    }
+
+    .marquee-icon {
+        font-size: 20px;
+        filter: grayscale(0);
+        animation: iconPulse 3s ease-in-out infinite;
+    }
+
+    .marquee-text {
+        font-size: 16px;
+        font-weight: 700;
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .marquee-modern:hover .marquee-track {
+        animation-play-state: paused;
+    }
+
+    @@keyframes marqueeScroll {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+
+    @@keyframes iconPulse {
+        0%, 100% { 
+            opacity: 0.7;
+            transform: scale(1);
+        }
+        50% { 
+            opacity: 1;
+            transform: scale(1.1);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .marquee-modern {
+            padding: 16px 0;
+        }
+
+        .marquee-item {
+            padding: 0 32px;
+        }
+
+        .marquee-icon {
+            font-size: 16px;
+        }
+
+        .marquee-text {
+            font-size: 13px;
+            letter-spacing: 1px;
+        }
+    }
+</style>
 
 @code {
-    [Parameter] public List<string> MarqueeTexts { get; set; } = new()
+    private List<MarqueeItemModel> MarqueeItems = new()
     {
-        "THẬT NHIỀU THƯƠNG HIỆU CHỈ VỚI MỘT CỬA HÀNG!",
-        "ALL BRANDS IN ONE SHOP!"
+        new MarqueeItemModel { Icon = "🔥", Text = "FLASH SALE CỨ 24H" },
+        new MarqueeItemModel { Icon = "🚚", Text = "MIỄN PHÍ VẬN CHUYỂN ĐƠN 500K+" },
+        new MarqueeItemModel { Icon = "⭐", Text = "100% CHÍNH HÃNG" },
+        new MarqueeItemModel { Icon = "🎁", Text = "QUÀ TẶNG HẤP DẪN" },
+        new MarqueeItemModel { Icon = "💎", Text = "1000+ SẢN PHẨM THƯƠNG HIỆU" },
+        new MarqueeItemModel { Icon = "🏆", Text = "BẢO HÀNH 12 THÁNG" }
     };
+
+    public class MarqueeItemModel
+    {
+        public string Icon { get; set; } = "";
+        public string Text { get; set; } = "";
+    }
 }

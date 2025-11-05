@@ -15,14 +15,11 @@ namespace DAL.Models
         public int? UserID { get; set; }
         public User? User { get; set; }
 
-        public int? PaymentID { get; set; }
-        public Payment? Payment { get; set; }
-
         public int? ShipmentID { get; set; }
         public Shipment? Shipment { get; set; }
         public int? VoucherID { get; set; }
         public Voucher? Voucher { get; set; }
-        [Required,MaxLength(50)]
+        [Required, MaxLength(50)]
         public string OrderType { get; set; }
         [Required]
         public DateTime OrderDate { get; set; }
@@ -36,9 +33,8 @@ namespace DAL.Models
         public string Note { get; set; }
 
         // Navigation
-
         public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
         public ICollection<ReturnRequest> ReturnRequests { get; set; } = new List<ReturnRequest>();
+        public ICollection<OrderPayment> OrderPayments { get; set; } = new List<OrderPayment>();
     }
-
 }

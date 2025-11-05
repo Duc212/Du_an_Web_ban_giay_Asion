@@ -6,18 +6,8 @@
 <!-- Related Products Component -->
 <div class="related-products">
     <div class="section-header">
-        <h2 class="section-title">You May Also Like</h2>
-        <p class="    private bool IsSimilarBrand(Product product)
-    {
-        return product.Brand == CurrentProduct.Brand;
-    }
-
-    private bool IsSimilarPrice(Product product)
-    {
-        // Check if prices are within 20% of each other
-        decimal threshold = CurrentProduct.Price * 0.2m;
-        return Math.Abs(product.Price - CurrentProduct.Price) <= threshold;
-    }btitle">Customers who viewed this item also viewed</p>
+        <h2 class="section-title">Có thể bạn cũng thích</h2>
+        <p class="section-subtitle">Khách hàng xem sản phẩm này cũng đã xem</p>
     </div>
 
     <div class="products-carousel">
@@ -87,14 +77,14 @@
                                 {
                                     <span class="in-stock">
                                         <i class="fas fa-check-circle"></i>
-                                        In Stock
+                                        Còn hàng
                                     </span>
                                 }
                                 else
                                 {
                                     <span class="out-stock">
                                         <i class="fas fa-times-circle"></i>
-                                        Out of Stock
+                                        Hết hàng
                                     </span>
                                 }
                             </div>
@@ -104,11 +94,11 @@
                         <div class="comparison-info">
                             @if (IsSameBrand(product))
                             {
-                                <span class="same-brand-badge">Same Brand</span>
+                                <span class="same-brand-badge">Cùng thương hiệu</span>
                             }
                             @if (IsSimilarPrice(product))
                             {
-                                <span class="similar-price-badge">Similar Price</span>
+                                <span class="similar-price-badge">Giá tương đương</span>
                             }
                         </div>
                     </div>
@@ -134,7 +124,7 @@
     <!-- View All Products Link -->
     <div class="view-all-section">
         <a href="/products" class="btn-view-all">
-            <span>View All Products</span>
+            <span>Xem tất cả sản phẩm</span>
             <i class="fas fa-arrow-right"></i>
         </a>
     </div>
@@ -143,7 +133,7 @@
     @if (RecentlyViewedProducts.Any())
     {
         <div class="recently-viewed-section">
-            <h3 class="recently-viewed-title">Recently Viewed</h3>
+            <h3 class="recently-viewed-title">Đã xem gần đây</h3>
             <div class="recently-viewed-grid">
                 @foreach (var recentProduct in RecentlyViewedProducts.Take(4))
                 {

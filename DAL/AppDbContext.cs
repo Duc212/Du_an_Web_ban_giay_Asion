@@ -19,6 +19,7 @@ namespace DAL
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<Payment> Payments { get; set; }
+        public DbSet<OrderPayment> OrderPayments { get; set; }
         public DbSet<Shipment> Shipments { get; set; }
         public DbSet<Voucher> Vouchers { get; set; }
         public DbSet<ReturnRequest> ReturnRequests { get; set; }

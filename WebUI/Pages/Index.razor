@@ -1,60 +1,264 @@
 @page "/"
 @using WebUI.Services.Interfaces
+@using WebUI.Components
 @inject NavigationManager Navigation
 @inject IProductService ProductService
+@inject IJSRuntime JSRuntime
 
-<!-- Trend Products Section -->
-<div class="main-content">
-    <Sidebar />
-    <ProductsGrid Title="Xu Hướng Tuần Này" 
-                  Products="TrendingProducts"
-                  OnProductSelected="OnProductClick"
-                  OnQuickView="OnQuickView"
-                  EnablePagination="true"
-                  PageSize="12"
-                  ShowProductCount="true" />
-</div>
+<!-- Main Banner -->
+<MainBanner />
 
-<!-- Marquee Banner -->
-<MarqueeSection />
+<!-- Categories Bar -->
+<CategoriesBar OnCategorySelected="OnCategorySelected" />
 
-<!-- New Products Section -->
-<div class="main-content">
-    <Sidebar ShowGenderFilter="true" />
-    <ProductsGrid Title="Sản Phẩm Mới" 
-                  Products="NewProducts"
-                  OnProductSelected="OnProductClick"
-                  OnQuickView="OnQuickView"
-                  EnablePagination="true"
-                  PageSize="12"
-                  ShowProductCount="true" />
-</div>
-<MarqueeSection />
-<!-- Featured Collections Section -->
-<div class="main-content">
-    <Sidebar ShowSpecialOffers="true" 
-             ShowSportsFilter="true" />
-    <ProductsGrid Title="Bộ Sưu Tập Nổi Bật" 
-                  Products="FeaturedProducts"
-                  OnProductSelected="OnProductClick"
-                  OnQuickView="OnQuickView"
-                  EnablePagination="true"
-                  PageSize="12"
-                  ShowProductCount="true" />
-</div>
+@if (IsLoading)
+{
+    <div class="page-loading-overlay">
+        <div class="page-loading-spinner">
+            <div class="spinner-large"></div>
+            <p>Đang tải sản phẩm...</p>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Trending Products Section -->
+    <section class="products-section" id="products">
+        <div class="section-container">
+            <div class="section-header-clean">
+                <h2 class="section-title-clean">🔥 Xu Hướng Tuần Này</h2>
+                <p class="section-subtitle-clean">Những sản phẩm được yêu thích nhất</p>
+            </div>
+            <ProductsGrid Title="" 
+                          Products="TrendingProducts"
+                          OnProductSelected="OnProductClick"
+                          OnQuickView="OnQuickView"
+                          EnablePagination="true"
+                          PageSize="12"
+                          ShowProductCount="false" />
+        </div>
+    </section>
 
-<!-- Sale Banner -->
-<Banner />
+    <!-- Marquee Banner -->
+    <MarqueeSection />
+
+    <!-- New Products Section -->
+    <section class="products-section">
+        <div class="section-container">
+            <div class="section-header-clean">
+                <h2 class="section-title-clean">✨ Sản Phẩm Mới</h2>
+                <p class="section-subtitle-clean">Cập nhật mẫu mới nhất hàng tuần</p>
+            </div>
+            <ProductsGrid Title="" 
+                          Products="NewProducts"
+                          OnProductSelected="OnProductClick"
+                          OnQuickView="OnQuickView"
+                          EnablePagination="true"
+                          PageSize="12"
+                          ShowProductCount="false" />
+        </div>
+    </section>
+
+    <MarqueeSection />
+
+    <!-- Featured Collections Section -->
+    <section class="products-section">
+        <div class="section-container">
+            <div class="section-header-clean">
+                <h2 class="section-title-clean">⭐ Bộ Sưu Tập Nổi Bật</h2>
+                <p class="section-subtitle-clean">Những lựa chọn đặc biệt dành cho bạn</p>
+            </div>
+            <ProductsGrid Title="" 
+                          Products="FeaturedProducts"
+                          OnProductSelected="OnProductClick"
+                          OnQuickView="OnQuickView"
+                          EnablePagination="true"
+                          PageSize="12"
+                          ShowProductCount="false" />
+        </div>
+    </section>
+
+    <!-- Promo Banner -->
+    <section class="promo-banner-section">
+        <div class="promo-banner-content">
+            <div class="promo-icon">🎉</div>
+            <div class="promo-text">
+                <h3>Giảm Giá Lên Đến 50%</h3>
+                <p>Flash Sale cuối tuần - Nhanh tay đặt hàng ngay!</p>
+            </div>
+            <a href="#products" class="promo-button">
+                Xem Ngay
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </section>
+}
+
+<style>
+    .promo-banner-section {
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        padding: 60px 40px;
+        margin: 60px 0 0 0;
+    }
+
+    .promo-banner-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 32px;
+    }
+
+    .promo-icon {
+        font-size: 64px;
+        animation: bounce 2s ease-in-out infinite;
+    }
+
+    .promo-text {
+        flex: 1;
+        color: white;
+    }
+
+    .promo-text h3 {
+        font-size: 32px;
+        font-weight: 800;
+        margin: 0 0 8px 0;
+    }
+
+    .promo-text p {
+        font-size: 16px;
+        margin: 0;
+        opacity: 0.9;
+    }
+
+    .promo-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        background: white;
+        color: #1a1a1a;
+        padding: 16px 32px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .promo-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(255,255,255,0.2);
+        gap: 16px;
+    }
+
+    @@keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    @@media (max-width: 768px) {
+        .promo-banner-section {
+            padding: 40px 24px;
+        }
+
+        .promo-banner-content {
+            flex-direction: column;
+            text-align: center;
+            gap: 24px;
+        }
+
+        .promo-icon {
+            font-size: 48px;
+        }
+
+        .promo-text h3 {
+            font-size: 24px;
+        }
+
+        .promo-text p {
+            font-size: 14px;
+        }
+
+        .promo-button {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<style>
+    .products-section {
+        padding: 60px 0;
+        background: white;
+    }
+
+    .products-section:nth-child(even) {
+        background: #fafafa;
+    }
+
+    .section-container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 0 40px;
+    }
+
+    .section-header-clean {
+        text-align: center;
+        margin-bottom: 48px;
+    }
+
+    .section-title-clean {
+        font-size: 36px;
+        font-weight: 800;
+        color: #1a1a1a;
+        margin-bottom: 12px;
+        letter-spacing: -0.5px;
+    }
+
+    .section-subtitle-clean {
+        font-size: 16px;
+        color: #666;
+        margin: 0;
+    }
+
+    @@media (max-width: 768px) {
+        .products-section {
+            padding: 40px 0;
+        }
+
+        .section-container {
+            padding: 0 24px;
+        }
+
+        .section-header-clean {
+            margin-bottom: 32px;
+        }
+
+        .section-title-clean {
+            font-size: 24px;
+        }
+
+        .section-subtitle-clean {
+            font-size: 14px;
+        }
+    }
+</style>
 
 @code {
     private List<Product> TrendingProducts { get; set; } = new();
     private List<Product> FeaturedProducts { get; set; } = new();
     private List<Product> NewProducts { get; set; } = new();
+    private bool IsLoading { get; set; } = true;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            IsLoading = true;
+            StateHasChanged();
+
             // Load products from real API
             var apiResponse = await ProductService.GetProductsWithPaginationAsync(1, 20);
             var allProducts = apiResponse.Data;
@@ -85,6 +289,11 @@
             FeaturedProducts = new List<Product>();
             NewProducts = new List<Product>();
         }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+        }
     }
 
     private void OnProductClick(Product product)
@@ -98,5 +307,12 @@
     {
         // Handle quick view - show product modal or popup
         Console.WriteLine($"Quick view: {product.Name}");
+    }
+
+    private void OnCategorySelected(CategoriesBar.CategoryModel category)
+    {
+        // Navigate to shop page with category filter
+        Console.WriteLine($"Category selected: {category.Name}");
+        Navigation.NavigateTo($"/shop?category={Uri.EscapeDataString(category.Name)}");
     }
 }

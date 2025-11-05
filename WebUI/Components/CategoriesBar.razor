@@ -1,0 +1,432 @@
+@* Categories Carousel Component *@
+<section class="categories-carousel">
+    <div class="carousel-container">
+        <h2 class="carousel-title">Danh Mục Sản Phẩm</h2>
+
+        <div class="carousel-wrapper">
+            <!-- Previous Button -->
+            <button class="carousel-nav-btn prev-btn" @onclick="PreviousSlide" disabled="@(CurrentSlide == 0)">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+
+            <!-- Categories Slider -->
+            <div class="carousel-track-container">
+                <div class="carousel-track" style="transform: translateX(-@(CurrentSlide * 100)%)">
+                    @for (int i = 0; i < TotalSlides; i++)
+                    {
+                        var slideIndex = i;
+                        <div class="carousel-slide">
+                            <div class="categories-grid">
+                                @foreach (var category in GetCategoriesForSlide(slideIndex))
+                                {
+                                    <div class="category-card @(SelectedCategory == category.Id ? "active" : "")"
+                                        @onclick="() => SelectCategory(category)">
+                                        <div class="category-icon">
+                                            <i class="@category.Icon"></i>
+                                        </div>
+                                        <div class="category-info">
+                                            <span class="category-name">@category.Name</span>
+                                            <span class="category-count">@category.Count+</span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Next Button -->
+            <button class="carousel-nav-btn next-btn" @onclick="NextSlide"
+                disabled="@(CurrentSlide >= TotalSlides - 1)">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <!-- Dots Navigation -->
+        <div class="carousel-dots">
+            @for (int i = 0; i < TotalSlides; i++)
+            {
+                var dotIndex = i;
+                <button class="dot @(CurrentSlide == dotIndex ? "active" : "")" @onclick="() => GoToSlide(dotIndex)">
+                </button>
+            }
+        </div>
+    </div>
+</section>
+
+<style>
+    /* Carousel Container */
+    .categories-carousel {
+        padding: 60px 40px;
+        background: #f8f9fa;
+    }
+
+    .carousel-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .carousel-title {
+        font-size: 32px;
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 48px;
+        color: #1a1a1a;
+    }
+
+    /* Carousel Wrapper */
+    .carousel-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+
+    /* Navigation Buttons */
+    .carousel-nav-btn {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: white;
+        border: 2px solid #e8e8e8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+        z-index: 2;
+    }
+
+    .carousel-nav-btn:hover:not(:disabled) {
+        background: #1a1a1a;
+        border-color: #1a1a1a;
+        transform: scale(1.1);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .carousel-nav-btn:hover:not(:disabled) i {
+        color: white;
+    }
+
+    .carousel-nav-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
+    .carousel-nav-btn i {
+        font-size: 20px;
+        color: #1a1a1a;
+        transition: color 0.3s ease;
+    }
+
+    /* Track Container */
+    .carousel-track-container {
+        flex: 1;
+        overflow: hidden;
+        border-radius: 16px;
+    }
+
+    .carousel-track {
+        display: flex;
+        transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .carousel-slide {
+        min-width: 100%;
+        flex-shrink: 0;
+    }
+
+    /* Categories Grid */
+    .categories-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        padding: 8px;
+    }
+
+    /* Category Card */
+    .category-card {
+        background: white;
+        padding: 32px 24px;
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        text-align: center;
+    }
+
+    .category-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+        border-color: #1a1a1a;
+    }
+
+    .category-card.active {
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        border-color: #1a1a1a;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+    }
+
+    .category-card.active .category-icon {
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+    .category-card.active .category-icon i {
+        color: white;
+    }
+
+    .category-card.active .category-name,
+    .category-card.active .category-count {
+        color: white;
+    }
+
+    /* Category Icon */
+    .category-icon {
+        width: 80px;
+        height: 80px;
+        background: #f5f5f5;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .category-card:hover .category-icon {
+        background: #1a1a1a;
+        transform: scale(1.1);
+    }
+
+    .category-card:hover .category-icon i {
+        color: white;
+    }
+
+    .category-card.active .category-icon {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .category-icon i {
+        font-size: 32px;
+        color: #1a1a1a;
+        transition: color 0.3s ease;
+    }
+
+    /* Category Info */
+    .category-info {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .category-name {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1a1a1a;
+        transition: color 0.3s ease;
+    }
+
+    .category-count {
+        font-size: 14px;
+        color: #666;
+        font-weight: 600;
+        transition: color 0.3s ease;
+    }
+
+    /* Dots Navigation */
+    .carousel-dots {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 24px;
+    }
+
+    .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #d0d0d0;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        padding: 0;
+    }
+
+    .dot:hover {
+        background: #666;
+        transform: scale(1.2);
+    }
+
+    .dot.active {
+        background: #1a1a1a;
+        width: 32px;
+        border-radius: 6px;
+    }
+
+    /* Responsive */
+    @@media (max-width: 1024px) {
+        .categories-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .carousel-nav-btn {
+            width: 48px;
+            height: 48px;
+        }
+
+        .carousel-nav-btn i {
+            font-size: 18px;
+        }
+
+        .category-icon {
+            width: 64px;
+            height: 64px;
+        }
+
+        .category-icon i {
+            font-size: 28px;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .categories-carousel {
+            padding: 40px 24px;
+        }
+
+        .carousel-title {
+            font-size: 24px;
+            margin-bottom: 32px;
+        }
+
+        .carousel-wrapper {
+            gap: 16px;
+        }
+
+        .categories-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .category-card {
+            padding: 24px 20px;
+        }
+
+        .carousel-nav-btn {
+            width: 40px;
+            height: 40px;
+        }
+
+        .carousel-nav-btn i {
+            font-size: 16px;
+        }
+
+        .category-icon {
+            width: 56px;
+            height: 56px;
+        }
+
+        .category-icon i {
+            font-size: 24px;
+        }
+
+        .category-name {
+            font-size: 16px;
+        }
+
+        .category-count {
+            font-size: 13px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+        }
+
+        .dot.active {
+            width: 24px;
+        }
+    }
+</style>
+
+@code {
+    [Parameter] public EventCallback<CategoryModel> OnCategorySelected { get; set; }
+
+    private int? SelectedCategory = null;
+    private int CurrentSlide = 0;
+    private const int CategoriesPerSlide = 3;
+
+    private List<CategoryModel> Categories = new()
+{
+new CategoryModel { Id = 1, Name = "Giày Chạy Bộ", Icon = "fas fa-running", Count = 250 },
+new CategoryModel { Id = 2, Name = "Giày Bóng Rổ", Icon = "fas fa-basketball-ball", Count = 180 },
+new CategoryModel { Id = 3, Name = "Giày Lifestyle", Icon = "fas fa-shoe-prints", Count = 320 },
+new CategoryModel { Id = 4, Name = "Giày Bóng Đá", Icon = "fas fa-futbol", Count = 150 },
+new CategoryModel { Id = 5, Name = "Giày Gym", Icon = "fas fa-dumbbell", Count = 200 },
+new CategoryModel { Id = 6, Name = "Giày Trẻ Em", Icon = "fas fa-child", Count = 280 },
+
+        new CategoryModel { Id = 6, Name = "Giày Trẻ Em", Icon = "fas fa-child", Count = 280 }
+    };    private int TotalSlides => (int)Math.Ceiling((double)Categories.Count / CategoriesPerSlide);
+
+    private List<CategoryModel> GetCategoriesForSlide(int slideIndex)
+    {
+        return Categories
+        .Skip(slideIndex * CategoriesPerSlide)
+        .Take(CategoriesPerSlide)
+        .ToList();
+    }
+
+    private void PreviousSlide()
+    {
+        if (CurrentSlide > 0)
+        {
+            CurrentSlide--;
+            StateHasChanged();
+        }
+    }
+
+    private void NextSlide()
+    {
+        if (CurrentSlide < TotalSlides - 1)
+        {
+            CurrentSlide++;
+            StateHasChanged();
+        }
+    }
+
+    private void GoToSlide(int slideIndex)
+    {
+        CurrentSlide = slideIndex;
+        StateHasChanged();
+    }
+
+    private async Task SelectCategory(CategoryModel category)
+    {
+        if (SelectedCategory == category.Id)
+        {
+            SelectedCategory = null; // Deselect
+        }
+        else
+        {
+            SelectedCategory = category.Id;
+        }
+
+        await OnCategorySelected.InvokeAsync(category);
+        Console.WriteLine($"Category selected: {category.Name}");
+    }
+
+    public class CategoryModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public int Count { get; set; }
+    }
+}

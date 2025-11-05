@@ -1,9 +1,32 @@
 namespace WebUI.Models
 {
     /// <summary>
-    /// Request để tạo đơn hàng mới
+    /// Request để tạo đơn hàng mới theo API backend
     /// </summary>
     public class CreateOrderRequest
+    {
+        public int UserID { get; set; }
+        public int PaymentID { get; set; }
+        public int VoucherID { get; set; }
+        public string OrderType { get; set; } = "online";
+        public string Address { get; set; } = string.Empty;
+        public string? Note { get; set; }
+        public List<OrderDetailRequest> OrderDetails { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Chi tiết sản phẩm trong đơn hàng
+    /// </summary>
+    public class OrderDetailRequest
+    {
+        public int VariantID { get; set; }
+        public int Quantity { get; set; }
+    }
+
+    /// <summary>
+    /// Model mở rộng để lưu thông tin UI (không gửi lên API)
+    /// </summary>
+    public class CreateOrderUIModel
     {
         // Thông tin người nhận
         public string ReceiverName { get; set; } = string.Empty;
@@ -18,7 +41,7 @@ namespace WebUI.Models
         public string PostalCode { get; set; } = string.Empty;
 
         // Thông tin đơn hàng
-        public List<OrderItemRequest> Items { get; set; } = new();
+        public List<OrderItemUI> Items { get; set; } = new();
         public string? Note { get; set; }
         public string PaymentMethod { get; set; } = "cod"; // cod, card, wallet, transfer
         public string ShippingMethod { get; set; } = "standard"; // standard, express, super
@@ -28,11 +51,12 @@ namespace WebUI.Models
     }
 
     /// <summary>
-    /// Thông tin từng sản phẩm trong đơn hàng
+    /// Thông tin sản phẩm cho UI
     /// </summary>
-    public class OrderItemRequest
+    public class OrderItemUI
     {
         public int ProductId { get; set; }
+        public int VariantID { get; set; }
         public string ProductName { get; set; } = string.Empty;
         public int Quantity { get; set; }
         public decimal Price { get; set; }

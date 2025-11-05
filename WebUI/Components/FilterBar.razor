@@ -1,0 +1,95 @@
+@* Filter Bar Component with Search and Sort *@
+<div class="filter-bar">
+    <div class="filter-container">
+        <!-- Search Box -->
+        <div class="filter-item search-box">
+            <div class="search-input-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" 
+                       class="search-input" 
+                       placeholder="Tìm kiếm sản phẩm..." 
+                       value="@SearchTerm"
+                       @oninput="OnSearchInput" />
+                @if (!string.IsNullOrWhiteSpace(SearchTerm))
+                {
+                    <button class="clear-search" @onclick="ClearSearch">
+                        <i class="fas fa-times"></i>
+                    </button>
+                }
+            </div>
+        </div>
+
+        <!-- Sort Dropdown -->
+        <div class="filter-item sort-dropdown">
+            <label class="sort-label">
+                <i class="fas fa-sort-amount-down"></i>
+                Sắp xếp:
+            </label>
+            <select class="sort-select" value="@SortBy" @onchange="OnSortChanged">
+                <option value="">Mặc định</option>
+                <option value="name-asc">Tên A-Z</option>
+                <option value="name-desc">Tên Z-A</option>
+                <option value="price-asc">Giá tăng dần</option>
+                <option value="price-desc">Giá giảm dần</option>
+                <option value="rating-desc">Đánh giá cao nhất</option>
+                <option value="newest">Mới nhất</option>
+            </select>
+        </div>
+
+        <!-- Price Range Filter -->
+        <div class="filter-item price-filter">
+            <label class="price-label">
+                <i class="fas fa-tags"></i>
+                Giá:
+            </label>
+            <select class="price-select" value="@PriceRange" @onchange="HandlePriceRangeChanged">
+                <option value="">Tất cả</option>
+                <option value="0-500000">Dưới 500.000đ</option>
+                <option value="500000-1000000">500.000đ - 1.000.000đ</option>
+                <option value="1000000-2000000">1.000.000đ - 2.000.000đ</option>
+                <option value="2000000-5000000">2.000.000đ - 5.000.000đ</option>
+                <option value="5000000-999999999">Trên 5.000.000đ</option>
+            </select>
+        </div>
+
+        <!-- Results Count -->
+        <div class="filter-item results-count">
+            <span class="count-text">
+                <strong>@ResultsCount</strong> sản phẩm
+            </span>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string SearchTerm { get; set; } = string.Empty;
+    [Parameter] public string SortBy { get; set; } = string.Empty;
+    [Parameter] public string PriceRange { get; set; } = string.Empty;
+    [Parameter] public int ResultsCount { get; set; }
+    [Parameter] public EventCallback<string> OnSearchChanged { get; set; }
+    [Parameter] public EventCallback<string> OnSortByChanged { get; set; }
+    [Parameter] public EventCallback<string> OnPriceRangeChanged { get; set; }
+
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        var searchTerm = e.Value?.ToString() ?? string.Empty;
+        await OnSearchChanged.InvokeAsync(searchTerm);
+    }
+
+    private async Task ClearSearch()
+    {
+        await OnSearchChanged.InvokeAsync(string.Empty);
+    }
+
+    private async Task OnSortChanged(ChangeEventArgs e)
+    {
+        var sortBy = e.Value?.ToString() ?? string.Empty;
+        await OnSortByChanged.InvokeAsync(sortBy);
+    }
+
+    private async Task HandlePriceRangeChanged(ChangeEventArgs e)
+    {
+        var priceRange = e.Value?.ToString() ?? string.Empty;
+        await OnPriceRangeChanged.InvokeAsync(priceRange);
+    }
+}
