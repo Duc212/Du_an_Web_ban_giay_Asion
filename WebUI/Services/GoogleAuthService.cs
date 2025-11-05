@@ -21,13 +21,9 @@ namespace WebUI.Services
         public async Task<string> InitiateGoogleLogin(string baseUri)
         {
             var googleSettings = await _configService.GetGoogleAuthSettingsAsync();
-            // Sử dụng HTTPS port từ launchSettings.json và route đã cấu hình trong Google Console
             var redirectUri = "https://localhost:7173/authentication/login-callback";
-            Console.WriteLine($"Redirect URI: {redirectUri}"); // Debug log  
-            Console.WriteLine($"Base URI from app: {baseUri}"); // Debug current app URI
             var state = Guid.NewGuid().ToString();
             
-            // Store state for security
             await _jsRuntime.InvokeVoidAsync("localStorage.setItem", LocalStorageKeys.GoogleAuthState, state);
             
             var authUrl = $"{googleSettings.AuthUrl}?" +
@@ -37,7 +33,6 @@ namespace WebUI.Services
                 $"scope={Uri.EscapeDataString("openid email profile")}&" +
                 $"state={Uri.EscapeDataString(state)}";
 
-            Console.WriteLine($"Full Auth URL: {authUrl}"); // Debug full URL
             return authUrl;
         }
 
@@ -65,7 +60,7 @@ namespace WebUI.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting Google user info: {ex.Message}");
+                Console.WriteLine($"[GoogleAuth] Error getting user info: {ex.Message}");
             }
             
             return null;

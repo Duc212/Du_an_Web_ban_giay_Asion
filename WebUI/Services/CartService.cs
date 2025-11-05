@@ -22,6 +22,12 @@ namespace WebUI.Services
         private readonly ConfigurationService _configService;
         private readonly IAuthService? _authService;
         
+        // Selected items for checkout (API cart item IDs)
+        public HashSet<int> SelectedApiCartItemIds { get; set; } = new();
+        
+        // Selected items for checkout (local cart product IDs)
+        public HashSet<int> SelectedLocalProductIds { get; set; } = new();
+        
         public event Action? OnCartChanged;
 
         public CartService(HttpClient httpClient, ConfigurationService configService, IAuthService authService)

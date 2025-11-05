@@ -126,7 +126,7 @@
         {
             errorMessage = "Có lỗi xảy ra trong quá trình xác thực";
             isProcessing = false;
-            Console.WriteLine($"Google auth error: {ex.Message}");
+            Console.WriteLine($"[GoogleCallback] Auth error: {ex.Message}");
         }
         finally
         {
@@ -138,11 +138,8 @@
     {
         try
         {
-            Console.WriteLine($"Processing Google Auth with code: {authCode}");
-            
             try 
             {
-                // Exchange authorization code for tokens
                 var tokenResponse = await ExchangeCodeForToken(authCode ?? "");
                 
                 if (tokenResponse == null || string.IsNullOrEmpty(tokenResponse.IdToken))
@@ -150,51 +147,40 @@
                     errorMessage = "Không thể lấy ID Token từ Google";
                     return;
                 }
-
-                Console.WriteLine($"Got ID Token: {tokenResponse.IdToken[..20]}..."); // Log first 20 chars only
                 
-                // Tạo request với ID Token thực
                 var loginRequest = new WebUI.Models.GoogleLoginRequest
                 {
                     Email = tokenResponse.Email ?? "unknown@gmail.com",
                     Name = tokenResponse.Name ?? "Google User",
                     GoogleId = tokenResponse.Sub ?? "unknown",
                     Picture = tokenResponse.Picture ?? "",
-                    AccessToken = tokenResponse.IdToken // Đây là ID Token thực từ Google
+                    AccessToken = tokenResponse.IdToken
                 };
 
-                Console.WriteLine($"Real login request with ID Token");
-
-                // Call your backend API to authenticate/register user
                 var authResult = await AuthService.LoginWithGoogleAsync(loginRequest);
-
-                Console.WriteLine($"Auth result: Success={authResult.Success}, Message={authResult.Message}");
 
                 if (authResult.Success)
                 {
-                    Console.WriteLine("Redirecting to home page...");
-                    // Redirect to home page on success
                     Navigation.NavigateTo("/");
                 }
                 else
                 {
                     errorMessage = authResult.Message ?? "Đăng nhập thất bại";
                     isProcessing = false;
-                    Console.WriteLine($"Auth failed: {errorMessage}");
                 }
             }
             catch (Exception ex)
             {
                 errorMessage = "Có lỗi xảy ra trong quá trình xác thực";
                 isProcessing = false;
-                Console.WriteLine($"Process Google auth error: {ex.Message}");
+                Console.WriteLine($"[GoogleCallback] Process error: {ex.Message}");
             }
         }
         catch (Exception ex)
         {
             errorMessage = "Có lỗi xảy ra trong quá trình xác thực";
             isProcessing = false;
-            Console.WriteLine($"Process Google auth error: {ex.Message}");
+            Console.WriteLine($"[GoogleCallback] Process error: {ex.Message}");
         }
     }
 
@@ -255,8 +241,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Token exchange error: {ex.Message}");
-            // Fallback to mock data
+            Console.WriteLine($"[GoogleCallback] Token exchange error: {ex.Message}");
             return new GoogleTokenResponse 
             { 
                 AccessToken = "mock_access_token_for_demo",

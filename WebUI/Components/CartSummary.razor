@@ -124,11 +124,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Console.WriteLine("[CartSummary] OnInitializedAsync - Subscribing to events");
         CartService.OnCartChanged += UpdateCart;
         AuthService.AuthStateChanged += OnAuthStateChanged;
-        
-        // Initial load - might not have auth yet
         await LoadCartAsync();
     }
 
@@ -136,24 +133,15 @@
     {
         if (firstRender)
         {
-            Console.WriteLine($"[CartSummary] First render - IsAuthenticated: {AuthService?.IsAuthenticated}");
-            Console.WriteLine($"[CartSummary] First render - CurrentToken exists: {AuthService?.CurrentToken != null}");
-            Console.WriteLine($"[CartSummary] First render - ApiCart: {(ApiCart != null ? "EXISTS" : "NULL")}");
-            Console.WriteLine($"[CartSummary] First render - TotalItems: {TotalItems}");
-            
-            // Poll for auth state multiple times với delay
             for (int i = 0; i < 5; i++)
             {
-                await Task.Delay(100 * (i + 1)); // 100ms, 200ms, 300ms, 400ms, 500ms
-                
-                Console.WriteLine($"[CartSummary] Poll {i + 1}/5 - IsAuthenticated: {AuthService?.IsAuthenticated}");
+                await Task.Delay(100 * (i + 1));
                 
                 if (AuthService?.IsAuthenticated == true && ApiCart == null)
                 {
-                    Console.WriteLine($"[CartSummary] Poll {i + 1} - Authenticated detected, reloading cart...");
                     await LoadCartAsync();
                     await InvokeAsync(StateHasChanged);
-                    break; // Stop polling once we loaded
+                    break;
                 }
             }
         }
@@ -167,38 +155,26 @@
 
     private async Task LoadCartAsync()
     {
-        Console.WriteLine("========== [CartSummary] LoadCartAsync START ==========");
-        Console.WriteLine($"[CartSummary] AuthService.IsAuthenticated: {AuthService?.IsAuthenticated}");
-        
         IsLoadingCart = true;
         try
         {
-            if (AuthService.IsAuthenticated)
+            if (AuthService?.IsAuthenticated == true)
             {
-                Console.WriteLine("[CartSummary] 🔐 Loading cart from API...");
-                // Load cart from API for authenticated users
                 ApiCart = await CartService.GetCartFromApiAsync();
                 TotalItems = ApiCart?.TotalItems ?? 0;
                 TotalPrice = ApiCart?.TotalAmount ?? 0;
-                
-                Console.WriteLine($"[CartSummary] ✅ API Cart loaded - TotalItems: {TotalItems}, Items count: {ApiCart?.Items?.Count ?? 0}");
             }
             else
             {
-                Console.WriteLine("[CartSummary] 👤 Loading local cart...");
-                // Load cart from local storage for guests
                 CartItems = CartService.GetItems();
                 TotalItems = CartService.GetTotalItems();
                 TotalPrice = CartService.GetTotalPrice();
                 ApiCart = null;
-                
-                Console.WriteLine($"[CartSummary] Local cart loaded - TotalItems: {TotalItems}");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[CartSummary] ❌ Error loading cart: {ex.Message}");
-            // Fallback to local cart on error
+            Console.WriteLine($"[CartSummary] Error loading cart: {ex.Message}");
             CartItems = CartService.GetItems();
             TotalItems = CartService.GetTotalItems();
             TotalPrice = CartService.GetTotalPrice();
@@ -207,8 +183,6 @@
         finally
         {
             IsLoadingCart = false;
-            Console.WriteLine($"[CartSummary] Final TotalItems: {TotalItems}");
-            Console.WriteLine("========== [CartSummary] LoadCartAsync END ==========");
         }
     }
 
@@ -222,14 +196,8 @@
     {
         ShowDropdown = !ShowDropdown;
         
-        Console.WriteLine($"[CartSummary] Cart clicked - TotalItems: {TotalItems}, ShowDropdown: {ShowDropdown}");
-        Console.WriteLine($"[CartSummary] IsAuthenticated: {AuthService?.IsAuthenticated}");
-        Console.WriteLine($"[CartSummary] ApiCart: {(ApiCart != null ? "EXISTS" : "NULL")}");
-        
-        // Khi mở dropdown, reload cart nếu authenticated nhưng chưa có API cart
         if (ShowDropdown && AuthService?.IsAuthenticated == true && (ApiCart == null || TotalItems == 0))
         {
-            Console.WriteLine("[CartSummary] Dropdown opened - Reloading cart from API...");
             await LoadCartAsync();
             StateHasChanged();
         }
@@ -242,35 +210,19 @@
 
     private async Task RemoveItem(CartItem item)
     {
-        if (AuthService.IsAuthenticated)
-        {
-            // For API cart, we need the cartItemId
-            // Since local CartItem doesn't have it, we'll fallback to local remove
-            CartService.RemoveItem(item.Product.Id, item.SelectedSize, item.SelectedColor);
-        }
-        else
-        {
-            CartService.RemoveItem(item.Product.Id, item.SelectedSize, item.SelectedColor);
-        }
+        CartService.RemoveItem(item.Product.Id, item.SelectedSize, item.SelectedColor);
         await LoadCartAsync();
     }
 
     private async Task RemoveApiCartItem(int cartItemId)
     {
-        try
-        {
-            await CartService.RemoveCartItemAsync(cartItemId);
-            await LoadCartAsync();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error removing cart item: {ex.Message}");
-        }
+        await CartService.RemoveCartItemAsync(cartItemId);
+        await LoadCartAsync();
     }
 
     private async Task ClearCart()
     {
-        if (AuthService.IsAuthenticated)
+        if (AuthService?.IsAuthenticated == true)
         {
             await CartService.ClearCartAsync();
         }
@@ -284,8 +236,6 @@
 
     private void GoToCheckout()
     {
-        // TODO: Navigate to checkout page
-        Console.WriteLine("Navigate to checkout");
         ShowDropdown = false;
     }
 

@@ -44,7 +44,7 @@ namespace WebUI.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading configuration: {ex.Message}");
+                Console.WriteLine($"[ConfigService] Error loading configuration: {ex.Message}");
                 return new AppConfiguration();
             }
             finally

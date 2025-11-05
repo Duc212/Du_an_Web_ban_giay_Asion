@@ -1159,6 +1159,33 @@ body {
     color: #666;
 }
 
+.item-options {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.option-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    font-size: 11px;
+    color: #555;
+    font-weight: 500;
+}
+
+.color-preview {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    vertical-align: middle;
+}
+
 .item-price-qty {
     font-size: 13px;
     font-weight: 600;

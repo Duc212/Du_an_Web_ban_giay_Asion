@@ -2,9 +2,11 @@
 @using WebUI.Models
 @using WebUI.Services
 @using WebUI.Services.Interfaces
+@using WebUI.Components
 @inject IJSRuntime JSRuntime
 @inject CartService CartService
 @inject IProductService ProductService
+@inject IToastService ToastService
 
 <PageTitle>@(CurrentProduct?.Name ?? "Product") - Asion</PageTitle>
 
@@ -100,9 +102,6 @@
     }
 </div>
 
-<!-- Toast Container -->
-<div id="toast-container" class="toast-container"></div>
-
 @code {
     [Parameter] public int ProductId { get; set; }
     
@@ -163,8 +162,6 @@
 
                 await ShowToast("success", "Added to Cart!", 
                     $"{CurrentProduct.Name} (x{Quantity}){sizeColorInfo}{cartInfo}");
-                
-                Console.WriteLine($"Cart updated - Total items: {response.CartSummary?.TotalItems}, Total amount: {response.CartSummary?.FinalAmount}");
             }
             else
             {
@@ -194,47 +191,27 @@
 
     private void OnColorChanged(string newColor)
     {
-        Console.WriteLine($"DEBUG - ProductDetail OnColorChanged: '{newColor}'");
         SelectedColor = newColor;
-        StateHasChanged(); // This will cause ProductImageGallery to re-render with new SelectedColor
+        StateHasChanged();
     }
 
     private async Task ShowToast(string type, string title, string message)
     {
-        var toastHtml = $@"
-            <div class='toast toast-{type}' style='animation: slideInRight 0.3s ease;'>
-                <div class='toast-icon'>
-                    <i class='fas fa-{GetToastIcon(type)}'></i>
-                </div>
-                <div class='toast-content'>
-                    <div class='toast-title'>{title}</div>
-                    <div class='toast-message'>{message}</div>
-                </div>
-                <button class='toast-close' onclick='this.parentElement.remove()'>
-                    <i class='fas fa-times'></i>
-                </button>
-            </div>";
-
-        await JSRuntime.InvokeVoidAsync("eval", $@"
-            const container = document.getElementById('toast-container');
-            container.insertAdjacentHTML('beforeend', `{toastHtml}`);
-            
-            const toast = container.lastElementChild;
-            setTimeout(() => {{
-                if (toast && toast.parentElement) {{
-                    toast.style.animation = 'slideOutRight 0.3s ease';
-                    setTimeout(() => toast.remove(), 300);
-                }}
-            }}, 4000);
-        ");
+        var fullMessage = $"{title}: {message}";
+        switch (type.ToLower())
+        {
+            case "success":
+                await ToastService.ShowSuccess(fullMessage);
+                break;
+            case "error":
+                await ToastService.ShowError(fullMessage);
+                break;
+            case "warning":
+                await ToastService.ShowWarning(fullMessage);
+                break;
+            default:
+                await ToastService.ShowInfo(fullMessage);
+                break;
+        }
     }
-
-    private string GetToastIcon(string type) => type switch
-    {
-        "success" => "check-circle",
-        "error" => "exclamation-circle",
-        "warning" => "exclamation-triangle",
-        "info" => "info-circle",
-        _ => "info-circle"
-    };
 }

@@ -22,15 +22,9 @@ namespace WebUI.Services
             // Lấy token hiện tại
             var token = _authService.CurrentToken;
 
-            // Nếu có token và chưa có Authorization header
             if (!string.IsNullOrEmpty(token) && !request.Headers.Contains("Authorization"))
             {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                Console.WriteLine($"[AuthHandler] Added token to request: {request.RequestUri}");
-            }
-            else if (string.IsNullOrEmpty(token))
-            {
-                Console.WriteLine($"[AuthHandler] No token available for request: {request.RequestUri}");
             }
 
             return await base.SendAsync(request, cancellationToken);

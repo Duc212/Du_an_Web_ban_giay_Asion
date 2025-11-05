@@ -4,6 +4,7 @@
 @using WebUI.Services.Interfaces
 @inject ILoadingService LoadingService
 @inject IAuthService AuthService
+@inject IToastService ToastService
 @implements IDisposable
 
 <div class="page">
@@ -18,7 +19,7 @@
     <Footer />
 </div>
 
-<ToastNotification />
+<ToastNotification @ref="toastNotification" />
 
 <!-- Global Loading Spinner -->
 <LoadingSpinner 
@@ -30,12 +31,20 @@
     ProgressValue="LoadingService.ProgressValue" />
 
 @code {
+    private ToastNotification? toastNotification;
+
     protected override async Task OnInitializedAsync()
     {
         LoadingService.OnStateChanged += StateHasChanged;
-        
-        // Initialize AuthService để load auth state từ localStorage
         await AuthService.InitializeAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && toastNotification != null)
+        {
+            ToastService.RegisterToast(toastNotification);
+        }
     }
 
     public void Dispose()

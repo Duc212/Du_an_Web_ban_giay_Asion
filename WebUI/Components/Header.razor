@@ -5,6 +5,7 @@
 @inject CartService CartService
 @inject IAuthService AuthService
 @inject NavigationManager Navigation
+@inject IToastService ToastService
 @implements IDisposable
 
 <!-- Header Component -->
@@ -63,6 +64,25 @@
                                 <div class="item-info">
                                     <h4>@apiItem.ProductName</h4>
                                     <p>@apiItem.Brand</p>
+                                    @if (!string.IsNullOrEmpty(apiItem.Size) || !string.IsNullOrEmpty(apiItem.Color))
+                                    {
+                                        <div class="item-options">
+                                            @if (!string.IsNullOrEmpty(apiItem.Size))
+                                            {
+                                                <span class="option-badge">Size: @apiItem.Size</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(apiItem.Color))
+                                            {
+                                                <span class="option-badge">
+                                                    @if (!string.IsNullOrEmpty(apiItem.ColorHex))
+                                                    {
+                                                        <span class="color-preview" style="background-color: @apiItem.ColorHex; border: 1px solid #dee2e6;"></span>
+                                                    }
+                                                    @apiItem.Color
+                                                </span>
+                                            }
+                                        </div>
+                                    }
                                     <div class="item-price-qty">
                                         <span>@apiItem.PriceFormatted x @apiItem.Quantity</span>
                                     </div>
@@ -83,6 +103,22 @@
                                 <div class="item-info">
                                     <h4>@item.Product.Name</h4>
                                     <p>@item.Product.Brand</p>
+                                    @if (!string.IsNullOrEmpty(item.SelectedSize) || !string.IsNullOrEmpty(item.SelectedColor))
+                                    {
+                                        <div class="item-options">
+                                            @if (!string.IsNullOrEmpty(item.SelectedSize))
+                                            {
+                                                <span class="option-badge">Size: @item.SelectedSize</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(item.SelectedColor))
+                                            {
+                                                <span class="option-badge">
+                                                    <span class="color-preview" style="background-color: @item.SelectedColor; border: 1px solid #dee2e6;"></span>
+                                                    @GetColorName(item.SelectedColor)
+                                                </span>
+                                            }
+                                        </div>
+                                    }
                                     <div class="item-price-qty">
                                         <span>@item.Product.PriceFormatted x @item.Quantity</span>
                                     </div>
@@ -209,8 +245,13 @@
         
         if (success)
         {
+            await ToastService.ShowSuccess("Đã xóa sản phẩm khỏi giỏ hàng");
             await LoadCartAsync();
             StateHasChanged();
+        }
+        else
+        {
+            await ToastService.ShowError("Không thể xóa sản phẩm. Vui lòng thử lại.");
         }
     }
 
@@ -234,7 +275,29 @@
     {
         // Navigate to checkout
         ShowCartSummary = false;
-        // Navigation.NavigateTo("/checkout");
+        Navigation.NavigateTo("/checkout");
+    }
+
+    private string GetColorName(string colorHex)
+    {
+        return colorHex.ToUpper() switch
+        {
+            "#000000" => "Đen",
+            "#FFFFFF" => "Trắng",
+            "#808080" => "Xám", 
+            "#000080" => "Xanh Navy",
+            "#FF0000" => "Đỏ",
+            "#008000" => "Xanh Lá",
+            "#0000FF" => "Xanh Dương",
+            "#FFFF00" => "Vàng",
+            "#FFA500" => "Cam",
+            "#800080" => "Tím",
+            "#A52A2A" => "Nâu",
+            "#FFC0CB" => "Hồng",
+            "#00FF00" => "Xanh Lá Cây",
+            "#C0C0C0" => "Bạc",
+            _ => "Màu khác"
+        };
     }
 
     public void Dispose()

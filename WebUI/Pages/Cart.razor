@@ -7,96 +7,90 @@
 @inject IAuthService AuthService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject IToastService ToastService
 
-@* Cart Page - Asion *@
+<link href="css/ecommerce-theme.css" rel="stylesheet" />
+<link href="css/cart-modern.css" rel="stylesheet" />
 
 <div class="cart-page">
-    <div class="container">
+    <div class="cart-container">
+        <!-- Breadcrumb -->
+        <div class="cart-breadcrumb">
+            <span class="breadcrumb-item" @onclick='() => Navigation.NavigateTo("/")' style="cursor:pointer;">Trang chủ</span>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">Giỏ hàng</span>
+        </div>
+
         <div class="cart-header">
-            <h1>Giỏ hàng của bạn</h1>
-            <p class="cart-count">@GetCartItemCount() sản phẩm</p>
-            @if (AuthService.IsAuthenticated)
+            <div class="cart-header-left">
+                <h1 class="cart-title">Giỏ hàng của bạn</h1>
+                <p class="cart-subtitle">@GetCartItemCount() sản phẩm</p>
+            </div>
+            @if (HasCartItems())
             {
-                <span class="cart-source-badge">API Cart</span>
-            }
-            else
-            {
-                <span class="cart-source-badge guest">Local Cart</span>
+                <div class="select-all-container">
+                    <input type="checkbox" 
+                           class="select-all-checkbox" 
+                           checked="@IsAllSelected()"
+                           @onchange="ToggleSelectAll" />
+                    <label class="select-all-label">Chọn tất cả</label>
+                </div>
             }
         </div>
 
         @if (IsLoadingCart)
         {
-            <div class="loading-cart" style="text-align: center; padding: 50px;">
-                <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--primary-color);"></i>
-                <p style="margin-top: 20px; font-size: 1.1rem;">Đang tải giỏ hàng...</p>
+            <div style="text-align: center; padding: 3rem;">
+                <div class="loading-spinner"></div>
+                <p style="margin-top: 1rem; color: var(--gray-600);">Đang tải giỏ hàng...</p>
             </div>
         }
         else if (HasCartItems())
         {
-            <div class="cart-content">
+            <div class="cart-grid">
                 <!-- Cart Items List -->
-                <div class="cart-items-section">
+                <div class="cart-items">
                     @if (ApiCart?.Items.Any() == true)
                     {
                         @* Render API Cart Items *@
                         @foreach (var apiItem in ApiCart.Items)
                         {
-                            <div class="cart-item-card">
-                                <div class="item-image">
-                                    <img src="@apiItem.ImageUrl" alt="@apiItem.ProductName" />
-                                </div>
-
-                                <div class="item-details">
-                                    <div class="item-info">
-                                        <h3 class="item-name">@apiItem.ProductName</h3>
-                                        <p class="item-brand">@apiItem.Brand</p>
-                                        
-                                        <div class="item-specifications">
-                                            <div class="spec-item">
-                                                <span class="spec-label">Size:</span>
-                                                <span class="spec-value">@apiItem.Size</span>
-                                            </div>
-                                            <div class="spec-item">
-                                                <span class="spec-label">Màu sắc:</span>
-                                                <div class="color-indicator">
-                                                    <div class="color-swatch" style="background-color: @apiItem.ColorHex"></div>
-                                                    <span class="color-name">@apiItem.Color</span>
-                                                </div>
-                                            </div>
-                                            <div class="spec-item">
-                                                <span class="spec-label">Mã sản phẩm:</span>
-                                                <span class="spec-value">#@apiItem.ProductID.ToString().PadLeft(6, '0')</span>
-                                            </div>
+                            <div class="cart-item @(SelectedItems.Contains(apiItem.CartItemID) ? "selected" : "")">
+                                <input type="checkbox" 
+                                       class="cart-item-checkbox" 
+                                       checked="@SelectedItems.Contains(apiItem.CartItemID)"
+                                       @onchange="() => ToggleItemSelection(apiItem.CartItemID)" />
+                                
+                                <img src="@apiItem.ImageUrl" alt="@apiItem.ProductName" class="cart-item-image" />
+                                
+                                <div class="cart-item-details">
+                                    <div class="cart-item-header">
+                                        <div>
+                                            <h3 class="cart-item-name">@apiItem.ProductName</h3>
+                                            <p class="cart-item-brand">@apiItem.Brand</p>
                                         </div>
-                                    </div>
-
-                                    <!-- Quantity Controls -->
-                                    <div class="item-quantity">
-                                        <button class="qty-btn" disabled>
-                                            <i class="fas fa-minus"></i>
-                                        </button>
-                                        <input type="number" value="@apiItem.Quantity" min="1" max="@apiItem.StockQuantity" readonly />
-                                        <button class="qty-btn" disabled>
-                                            <i class="fas fa-plus"></i>
+                                        <button class="btn-remove" @onclick="() => RemoveApiCartItem(apiItem.CartItemID)">
+                                            <i class="fas fa-times"></i>
                                         </button>
                                     </div>
-
-                                    <!-- Price -->
-                                    <div class="item-price">
-                                        <span class="price-current">@apiItem.PriceFormatted</span>
+                                    
+                                    <div class="cart-item-info">
+                                        <span class="cart-item-variant">Size: @apiItem.Size</span>
+                                        <span class="cart-item-variant">•</span>
+                                        <span class="cart-item-variant">@apiItem.Color</span>
                                     </div>
 
-                                    <div class="item-actions">
-                                        <button class="btn-remove" @onclick="() => RemoveApiCartItem(apiItem.CartItemID)" title="Xóa khỏi giỏ">
-                                            <i class="fas fa-trash"></i>
-                                            Xóa
-                                        </button>
-                                    </div>
-
-                                    <div class="item-total">
-                                        <span class="total-label">Thành tiền:</span>
-                                        <span class="total-amount">@apiItem.TotalPriceFormatted</span>
+                                    <div class="cart-item-footer">
+                                        <div class="quantity-control">
+                                            <button class="quantity-btn" disabled>
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                            <input type="number" class="quantity-input" value="@apiItem.Quantity" readonly />
+                                            <button class="quantity-btn" disabled>
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                        <div class="cart-item-price">@apiItem.TotalPriceFormatted</div>
                                     </div>
                                 </div>
                             </div>
@@ -107,206 +101,116 @@
                         @* Render Local Cart Items *@
                         @foreach (var item in CartItems)
                         {
-                        <div class="cart-item-card">
-                            <div class="item-image">
-                                <img src="@item.Product.PrimaryImageUrl" alt="@item.Product.Name" />
-                                @if (item.Product.HasBadge)
-                                {
-                                    <span class="item-badge @(item.Product.IsSale ? "sale" : "")">@item.Product.Badge</span>
-                                }
-                            </div>
-
-                            <div class="item-details">
-                                <div class="item-info">
-                                    <h3 class="item-name">@item.Product.Name</h3>
-                                    <p class="item-brand">@item.Product.Brand</p>
-                                    
-                                    <!-- Product Details -->
-                                    <div class="item-specifications">
-                                        @if (!string.IsNullOrEmpty(item.SelectedSize))
+                        <div class="cart-item @(SelectedLocalItems.Contains(item.Product.Id) ? "selected" : "")">
+                            <input type="checkbox" 
+                                   class="cart-item-checkbox" 
+                                   checked="@SelectedLocalItems.Contains(item.Product.Id)"
+                                   @onchange="() => ToggleLocalItemSelection(item.Product.Id)" />
+                            
+                            <img src="@item.Product.PrimaryImageUrl" alt="@item.Product.Name" class="cart-item-image" />
+                            
+                            <div class="cart-item-details">
+                                <div class="cart-item-header">
+                                    <div>
+                                        <h3 class="cart-item-name">@item.Product.Name</h3>
+                                        <p class="cart-item-brand">@item.Product.Brand</p>
+                                        @if (item.Product.OriginalPrice.HasValue)
                                         {
-                                            <div class="spec-item">
-                                                <span class="spec-label">Size:</span>
-                                                <span class="spec-value">@item.SelectedSize</span>
-                                            </div>
+                                            <span class="cart-item-discount">@item.Product.Discount</span>
                                         }
-                                        @if (!string.IsNullOrEmpty(item.SelectedColor))
-                                        {
-                                            <div class="spec-item">
-                                                <span class="spec-label">Màu sắc:</span>
-                                                <div class="color-indicator">
-                                                    <div class="color-swatch" style="background-color: @item.SelectedColor"></div>
-                                                    <span class="color-name">@GetColorName(item.SelectedColor)</span>
-                                                </div>
-                                            </div>
-                                        }
-                                        <div class="spec-item">
-                                            <span class="spec-label">Mã sản phẩm:</span>
-                                            <span class="spec-value">#@item.Product.Id.ToString().PadLeft(6, '0')</span>
-                                        </div>
                                     </div>
-
-                                    <!-- Price and Stock -->
-                                    <div class="item-pricing">
-                                        <div class="price-section">
-                                            <span class="current-price">@item.Product.PriceFormatted</span>
-                                            @if (item.Product.OriginalPrice.HasValue)
-                                            {
-                                                <span class="original-price">@item.Product.OldPriceFormatted</span>
-                                                <span class="discount">@item.Product.Discount</span>
-                                            }
-                                        </div>
-                                        <div class="stock-info">
-                                            @if (item.Product.StockQuantity <= 5)
-                                            {
-                                                <span class="low-stock">Chỉ còn @item.Product.StockQuantity sản phẩm</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="in-stock">Còn hàng</span>
-                                            }
-                                        </div>
-                                    </div>
+                                    <button class="btn-remove" @onclick="() => RemoveItem(item)">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                
+                                <div class="cart-item-info">
+                                    @if (!string.IsNullOrEmpty(item.SelectedSize))
+                                    {
+                                        <span class="cart-item-variant">Size: @item.SelectedSize</span>
+                                        <span class="cart-item-variant">•</span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(item.SelectedColor))
+                                    {
+                                        <span class="cart-item-variant">@GetColorName(item.SelectedColor)</span>
+                                    }
                                 </div>
 
-                                <!-- Quantity Controls -->
-                                <div class="item-controls">
-                                    <div class="quantity-controls">
-                                        <label>Số lượng:</label>
-                                        <div class="qty-input-group">
-                                            <button class="qty-btn" @onclick="() => DecreaseQuantity(item)" disabled="@(item.Quantity <= 1)">
-                                                <i class="fas fa-minus"></i>
-                                            </button>
-                                            <input type="number" class="qty-input" @bind="item.Quantity" @bind:event="oninput" min="1" max="@item.Product.StockQuantity" />
-                                            <button class="qty-btn" @onclick="() => IncreaseQuantity(item)" disabled="@(item.Quantity >= item.Product.StockQuantity)">
-                                                <i class="fas fa-plus"></i>
-                                            </button>
-                                        </div>
+                                @if (item.Product.StockQuantity <= 5)
+                                {
+                                    <div class="cart-item-stock">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Chỉ còn @item.Product.StockQuantity sản phẩm
                                     </div>
+                                }
 
-                                    <div class="item-actions">
-                                        <button class="btn-edit" @onclick="() => EditItem(item)" title="Chỉnh sửa">
-                                            <i class="fas fa-edit"></i>
-                                            Chỉnh sửa
+                                <div class="cart-item-footer">
+                                    <div class="quantity-control">
+                                        <button class="quantity-btn" @onclick="() => DecreaseQuantity(item)" disabled="@(item.Quantity <= 1)">
+                                            <i class="fas fa-minus"></i>
                                         </button>
-                                        <button class="btn-save-later" @onclick="() => SaveForLater(item)" title="Lưu để mua sau">
-                                            <i class="fas fa-heart"></i>
-                                            Lưu sau
-                                        </button>
-                                        <button class="btn-remove" @onclick="() => RemoveItem(item)" title="Xóa khỏi giỏ">
-                                            <i class="fas fa-trash"></i>
-                                            Xóa
+                                        <input type="number" class="quantity-input" @bind="item.Quantity" min="1" max="@item.Product.StockQuantity" />
+                                        <button class="quantity-btn" @onclick="() => IncreaseQuantity(item)" disabled="@(item.Quantity >= item.Product.StockQuantity)">
+                                            <i class="fas fa-plus"></i>
                                         </button>
                                     </div>
-
-                                    <div class="item-total">
-                                        <span class="total-label">Thành tiền:</span>
-                                        <span class="total-amount">@GetItemTotal(item)</span>
-                                    </div>
+                                    <div class="cart-item-price">@GetItemTotal(item)</div>
                                 </div>
                             </div>
                         </div>
                         }
                     }
 
-                    <!-- Cart Actions -->
                     <div class="cart-actions">
-                        <button class="btn btn-outline" @onclick="ContinueShopping">
+                        <button class="btn-continue" @onclick="ContinueShopping">
                             <i class="fas fa-arrow-left"></i>
                             Tiếp tục mua sắm
-                        </button>
-                        <button class="btn btn-clear" @onclick="ClearCart">
-                            <i class="fas fa-trash-alt"></i>
-                            Xóa tất cả
                         </button>
                     </div>
                 </div>
 
-                <!-- Order Summary -->
-                <div class="order-summary">
-                    <div class="summary-card">
-                        <h3>Tóm tắt đơn hàng</h3>
-                        
-                        <div class="summary-row">
-                            <span>Tạm tính (@TotalItems sản phẩm):</span>
-                            <span>@SubtotalFormatted</span>
+                <!-- Cart Summary -->
+                <div class="cart-summary">
+                    <h3 class="summary-title">Tóm tắt đơn hàng</h3>
+                    
+                    <div class="summary-row">
+                        <span class="summary-label">Tạm tính</span>
+                        <span class="summary-value">@SubtotalFormatted</span>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span class="summary-label">Phí vận chuyển</span>
+                        <span class="summary-value">@(Subtotal >= 500000 ? "Miễn phí" : "30.000đ")</span>
+                    </div>
+                    
+                    @if (TotalDiscount > 0)
+                    {
+                        <div class="summary-row discount">
+                            <span class="summary-label">Giảm giá</span>
+                            <span class="summary-value">-@TotalDiscountFormatted</span>
                         </div>
-                        
-                        <div class="summary-row">
-                            <span>Phí vận chuyển:</span>
-                            <span class="shipping-fee">@(Subtotal >= 500000 ? "Miễn phí" : "30.000đ")</span>
-                        </div>
-                        
-                        @if (TotalDiscount > 0)
-                        {
-                            <div class="summary-row discount-row">
-                                <span>Giảm giá:</span>
-                                <span class="discount-amount">-@TotalDiscountFormatted</span>
-                            </div>
-                        }
-                        
-                        <hr class="summary-divider" />
-                        
-                        <div class="summary-row total-row">
-                            <span>Tổng cộng:</span>
-                            <span class="total-price">@TotalFormatted</span>
-                        </div>
-
-                        <!-- Promo Code -->
-                        <div class="promo-section">
-                            <div class="promo-input-group">
-                                <input type="text" class="promo-input" placeholder="Mã giảm giá" @bind="PromoCode" />
-                                <button class="btn-apply-promo" @onclick="ApplyPromoCode" disabled="@(string.IsNullOrEmpty(PromoCode))">
-                                    Áp dụng
-                                </button>
-                            </div>
-                            @if (!string.IsNullOrEmpty(PromoMessage))
-                            {
-                                <div class="promo-message @(PromoSuccess ? "success" : "error")">
-                                    @PromoMessage
-                                </div>
-                            }
-                        </div>
-
-                        <!-- Checkout Button -->
-                        <button class="btn-checkout" @onclick="Checkout">
-                            <i class="fas fa-lock"></i>
-                            Thanh toán an toàn
-                        </button>
-
-                        <!-- Payment Methods -->
-                        <div class="payment-methods">
-                            <p>Phương thức thanh toán:</p>
-                            <div class="payment-icons">
-                                <i class="fab fa-cc-visa" title="Visa"></i>
-                                <i class="fab fa-cc-mastercard" title="Mastercard"></i>
-                                <i class="fab fa-cc-paypal" title="PayPal"></i>
-                                <i class="fas fa-money-bill" title="Thanh toán khi nhận hàng"></i>
-                            </div>
-                        </div>
-
-                        <!-- Security Badge -->
-                        <div class="security-badge">
-                            <i class="fas fa-shield-alt"></i>
-                            <span>Thanh toán được bảo mật bởi SSL</span>
-                        </div>
+                    }
+                    
+                    <div class="summary-divider"></div>
+                    
+                    <div class="summary-row total">
+                        <span class="summary-label">Tổng cộng</span>
+                        <span class="summary-value">@TotalFormatted</span>
                     </div>
 
-                    <!-- Recommended Products -->
-                    <div class="recommended-section">
-                        <h4>Có thể bạn sẽ thích</h4>
-                        <div class="recommended-items">
-                            @foreach (var product in RecommendedProducts.Take(3))
-                            {
-                                <div class="recommended-item" @onclick="() => ViewProduct(product.Id)">
-                                    <img src="@product.PrimaryImageUrl" alt="@product.Name" />
-                                    <div class="recommended-info">
-                                        <p class="recommended-name">@product.Name</p>
-                                        <p class="recommended-price">@product.PriceFormatted</p>
-                                    </div>
-                                </div>
-                            }
-                        </div>
+                    <button class="btn-checkout" @onclick="Checkout" disabled="@(!HasSelectedItems())">
+                        <i class="fas fa-shopping-bag"></i>
+                        Thanh toán @(HasSelectedItems() ? $"({(ApiCart != null ? SelectedItems.Count : SelectedLocalItems.Count)} sản phẩm)" : "")
+                    </button>
+
+                    <button class="btn-continue" @onclick="ContinueShopping" style="margin-top:0.5rem;">
+                        <i class="fas fa-arrow-left"></i>
+                        Tiếp tục mua sắm
+                    </button>
+
+                    <div class="security-badge">
+                        <i class="fas fa-shield-alt security-icon"></i>
+                        <span>Giao dịch bảo mật SSL</span>
                     </div>
                 </div>
             </div>
@@ -317,10 +221,10 @@
                 <div class="empty-cart-icon">
                     <i class="fas fa-shopping-bag"></i>
                 </div>
-                <h2>Giỏ hàng của bạn đang trống</h2>
-                <p>Hãy khám phá các sản phẩm tuyệt vời của chúng tôi!</p>
-                <button class="btn btn-primary" @onclick="ContinueShopping">
-                    <i class="fas fa-arrow-left"></i>
+                <h2 class="empty-cart-title">Giỏ hàng của bạn đang trống</h2>
+                <p class="empty-cart-text">Hãy khám phá các sản phẩm tuyệt vời!</p>
+                <button class="btn-primary" @onclick="ContinueShopping">
+                    <i class="fas fa-shopping-bag"></i>
                     Bắt đầu mua sắm
                 </button>
             </div>
@@ -336,18 +240,30 @@
     private CartSummaryResponse? ApiCart = null;
     private bool IsLoadingCart = false;
     
+    // Selection tracking
+    private HashSet<int> SelectedItems = new(); // For API cart items (CartItemID)
+    private HashSet<int> SelectedLocalItems = new(); // For local cart items (Product.Id)
+    
     private List<Product> RecommendedProducts = new();
     private string PromoCode = string.Empty;
     private string PromoMessage = string.Empty;
-    private bool PromoSuccess = false;
 
     // Helper methods for hybrid cart
     private int GetCartItemCount() => ApiCart?.UniqueProductCount ?? CartItems.Count;
     private bool HasCartItems() => (ApiCart?.Items.Any() == true) || CartItems.Any();
+    private bool HasSelectedItems() => SelectedItems.Any() || SelectedLocalItems.Any();
     
     private int TotalItems => ApiCart?.TotalItems ?? CartItems.Sum(item => item.Quantity);
-    private decimal Subtotal => ApiCart?.TotalAmount ?? CartItems.Sum(item => item.Product.Price * item.Quantity);
-    private decimal TotalDiscount => CartItems.Sum(item => (item.Product.OriginalPrice ?? item.Product.Price) - item.Product.Price) * CartItems.Where(c => c.Product.OriginalPrice.HasValue).Sum(c => c.Quantity);
+    
+    // Modified to calculate based on selected items only
+    private decimal Subtotal => ApiCart != null 
+        ? ApiCart.Items.Where(i => SelectedItems.Contains(i.CartItemID)).Sum(i => i.TotalPrice)
+        : CartItems.Where(i => SelectedLocalItems.Contains(i.Product.Id)).Sum(item => item.Product.Price * item.Quantity);
+    
+    private decimal TotalDiscount => CartItems
+        .Where(item => SelectedLocalItems.Contains(item.Product.Id) && item.Product.OriginalPrice.HasValue)
+        .Sum(item => ((item.Product.OriginalPrice ?? item.Product.Price) - item.Product.Price) * item.Quantity);
+    
     private decimal ShippingFee => Subtotal >= 500000 ? 0 : 30000;
     private decimal Total => Subtotal + ShippingFee;
 
@@ -409,20 +325,102 @@
             if (ApiCart != null)
             {
                 CartItems.Clear();
+                // Select all items by default
+                SelectedItems = ApiCart.Items.Select(i => i.CartItemID).ToHashSet();
             }
             else
             {
                 CartItems = CartService.GetItems();
+                SelectedLocalItems = CartItems.Select(i => i.Product.Id).ToHashSet();
             }
         }
         else
         {
             ApiCart = null;
             CartItems = CartService.GetItems();
+            // Select all items by default
+            SelectedLocalItems = CartItems.Select(i => i.Product.Id).ToHashSet();
         }
         
         IsLoadingCart = false;
         StateHasChanged();
+    }
+    
+    /// <summary>
+    /// Toggle selection for API cart item
+    /// </summary>
+    private void ToggleItemSelection(int cartItemId)
+    {
+        if (SelectedItems.Contains(cartItemId))
+        {
+            SelectedItems.Remove(cartItemId);
+        }
+        else
+        {
+            SelectedItems.Add(cartItemId);
+        }
+        StateHasChanged();
+    }
+    
+    /// <summary>
+    /// Toggle selection for local cart item
+    /// </summary>
+    private void ToggleLocalItemSelection(int productId)
+    {
+        if (SelectedLocalItems.Contains(productId))
+        {
+            SelectedLocalItems.Remove(productId);
+        }
+        else
+        {
+            SelectedLocalItems.Add(productId);
+        }
+        StateHasChanged();
+    }
+    
+    /// <summary>
+    /// Toggle select all items
+    /// </summary>
+    private void ToggleSelectAll()
+    {
+        if (ApiCart != null)
+        {
+            if (SelectedItems.Count == ApiCart.Items.Count)
+            {
+                SelectedItems.Clear();
+            }
+            else
+            {
+                SelectedItems = ApiCart.Items.Select(i => i.CartItemID).ToHashSet();
+            }
+        }
+        else
+        {
+            if (SelectedLocalItems.Count == CartItems.Count)
+            {
+                SelectedLocalItems.Clear();
+            }
+            else
+            {
+                SelectedLocalItems = CartItems.Select(i => i.Product.Id).ToHashSet();
+            }
+        }
+        StateHasChanged();
+    }
+    
+    /// <summary>
+    /// Check if all items are selected
+    /// </summary>
+    private bool IsAllSelected()
+    {
+        if (ApiCart != null)
+        {
+            return ApiCart.Items.Any() && SelectedItems.Count == ApiCart.Items.Count;
+        }
+        else
+        {
+            return CartItems.Any() && SelectedLocalItems.Count == CartItems.Count;
+        }
     }
 
     private async void UpdateCart()
@@ -511,12 +509,18 @@
             var success = await CartService.ClearCartAsync();
             if (success)
             {
+                await ToastService.ShowSuccess("Đã xóa toàn bộ giỏ hàng");
                 await LoadCartAsync();
+            }
+            else
+            {
+                await ToastService.ShowError("Không thể xóa giỏ hàng. Vui lòng thử lại.");
             }
         }
         else
         {
             CartService.ClearCart();
+            await ToastService.ShowSuccess("Đã xóa toàn bộ giỏ hàng");
         }
     }
 
@@ -531,19 +535,27 @@
         if (PromoCode.ToUpper() == "SAVE10")
         {
             PromoMessage = "Mã giảm giá đã được áp dụng thành công!";
-            PromoSuccess = true;
         }
         else
         {
             PromoMessage = "Mã giảm giá không hợp lệ hoặc đã hết hạn.";
-            PromoSuccess = false;
         }
         StateHasChanged();
     }
 
     private void Checkout()
     {
-        // Navigate to checkout page
+        if (!HasSelectedItems())
+        {
+            ToastService.ShowWarning("Vui lòng chọn ít nhất một sản phẩm để thanh toán");
+            return;
+        }
+        
+        // Save selected items to CartService
+        CartService.SelectedApiCartItemIds = new HashSet<int>(SelectedItems);
+        CartService.SelectedLocalProductIds = new HashSet<int>(SelectedLocalItems);
+        
+        // Navigate to checkout page with selected items
         Navigation.NavigateTo("/checkout");
     }
 
@@ -561,11 +573,12 @@
         
         if (success)
         {
+            await ToastService.ShowSuccess("Đã xóa sản phẩm khỏi giỏ hàng");
             await LoadCartAsync();
         }
         else
         {
-            await JSRuntime.InvokeVoidAsync("alert", "Không thể xóa sản phẩm. Vui lòng thử lại.");
+            await ToastService.ShowError("Không thể xóa sản phẩm. Vui lòng thử lại.");
         }
     }
 

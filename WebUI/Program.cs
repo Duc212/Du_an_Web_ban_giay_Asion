@@ -23,11 +23,15 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 // Register other Services
 builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<OrderService>();
 
 // Register Google Auth Service
 builder.Services.AddScoped<GoogleAuthService>();
 
 // Register Loading Service
 builder.Services.AddScoped<ILoadingService, LoadingService>();
+
+// Register Toast Service
+builder.Services.AddSingleton<IToastService, ToastService>();
 
 await builder.Build().RunAsync();

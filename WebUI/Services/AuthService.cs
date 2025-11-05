@@ -700,7 +700,6 @@ namespace WebUI.Services
         {
             await _jsRuntime.InvokeVoidAsync("localStorage.setItem", LocalStorageKeys.AuthToken, token);
             await _jsRuntime.InvokeVoidAsync("localStorage.setItem", LocalStorageKeys.UserData, JsonSerializer.Serialize(user));
-            Console.WriteLine($"[AuthService] ✅ Stored auth data for {user?.FullName}");
         }
 
         private async Task LoadAuthDataAsync()
@@ -714,13 +713,12 @@ namespace WebUI.Services
                 {
                     _currentToken = token;
                     _currentUser = JsonSerializer.Deserialize<User>(userJson);
-                    Console.WriteLine($"[AuthService] ✅ Loaded auth for {_currentUser?.FullName}");
                     AuthStateChanged?.Invoke(this, true);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[AuthService] ❌ Error loading auth: {ex.Message}");
+                Console.WriteLine($"[AuthService] Error loading auth: {ex.Message}");
             }
         }
 

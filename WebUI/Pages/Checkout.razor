@@ -1,0 +1,593 @@
+@page "/checkout"
+@using WebUI.Models
+@using WebUI.Models.Cart
+@using WebUI.Services
+@using WebUI.Services.Interfaces
+@inject CartService CartService
+@inject IAuthService AuthService
+@inject OrderService OrderService
+@inject NavigationManager Navigation
+@inject IToastService ToastService
+@inject ILoadingService LoadingService
+
+<link href="css/ecommerce-theme.css" rel="stylesheet" />
+<link href="css/checkout-clean.css" rel="stylesheet" />
+
+<div class="checkout-page">
+    <div class="checkout-container">
+        <!-- Breadcrumb & Back Link -->
+        <a href="/cart" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            Quay lại giỏ hàng
+        </a>
+
+        <div class="checkout-header">
+            <h1 class="checkout-title">Thanh toán</h1>
+        </div>
+
+        <!-- Progress Steps -->
+        <div class="progress-steps">
+            <div class="step completed">
+                <div class="step-circle"><i class="fas fa-check"></i></div>
+                <span class="step-label">Giỏ hàng</span>
+            </div>
+            <div class="step-divider active"></div>
+            <div class="step active">
+                <div class="step-circle">2</div>
+                <span class="step-label">Thông tin</span>
+            </div>
+            <div class="step-divider"></div>
+            <div class="step">
+                <div class="step-circle">3</div>
+                <span class="step-label">Thanh toán</span>
+            </div>
+        </div>
+
+        @if (!HasCartItems())
+        {
+            <div style="text-align: center; padding: 3rem;">
+                <i class="fas fa-shopping-bag" style="font-size: 4rem; color: var(--gray-400);"></i>
+                <h2>Giỏ hàng của bạn đang trống</h2>
+                <p>Vui lòng thêm sản phẩm vào giỏ hàng trước khi thanh toán</p>
+                <button class="btn-primary" @onclick='() => Navigation.NavigateTo("/")'>
+                    <i class="fas fa-arrow-left"></i>
+                    Tiếp tục mua sắm
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="checkout-grid">
+                <!-- Left Column - Form -->
+                <div class="checkout-form">
+                    <!-- Shipping Information -->
+                    <div class="form-section">
+                        <h2 class="section-title">
+                            <i class="fas fa-shipping-fast section-icon"></i>
+                            Thông tin giao hàng
+                        </h2>
+                        
+                        <div class="form-grid">
+                            <div class="form-group form-grid-full">
+                                <label class="form-label required">Email</label>
+                                <input type="email" 
+                                       class="form-input @GetValidationClass(nameof(OrderRequest.ReceiverEmail))"
+                                       @bind="OrderRequest.ReceiverEmail"
+                                       @onblur="() => ValidateField(nameof(OrderRequest.ReceiverEmail))"
+                                       placeholder="email@example.com" />
+                                @if (ValidationErrors.ContainsKey(nameof(OrderRequest.ReceiverEmail)))
+                                {
+                                    <span class="error-message">@ValidationErrors[nameof(OrderRequest.ReceiverEmail)]</span>
+                                }
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label required">Họ và tên</label>
+                                <input type="text" 
+                                       class="form-input @GetValidationClass(nameof(OrderRequest.ReceiverName))"
+                                       @bind="OrderRequest.ReceiverName"
+                                       placeholder="Nguyễn Văn A" />
+                                @if (ValidationErrors.ContainsKey(nameof(OrderRequest.ReceiverName)))
+                                {
+                                    <span class="error-message">@ValidationErrors[nameof(OrderRequest.ReceiverName)]</span>
+                                }
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label required">Số điện thoại</label>
+                                <input type="tel" 
+                                       class="form-input @GetValidationClass(nameof(OrderRequest.ReceiverPhone))"
+                                       @bind="OrderRequest.ReceiverPhone"
+                                       @onblur="() => ValidateField(nameof(OrderRequest.ReceiverPhone))"
+                                       placeholder="0912345678" />
+                                @if (ValidationErrors.ContainsKey(nameof(OrderRequest.ReceiverPhone)))
+                                {
+                                    <span class="error-message">@ValidationErrors[nameof(OrderRequest.ReceiverPhone)]</span>
+                                }
+                            </div>
+
+                            <div class="form-group form-grid-full">
+                                <label class="form-label required">Địa chỉ chi tiết</label>
+                                <input type="text" 
+                                       class="form-input @GetValidationClass(nameof(OrderRequest.ShippingAddress))"
+                                       @bind="OrderRequest.ShippingAddress"
+                                       placeholder="Số nhà, tên đường" />
+                                @if (ValidationErrors.ContainsKey(nameof(OrderRequest.ShippingAddress)))
+                                {
+                                    <span class="error-message">@ValidationErrors[nameof(OrderRequest.ShippingAddress)]</span>
+                                }
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label required">Tỉnh/Thành phố</label>
+                                <select class="form-select @GetValidationClass(nameof(OrderRequest.City))"
+                                        @bind="OrderRequest.City">
+                                    <option value="">Chọn Tỉnh/TP</option>
+                                    <option value="hcm">TP. Hồ Chí Minh</option>
+                                    <option value="hn">Hà Nội</option>
+                                    <option value="dn">Đà Nẵng</option>
+                                </select>
+                                @if (ValidationErrors.ContainsKey(nameof(OrderRequest.City)))
+                                {
+                                    <span class="error-message">@ValidationErrors[nameof(OrderRequest.City)]</span>
+                                }
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label required">Quận/Huyện</label>
+                                <select class="form-select @GetValidationClass(nameof(OrderRequest.District))"
+                                        @bind="OrderRequest.District">
+                                    <option value="">Chọn Quận/Huyện</option>
+                                    <option value="q1">Quận 1</option>
+                                    <option value="q2">Quận 2</option>
+                                    <option value="q3">Quận 3</option>
+                                </select>
+                                @if (ValidationErrors.ContainsKey(nameof(OrderRequest.District)))
+                                {
+                                    <span class="error-message">@ValidationErrors[nameof(OrderRequest.District)]</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shipping Method -->
+                    <div class="form-section">
+                        <h2 class="section-title">
+                            <i class="fas fa-truck section-icon"></i>
+                            Phương thức vận chuyển
+                        </h2>
+                        <div class="shipping-options">
+                            @foreach (var option in ShippingOptions)
+                            {
+                                <div class="shipping-option @(OrderRequest.ShippingMethod == option.Id ? "selected" : "")"
+                                     @onclick='() => SelectShipping(option)'>
+                                    <div class="shipping-radio"></div>
+                                    <div class="shipping-info">
+                                        <div class="shipping-name">@option.Name</div>
+                                        <div class="shipping-description">@option.Description</div>
+                                    </div>
+                                    <div class="shipping-price">@option.Price.ToString("N0")₫</div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div class="form-section">
+                        <h2 class="section-title">
+                            <i class="fas fa-credit-card section-icon"></i>
+                            Phương thức thanh toán
+                        </h2>
+                        <div class="payment-methods">
+                            <div class="payment-method @(OrderRequest.PaymentMethod == "cod" ? "selected" : "")"
+                                 @onclick='() => OrderRequest.PaymentMethod = "cod"'>
+                                <div class="payment-icon">💵</div>
+                                <div class="payment-name">COD</div>
+                                <div class="payment-badge">✓</div>
+                            </div>
+
+                            <div class="payment-method @(OrderRequest.PaymentMethod == "card" ? "selected" : "")"
+                                 @onclick='() => OrderRequest.PaymentMethod = "card"'>
+                                <div class="payment-icon">💳</div>
+                                <div class="payment-name">Thẻ tín dụng</div>
+                                <div class="payment-badge">✓</div>
+                            </div>
+
+                            <div class="payment-method @(OrderRequest.PaymentMethod == "wallet" ? "selected" : "")"
+                                 @onclick='() => OrderRequest.PaymentMethod = "wallet"'>
+                                <div class="payment-icon">📱</div>
+                                <div class="payment-name">Ví điện tử</div>
+                                <div class="payment-badge">✓</div>
+                            </div>
+
+                            <div class="payment-method @(OrderRequest.PaymentMethod == "transfer" ? "selected" : "")"
+                                 @onclick='() => OrderRequest.PaymentMethod = "transfer"'>
+                                <div class="payment-icon">🏦</div>
+                                <div class="payment-name">Chuyển khoản</div>
+                                <div class="payment-badge">✓</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Order Summary -->
+                <div class="order-summary">
+                    <h3 class="summary-title">Đơn hàng của bạn</h3>
+
+                    <!-- Products -->
+                    <div class="summary-items">
+                        @if (AuthService.IsAuthenticated && ApiCart?.Items != null)
+                        {
+                            @foreach (var item in ApiCart.Items)
+                            {
+                                <div class="summary-item">
+                                    <img src="@item.ImageUrl" alt="@item.ProductName" class="summary-item-image" />
+                                    <div class="summary-item-details">
+                                        <div class="summary-item-name">@item.ProductName</div>
+                                        <div class="summary-item-info">Size: @item.Size • @item.Color</div>
+                                        <div class="summary-item-price">
+                                            <span class="item-quantity">x @item.Quantity</span>
+                                            <span class="item-total">@item.TotalPriceFormatted</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            @foreach (var item in LocalCartItems)
+                            {
+                                <div class="summary-item">
+                                    <img src="@item.Product.PrimaryImageUrl" alt="@item.Product.Name" class="summary-item-image" />
+                                    <div class="summary-item-details">
+                                        <div class="summary-item-name">@item.Product.Name</div>
+                                        <div class="summary-item-info">Size: @item.SelectedSize • @GetColorName(item.SelectedColor)</div>
+                                        <div class="summary-item-price">
+                                            <span class="item-quantity">x @item.Quantity</span>
+                                            <span class="item-total">@((item.Product.Price * item.Quantity).ToString("N0"))₫</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    <!-- Calculations -->
+                    <div class="summary-calculations">
+                        <div class="summary-row">
+                            <span class="summary-label">Tạm tính</span>
+                            <span class="summary-value">@GetSubTotal()</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Phí vận chuyển</span>
+                            <span class="summary-value">@ShippingFee.ToString("N0")₫</span>
+                        </div>
+                        @if (Discount > 0)
+                        {
+                            <div class="summary-row discount">
+                                <span class="summary-label">Giảm giá</span>
+                                <span class="summary-value">-@Discount.ToString("N0")₫</span>
+                            </div>
+                        }
+                        <div class="summary-row total">
+                            <span class="summary-label">Tổng cộng</span>
+                            <span class="summary-value">@GetTotalAmount()</span>
+                        </div>
+                    </div>
+
+                    <!-- Checkout Button -->
+                    <button class="btn-checkout" 
+                            @onclick="HandleCheckout"
+                            disabled="@IsProcessing">
+                        @if (IsProcessing)
+                        {
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Đang xử lý...</span>
+                        }
+                        else
+                        {
+                            <i class="fas fa-check-circle"></i>
+                            <span>Hoàn tất đơn hàng</span>
+                        }
+                    </button>
+
+                    <div class="security-badge">
+                        <i class="fas fa-shield-alt security-icon"></i>
+                        <span>Giao dịch bảo mật SSL</span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private CreateOrderRequest OrderRequest = new() { PaymentMethod = "cod", ShippingMethod = "standard" };
+    private Dictionary<string, string> ValidationErrors = new();
+    private CartSummaryResponse? ApiCart = null;
+    private List<WebUI.Services.CartItem> LocalCartItems = new();
+    private bool IsProcessing = false;
+    private decimal ShippingFee = 30000;
+    private decimal Discount = 0;
+    private string DiscountCode = string.Empty;
+
+    private List<ShippingOption> ShippingOptions = new()
+    {
+        new ShippingOption { Id = "standard", Name = "Tiêu chuẩn", Description = "3-5 ngày", Price = 30000 },
+        new ShippingOption { Id = "express", Name = "Nhanh", Description = "1-2 ngày", Price = 50000 },
+        new ShippingOption { Id = "super", Name = "Hỏa tốc", Description = "< 24 giờ", Price = 100000 }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCartAsync();
+        
+        if (AuthService.IsAuthenticated && AuthService.CurrentUser != null)
+        {
+            var user = AuthService.CurrentUser;
+            OrderRequest.ReceiverName = user.FullName ?? "";
+            OrderRequest.ReceiverPhone = user.Phone ?? "";
+            OrderRequest.ReceiverEmail = user.Email ?? "";
+        }
+    }
+
+    private async Task LoadCartAsync()
+    {
+        if (AuthService.IsAuthenticated)
+        {
+            var fullCart = await CartService.GetCartFromApiAsync();
+            
+            // Filter to only selected items
+            if (fullCart != null && CartService.SelectedApiCartItemIds.Any())
+            {
+                // Create a filtered cart with only selected items
+                var filteredItems = fullCart.Items
+                    .Where(item => CartService.SelectedApiCartItemIds.Contains(item.CartItemID))
+                    .ToList();
+                
+                // Create new CartSummaryResponse with filtered items
+                ApiCart = new CartSummaryResponse
+                {
+                    CartID = fullCart.CartID,
+                    Items = filteredItems
+                };
+            }
+            else if (fullCart != null)
+            {
+                // No selection - take all items
+                ApiCart = fullCart;
+            }
+        }
+        else
+        {
+            var allItems = CartService.GetItems();
+            
+            // Filter to only selected items
+            if (CartService.SelectedLocalProductIds.Any())
+            {
+                LocalCartItems = allItems
+                    .Where(item => CartService.SelectedLocalProductIds.Contains(item.Product.Id))
+                    .ToList();
+            }
+            else
+            {
+                // No selection - take all items
+                LocalCartItems = allItems;
+            }
+        }
+    }
+
+    private bool HasCartItems()
+    {
+        return AuthService.IsAuthenticated ? ApiCart?.Items.Any() == true : LocalCartItems.Any();
+    }
+
+    private void SelectShipping(ShippingOption option)
+    {
+        OrderRequest.ShippingMethod = option.Id;
+        ShippingFee = option.Price;
+        StateHasChanged();
+    }
+
+    private void ApplyDiscount()
+    {
+        if (DiscountCode.ToUpper() == "SAVE200K")
+        {
+            Discount = 200000;
+            OrderRequest.Discount = Discount;
+            OrderRequest.CouponCode = DiscountCode;
+        }
+    }
+
+    private string GetSubTotal()
+    {
+        if (AuthService.IsAuthenticated && ApiCart != null)
+        {
+            return $"{ApiCart.TotalAmount:N0}₫";
+        }
+        // Calculate from filtered LocalCartItems
+        return $"{LocalCartItems.Sum(item => item.Product.Price * item.Quantity):N0}₫";
+    }
+
+    private string GetTotalAmount()
+    {
+        decimal subTotal = AuthService.IsAuthenticated && ApiCart != null 
+            ? ApiCart.TotalAmount 
+            : LocalCartItems.Sum(item => item.Product.Price * item.Quantity);
+        
+        decimal total = subTotal + ShippingFee - Discount;
+        return $"{total:N0}₫";
+    }
+
+    private async Task HandleCheckout()
+    {
+        ValidationErrors.Clear();
+
+        if (!ValidateForm())
+        {
+            await ToastService.ShowError("Vui lòng điền đầy đủ thông tin bắt buộc");
+            return;
+        }
+
+        IsProcessing = true;
+        LoadingService.Show("Đang xử lý đơn hàng", "Vui lòng đợi trong giây lát...");
+
+        try
+        {
+            if (AuthService.IsAuthenticated && ApiCart?.Items != null)
+            {
+                OrderRequest.Items = ApiCart.Items.Select(item => new OrderItemRequest
+                {
+                    ProductId = item.ProductID,
+                    ProductName = item.ProductName,
+                    Quantity = item.Quantity,
+                    Price = item.Price,
+                    SelectedSize = item.Size,
+                    SelectedColor = item.Color,
+                    ImageUrl = item.ImageUrl
+                }).ToList();
+            }
+            else
+            {
+                OrderRequest.Items = LocalCartItems.Select(item => new OrderItemRequest
+                {
+                    ProductId = item.Product.Id,
+                    ProductName = item.Product.Name,
+                    Quantity = item.Quantity,
+                    Price = item.Product.Price,
+                    SelectedSize = item.SelectedSize,
+                    SelectedColor = item.SelectedColor,
+                    ImageUrl = item.Product.PrimaryImageUrl
+                }).ToList();
+            }
+
+            OrderRequest.ShippingFee = ShippingFee;
+            OrderRequest.Discount = Discount;
+
+            var response = await OrderService.CreateOrderAsync(OrderRequest);
+
+            if (response.Success)
+            {
+                await ToastService.ShowSuccess("Đặt hàng thành công!");
+                
+                // Clear selected items
+                CartService.SelectedApiCartItemIds.Clear();
+                CartService.SelectedLocalProductIds.Clear();
+                
+                if (AuthService.IsAuthenticated)
+                {
+                    await CartService.ClearCartAsync();
+                }
+                else
+                {
+                    CartService.ClearCart();
+                }
+
+                Navigation.NavigateTo(response.Data?.OrderId != null 
+                    ? $"/order-success/{response.Data.OrderId}" 
+                    : "/order-success");
+            }
+            else
+            {
+                await ToastService.ShowError($"Đặt hàng thất bại: {response.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowError($"Có lỗi xảy ra: {ex.Message}");
+        }
+        finally
+        {
+            IsProcessing = false;
+            LoadingService.Hide();
+        }
+    }
+
+    private bool ValidateForm()
+    {
+        bool isValid = true;
+
+        if (string.IsNullOrWhiteSpace(OrderRequest.ReceiverName))
+        {
+            ValidationErrors[nameof(OrderRequest.ReceiverName)] = "Vui lòng nhập họ tên";
+            isValid = false;
+        }
+
+        if (string.IsNullOrWhiteSpace(OrderRequest.ReceiverPhone))
+        {
+            ValidationErrors[nameof(OrderRequest.ReceiverPhone)] = "Vui lòng nhập số điện thoại";
+            isValid = false;
+        }
+        else if (!System.Text.RegularExpressions.Regex.IsMatch(OrderRequest.ReceiverPhone, @"^0\d{9,10}$"))
+        {
+            ValidationErrors[nameof(OrderRequest.ReceiverPhone)] = "Số điện thoại không hợp lệ";
+            isValid = false;
+        }
+
+        if (string.IsNullOrWhiteSpace(OrderRequest.City))
+        {
+            ValidationErrors[nameof(OrderRequest.City)] = "Vui lòng chọn Tỉnh/Thành phố";
+            isValid = false;
+        }
+
+        if (string.IsNullOrWhiteSpace(OrderRequest.District))
+        {
+            ValidationErrors[nameof(OrderRequest.District)] = "Vui lòng chọn Quận/Huyện";
+            isValid = false;
+        }
+
+        if (string.IsNullOrWhiteSpace(OrderRequest.ShippingAddress))
+        {
+            ValidationErrors[nameof(OrderRequest.ShippingAddress)] = "Vui lòng nhập địa chỉ cụ thể";
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    private void ValidateField(string fieldName)
+    {
+        if (fieldName == nameof(OrderRequest.ReceiverEmail) && !string.IsNullOrWhiteSpace(OrderRequest.ReceiverEmail))
+        {
+            if (!System.Text.RegularExpressions.Regex.IsMatch(OrderRequest.ReceiverEmail, @"^[^\s@]+@[^\s@]+\.[^\s@]+$"))
+            {
+                ValidationErrors[fieldName] = "Email không hợp lệ";
+            }
+            else
+            {
+                ValidationErrors.Remove(fieldName);
+            }
+        }
+        else if (fieldName == nameof(OrderRequest.ReceiverPhone) && !string.IsNullOrWhiteSpace(OrderRequest.ReceiverPhone))
+        {
+            if (!System.Text.RegularExpressions.Regex.IsMatch(OrderRequest.ReceiverPhone, @"^0\d{9,10}$"))
+            {
+                ValidationErrors[fieldName] = "Số điện thoại phải có 10 chữ số";
+            }
+            else
+            {
+                ValidationErrors.Remove(fieldName);
+            }
+        }
+    }
+
+    private string GetValidationClass(string fieldName)
+    {
+        return ValidationErrors.ContainsKey(fieldName) ? "error" : "";
+    }
+
+    private string GetColorName(string? colorHex)
+    {
+        if (string.IsNullOrEmpty(colorHex)) return "";
+        
+        return colorHex.ToUpper() switch
+        {
+            "#000000" => "Đen",
+            "#FFFFFF" => "Trắng",
+            "#808080" => "Xám",
+            "#000080" => "Xanh Navy",
+            "#FF0000" => "Đỏ",
+            _ => "Màu khác"
+        };
+    }
+}

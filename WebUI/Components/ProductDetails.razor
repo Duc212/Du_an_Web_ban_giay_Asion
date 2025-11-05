@@ -63,9 +63,12 @@
                 <div class="size-options">
                     @foreach (var size in AvailableSizes)
                     {
-                        <button class="size-btn @(SelectedSize == size ? "selected" : "")"
-                                @onclick="() => SelectSize(size)">
-                            @size
+                        var sizeValue = size; // Capture variable for lambda
+                        var isSelected = !string.IsNullOrEmpty(SelectedSize) && SelectedSize.Equals(sizeValue, StringComparison.OrdinalIgnoreCase);
+                        <button type="button"
+                                class="size-btn @(isSelected ? "selected" : "")"
+                                @onclick="@(() => SelectSize(sizeValue))">
+                            @sizeValue
                         </button>
                     }
                 </div>
@@ -87,14 +90,17 @@
                 <div class="color-options">
                     @foreach (var color in AvailableColors)
                     {
-                        <button class="color-btn @(SelectedColor == color.Value ? "selected" : "")"
-                                style="background-color: @color.Value; @(color.Value.ToUpper() == "#FFFFFF" ? "border: 2px solid #dee2e6;" : "")"
+                        var colorValue = color.Value; // Capture variable for lambda
+                        var isSelected = !string.IsNullOrEmpty(SelectedColor) && SelectedColor.Equals(colorValue, StringComparison.OrdinalIgnoreCase);
+                        <button type="button"
+                                class="color-btn @(isSelected ? "selected" : "")"
+                                style="background-color: @colorValue; @(colorValue.ToUpper() == "#FFFFFF" ? "border: 2px solid #dee2e6;" : "")"
                                 title="@color.Name"
-                                @onclick="() => SelectColor(color.Value)">
-                            @if (SelectedColor == color.Value)
+                                @onclick="@(() => SelectColor(colorValue))">
+                            @if (isSelected)
                             {
                                 <i class="fas fa-check" 
-                                   style="color: @(color.Value.ToUpper() == "#FFFFFF" || color.Value.ToUpper() == "#FFFF00" ? "#000" : "#fff"); 
+                                   style="color: @(colorValue.ToUpper() == "#FFFFFF" || colorValue.ToUpper() == "#FFFF00" ? "#000" : "#fff"); 
                                           font-size: 12px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
                             }
                         </button>
@@ -256,7 +262,7 @@
     [Parameter] public string InitialSize { get; set; } = "";
     [Parameter] public string InitialColor { get; set; } = "";
 
-    // Component State
+    // Component State - sync with parent via parameters
     private int Quantity { get; set; } = 1;
     private string SelectedSize { get; set; } = "";
     private string SelectedColor { get; set; } = "";
@@ -299,7 +305,6 @@
     private async Task SelectSize(string size)
     {
         SelectedSize = size;
-        Console.WriteLine($"[ProductDetails] Size selected: '{size}'");
         await OnSizeChanged.InvokeAsync(size);
         StateHasChanged();
     }
@@ -307,7 +312,6 @@
     private async Task SelectColor(string color)
     {
         SelectedColor = color;
-        Console.WriteLine($"[ProductDetails] Color selected: '{color}'");
         await OnColorChanged.InvokeAsync(SelectedColor);
         StateHasChanged();
     }
@@ -360,13 +364,13 @@
 
     private void ShareProduct(string platform)
     {
-        Console.WriteLine($"[ProductDetails] Sharing on {platform}");
+        // Share product on social media
     }
 
     private async Task CopyProductLink()
     {
         var url = $"https://abc-mart.com/product/{Product.Name.Replace(" ", "-").ToLower()}";
-        Console.WriteLine($"[ProductDetails] Copied link: {url}");
+        // Copy link to clipboard
     }
 
     private string GetColorName(string colorHex)
