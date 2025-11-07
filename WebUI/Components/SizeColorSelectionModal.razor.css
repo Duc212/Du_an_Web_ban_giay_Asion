@@ -1,0 +1,327 @@
+/* Modal Base Styles */
+.modal {
+    display: none;
+}
+
+.modal.show {
+    display: block;
+}
+
+.modal-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) !important;
+    margin: 0;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    z-index: 1050;
+}
+
+.modal-content {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+    background: #ffffff;
+    overflow: hidden;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-bottom: 1px solid #edf2f7;
+    padding: 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    background-color: #ffffff;
+    border-top: 1px solid #edf2f7;
+    padding: 1.5rem;
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+}
+
+/* Backdrop styles */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    z-index: 1040;
+}
+
+/* Animation */
+.modal.fade .modal-dialog {
+    transform: translate(-50%, -70%) !important;
+    transition: transform 0.3s ease-out;
+}
+
+.modal.show .modal-dialog {
+    transform: translate(-50%, -50%) !important;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2d3748;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.modal-title i {
+    color: #4299e1;
+    font-size: 1.25rem;
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    opacity: 0.6;
+}
+
+.btn-close:hover {
+    background-color: #edf2f7;
+    opacity: 1;
+}
+
+/* Product Info Section */
+.product-info {
+    background-color: #f8fafc;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.product-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 0.5rem;
+    transition: transform 0.3s ease;
+}
+
+.product-image img:hover {
+    transform: scale(1.05);
+}
+
+/* Size Selection */
+.size-selection {
+    margin: 1.5rem 1rem;
+}
+
+.size-btn {
+    min-width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+    background-color: white;
+    color: #4a5568;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.size-btn:hover {
+    border-color: #4299e1;
+    color: #4299e1;
+    transform: translateY(-2px);
+}
+
+.size-btn.selected {
+    border-color: #4299e1;
+    background-color: #ebf8ff;
+    color: #2b6cb0;
+    box-shadow: 0 4px 12px rgba(66, 153, 225, 0.15);
+}
+
+/* Color Selection */
+.color-selection {
+    margin: 1.5rem 1rem;
+}
+
+.color-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.color-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.color-btn.selected {
+    border: 2px solid #4299e1;
+    box-shadow: 0 4px 12px rgba(66, 153, 225, 0.15);
+    transform: scale(1.05);
+}
+
+.color-btn.selected::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border: 2px solid #4299e1;
+    border-radius: 14px;
+}
+
+/* Quantity Controls */
+.quantity-selection {
+    margin: 1.5rem 1rem;
+}
+
+.quantity-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+    background-color: #f8fafc;
+    color: #4a5568;
+    font-size: 1.1rem;
+    transition: all 0.2s ease;
+}
+
+.quantity-btn:hover:not(:disabled) {
+    background-color: #edf2f7;
+    color: #2d3748;
+}
+
+.quantity-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.input-group-text {
+    background-color: #f8fafc;
+    border: 2px solid #e2e8f0;
+    color: #2d3748;
+    font-weight: 600;
+    min-width: 60px;
+    justify-content: center;
+}
+
+/* Selection Summary */
+.alert-light {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    margin: 1rem;
+}
+
+.badge {
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+/* Footer Actions */
+.modal-footer {
+    background-color: #ffffff;
+    border-top: 1px solid #edf2f7;
+    padding: 1.5rem;
+    gap: 1rem;
+}
+
+.btn-secondary {
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    background-color: #edf2f7;
+    border: none;
+    color: #4a5568;
+}
+
+.btn-secondary:hover {
+    background-color: #e2e8f0;
+    color: #2d3748;
+}
+
+.btn-primary {
+    padding: 0.75rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+    border: none;
+    box-shadow: 0 4px 12px rgba(66, 153, 225, 0.25);
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(66, 153, 225, 0.35);
+}
+
+.btn-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
+    .modal-dialog {
+        max-width: 600px;
+    }
+    
+    .product-info .d-flex {
+        gap: 2rem;
+    }
+}
+
+@media (min-width: 992px) {
+    .modal-dialog {
+        max-width: 800px;
+    }
+    
+    .product-image {
+        width: 150px;
+        height: 150px;
+    }
+}
+
+/* Animations */
+.modal.fade .modal-dialog {
+    transform: translateY(-50px);
+    transition: transform 0.3s ease-out;
+}
+
+.modal.show .modal-dialog {
+    transform: none;
+}
