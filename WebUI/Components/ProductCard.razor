@@ -4,121 +4,69 @@
 @inject CartService CartService
 @inject IJSRuntime JSRuntime
 
-<!-- Product Card Component with Bootstrap -->
-<div class="card h-100 shadow-sm border-0 product-card-bootstrap" style="cursor: pointer; transition: all 0.3s ease;" @onclick="OnProductClick">
-    <div class="position-relative overflow-hidden">
+<!-- Product Card Component -->
+<div class="product-card" @onclick="OnProductClick">
+    <div class="card-media">
         @if (Product.HasBadge)
         {
-            <span class="badge position-absolute top-0 start-0 m-2 z-3 @(Product.IsSale ? "bg-danger" : "bg-primary")">
+            <span class="product-badge @(Product.IsSale ? "product-badge--sale" : "product-badge--highlight")">
                 @Product.Badge
             </span>
         }
-        
-        <img src="@Product.PrimaryImageUrl" 
-             alt="@Product.Name" 
-             class="card-img-top img-fluid"
-             style="height: 250px; object-fit: cover;"
-             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-        
-        <div class="d-none align-items-center justify-content-center bg-light" 
-             style="height: 250px; font-size: 60px;">
-            👟
+
+        <img src="@Product.PrimaryImageUrl"
+             alt="@Product.Name"
+             class="card-image"
+             onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
+
+        <div class="image-fallback hidden">
+            <i class="fas fa-shoe-prints"></i>
         </div>
 
-        <!-- Action Buttons Overlay -->
-        <div class="position-absolute top-50 start-50 translate-middle opacity-0 card-overlay-bootstrap" 
-             style="transition: opacity 0.3s ease;">
-            <div class="d-flex gap-2">
-                <button class="btn btn-primary btn-sm rounded-circle p-2" 
-                        @onclick="OnQuickViewClick" 
-                        @onclick:stopPropagation="true" 
-                        title="Quick View"
-                        style="width: 40px; height: 40px;">
-                    <i class="fas fa-eye"></i>
-                </button>
-                <button class="btn btn-success btn-sm rounded-circle p-2" 
-                        @onclick="OnAddToCartClick" 
-                        @onclick:stopPropagation="true" 
-                        title="Add to Cart"
-                        style="width: 40px; height: 40px;">
-                    <i class="fas fa-shopping-cart"></i>
-                </button>
-                <button class="btn btn-outline-danger btn-sm rounded-circle p-2" 
-                        @onclick="OnWishlistClick" 
-                        @onclick:stopPropagation="true" 
-                        title="Add to Wishlist"
-                        style="width: 40px; height: 40px;">
-                    <i class="far fa-heart"></i>
-                </button>
-            </div>
+        <div class="card-actions">
+            <button class="action-btn action-btn--primary"
+                    title="Xem nhanh"
+                    @onclick="OnQuickViewClick"
+                    @onclick:stopPropagation="true">
+                <i class="fas fa-eye"></i>
+            </button>
+            <button class="action-btn action-btn--accent"
+                    title="Thêm vào giỏ"
+                    @onclick="OnAddToCartClick"
+                    @onclick:stopPropagation="true">
+                <i class="fas fa-shopping-cart"></i>
+            </button>
+            <button class="action-btn action-btn--ghost"
+                    title="Yêu thích"
+                    @onclick="OnWishlistClick"
+                    @onclick:stopPropagation="true">
+                <i class="far fa-heart"></i>
+            </button>
         </div>
     </div>
 
-    <div class="card-body d-flex flex-column">
-        <div class="text-muted small mb-1">@Product.Brand</div>
-        <h6 class="card-title text-truncate mb-2" title="@Product.Name">@Product.Name</h6>
-        <div class="mt-auto">
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-                <span class="fw-bold text-primary fs-6">@Product.PriceFormatted</span>
-                @if (Product.OriginalPrice.HasValue)
-                {
-                    <span class="text-decoration-line-through text-muted small">@Product.OldPriceFormatted</span>
-                }
-                @if (!string.IsNullOrEmpty(Product.Discount))
-                {
-                    <span class="badge bg-danger small">@Product.Discount</span>
-                }
-            </div>
+    <div class="card-content">
+        <span class="product-brand">@Product.Brand</span>
+        <h3 class="product-title" title="@Product.Name">@Product.Name</h3>
+
+        <div class="product-pricing">
+            <span class="product-price">@Product.PriceFormatted</span>
+            @if (Product.OriginalPrice.HasValue)
+            {
+                <span class="product-price--old">@Product.OldPriceFormatted</span>
+            }
+            @if (!string.IsNullOrEmpty(Product.Discount))
+            {
+                <span class="product-discount">@Product.Discount</span>
+            }
         </div>
     </div>
 </div>
 
-<!-- Size Color Selection Modal -->
-<SizeColorSelectionModal Product="Product" 
-                        IsVisible="ShowModal" 
+<SizeColorSelectionModal Product="Product"
+                        IsVisible="ShowModal"
                         OnClose="CloseModal"
                         OnAddToCart="OnModalAddToCart" />
-
-<style>
-    .product-card-bootstrap:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
-    }
-    
-    .product-card-bootstrap:hover .card-overlay-bootstrap {
-        opacity: 1 !important;
-    }
-    
-    .product-card-bootstrap .card-overlay-bootstrap {
-        backdrop-filter: blur(2px);
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 10px;
-        padding: 10px;
-    }
-
-    /* Toast animations */
-    @@keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-
-    @@keyframes slideOutRight {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-    }
-</style>
 
 @code {
     [Parameter] public Product Product { get; set; } = new();

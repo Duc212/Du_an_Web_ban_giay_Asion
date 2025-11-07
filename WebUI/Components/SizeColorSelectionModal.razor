@@ -3,59 +3,55 @@
 @inject CartService CartService
 @inject IJSRuntime JSRuntime
 
-<!-- Bootstrap Modal -->
-<div class="modal fade @(IsVisible ? "show d-block" : "d-none")" tabindex="-1" 
-     style="@(IsVisible ? "background-color: rgba(0,0,0,0.5);" : "")" @onclick="OnBackdropClick">
-    <div class="modal-dialog modal-lg modal-dialog-centered" @onclick:stopPropagation="true">
-        <div class="modal-content">
-            <!-- Modal Header -->
+@if (IsVisible)
+{
+    <div class="modal-overlay" @onclick="OnBackdropClick" @ref="modalOverlayRef">
+        <div class="modal-shell" role="dialog" aria-modal="true" @onclick:stopPropagation="true" @ref="modalShellRef">
             <div class="modal-header border-0 pb-0">
                 <h5 class="modal-title fw-bold">
                     <i class="fas fa-shopping-bag text-primary me-2"></i>
                     Chọn Size & Màu Sắc
                 </h5>
-                <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                <button type="button" class="btn-close" @onclick="CloseModal" aria-label="Đóng"></button>
             </div>
 
             @if (Product != null)
             {
-                <!-- Modal Body -->
                 <div class="modal-body pt-2">
-                    <!-- Product Info -->
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <img src="@CurrentImageUrl" 
-                                     alt="@Product.Name" 
-                                     class="img-fluid rounded shadow-sm"
-                                     style="max-height: 200px; object-fit: cover; transition: opacity 0.3s ease;"
-                                     onerror="this.src='@Product.PrimaryImageUrl'">
+                    <div class="row g-4 align-items-center mb-1">
+                        <div class="col-md-5">
+                            <div class="product-preview">
+                                <img src="@CurrentImageUrl"
+                                     alt="@Product.Name"
+                                     class="product-preview__image"
+                                     onerror="this.src='@Product.PrimaryImageUrl'" />
                             </div>
                         </div>
-                        <div class="col-md-8 d-flex flex-column justify-content-center">
-                            <h6 class="fw-bold mb-2">@Product.Name</h6>
-                            <p class="text-muted mb-2">@Product.Brand</p>
-                            <div class="d-flex align-items-center">
-                                <span class="h5 text-primary fw-bold mb-0">@Product.PriceFormatted</span>
-                                @if (Product.OriginalPrice.HasValue)
-                                {
-                                    <span class="text-decoration-line-through text-muted ms-2">@Product.OldPriceFormatted</span>
-                                }
+                        <div class="col-md-7">
+                            <div class="product-summary">
+                                <h6 class="product-summary__name">@Product.Name</h6>
+                                <p class="product-summary__brand">@Product.Brand</p>
+                                <div class="product-summary__pricing">
+                                    <span class="current">@Product.PriceFormatted</span>
+                                    @if (Product.OriginalPrice.HasValue)
+                                    {
+                                        <span class="original">@Product.OldPriceFormatted</span>
+                                    }
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Size Selection -->
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold mb-3">
-                            <i class="fas fa-ruler me-1"></i> Chọn Size:
+                    <div class="selector-group">
+                        <label class="selector-label">
+                            <i class="fas fa-ruler"></i>
+                            Chọn size
                         </label>
-                        <div class="d-flex flex-wrap gap-2">
+                        <div class="selector-grid">
                             @foreach (var size in AvailableSizes)
                             {
-                                <button type="button" 
-                                        class="btn @(SelectedSize == size ? "btn-primary" : "btn-outline-secondary") rounded-pill px-3"
-                                        style="min-width: 50px; max-width: 60px; height: 38px; padding: 6px 12px !important; border-width: 1px !important; font-size: 14px; transform: none !important; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;"
+                                <button type="button"
+                                        class="chip @(SelectedSize == size ? "chip--active" : null)"
                                         @onclick="() => SelectSize(size)">
                                     @size
                                 </button>
@@ -63,90 +59,86 @@
                         </div>
                     </div>
 
-                    <!-- Color Selection -->
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold mb-3">
-                            <i class="fas fa-palette me-1"></i> Chọn Màu:
+                    <div class="selector-group">
+                        <label class="selector-label">
+                            <i class="fas fa-palette"></i>
+                            Chọn màu
                         </label>
-                        <div class="d-flex flex-wrap gap-3">
+                        <div class="color-grid">
                             @foreach (var color in AvailableColors)
                             {
-                                <div class="text-center">
-                                    <button type="button" 
-                                            class="btn p-0 rounded-circle position-relative @(SelectedColor == color ? "border border-primary border-3" : "border")"
-                                            style="width: 50px; height: 50px; background-color: @GetColorCode(color); 
-                                                   @(color.ToUpper() == "#FFFFFF" ? "border: 2px solid #dee2e6 !important;" : "")"
-                                            @onclick="() => SelectColor(color)">
+                                <div class="color-item">
+                                    <button type="button"
+                                            class="color-swatch @(SelectedColor == color ? "color-swatch--active" : null)"
+                                            style="background-color: @GetColorCode(color); @(color.ToUpper() == "#FFFFFF" ? "border: 1px solid #cbd5e1;" : string.Empty)"
+                                            @onclick="() => SelectColor(color)"
+                                            title="@GetColorName(color)">
                                         @if (SelectedColor == color)
                                         {
-                                            <i class="fas fa-check text-white position-absolute top-50 start-50 translate-middle" 
-                                               style="@(color.ToUpper() == "#FFFFFF" || color.ToUpper() == "#008000" ? "color: #000 !important;" : "")"></i>
+                                            <i class="fas fa-check"></i>
                                         }
                                     </button>
-                                    <small class="d-block mt-1 text-muted">@GetColorName(color)</small>
+                                    <span class="color-label">@GetColorName(color)</span>
                                 </div>
                             }
                         </div>
                     </div>
 
-                    <!-- Quantity Selection -->
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold mb-3">
-                            <i class="fas fa-hashtag me-1"></i> Số lượng:
+                    <div class="selector-group selector-group--quantity">
+                        <label class="selector-label">
+                            <i class="fas fa-hashtag"></i>
+                            Số lượng
                         </label>
-                        <div class="input-group w-auto">
-                            <button class="btn btn-outline-secondary" 
-                                    type="button" 
-                                    @onclick="DecreaseQuantity" 
-                                    disabled="@(Quantity <= 1)">
+                        <div class="quantity-control">
+                            <button class="quantity-btn" type="button" @onclick="DecreaseQuantity" disabled="@(Quantity <= 1)">
                                 <i class="fas fa-minus"></i>
                             </button>
-                            <span class="input-group-text bg-light fw-bold px-4">@Quantity</span>
-                            <button class="btn btn-outline-secondary" 
-                                    type="button" 
-                                    @onclick="IncreaseQuantity">
+                            <span class="quantity-value">@Quantity</span>
+                            <button class="quantity-btn" type="button" @onclick="IncreaseQuantity">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Selection Summary -->
                     @if (!string.IsNullOrEmpty(SelectedSize) || !string.IsNullOrEmpty(SelectedColor))
                     {
-                        <div class="alert alert-light border d-flex align-items-center">
-                            <i class="fas fa-info-circle text-info me-2"></i>
+                        <div class="selection-summary">
+                            <i class="fas fa-info-circle"></i>
                             <div>
-                                <strong>Lựa chọn của bạn:</strong>
-                                @if (!string.IsNullOrEmpty(SelectedSize))
-                                {
-                                    <span class="badge bg-primary ms-2">Size: @SelectedSize</span>
-                                }
-                                @if (!string.IsNullOrEmpty(SelectedColor))
-                                {
-                                    <span class="badge bg-secondary ms-2">Màu: @SelectedColor</span>
-                                }
-                                <span class="badge bg-success ms-2">SL: @Quantity</span>
+                                <strong>Lựa chọn của bạn</strong>
+                                <div class="selection-tags">
+                                    @if (!string.IsNullOrEmpty(SelectedSize))
+                                    {
+                                        <span class="tag">Size: @SelectedSize</span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(SelectedColor))
+                                    {
+                                        <span class="tag">Màu: @SelectedColor</span>
+                                    }
+                                    <span class="tag">SL: @Quantity</span>
+                                </div>
                             </div>
                         </div>
                     }
                 </div>
 
-                <!-- Modal Footer -->
                 <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-secondary me-2" @onclick="CloseModal">
-                        <i class="fas fa-times me-2"></i>Hủy
+                    <button type="button" class="btn btn-secondary" @onclick="CloseModal">
+                        <i class="fas fa-times me-2"></i>
+                        Hủy
                     </button>
-                    <button type="button" 
-                            class="btn btn-primary px-4" 
-                            @onclick="AddToCart" 
+                    <button type="button"
+                            class="btn btn-primary"
+                            @onclick="AddToCart"
                             disabled="@(string.IsNullOrEmpty(SelectedSize) || string.IsNullOrEmpty(SelectedColor))">
-                        <i class="fas fa-shopping-cart me-2"></i>Thêm vào giỏ hàng
+                        <i class="fas fa-shopping-cart me-2"></i>
+                        Thêm vào giỏ hàng
                     </button>
                 </div>
             }
         </div>
     </div>
-</div>
+}
 
 @code {
     [Parameter] public Product? Product { get; set; }
@@ -163,6 +155,9 @@
     private List<string> AvailableSizes => Product?.Sizes ?? new List<string>();
     private List<string> AvailableColors => Product?.Colors ?? new List<string>();
 
+    private ElementReference? modalOverlayRef;
+    private ElementReference? modalShellRef;
+
     protected override void OnParametersSet()
     {
         if (IsVisible && Product != null)
@@ -172,6 +167,30 @@
             SelectedColor = "";
             Quantity = 1;
             CurrentImageUrl = Product.PrimaryImageUrl; // Set default image
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (IsVisible && modalShellRef.HasValue)
+        {
+            // Ensure modal is visible and centered when opened
+            await JSRuntime.InvokeVoidAsync("eval", @"
+                (function() {
+                    const modal = document.querySelector('.modal-shell');
+                    if (modal) {
+                        // Wait for layout to complete
+                        setTimeout(function() {
+                            // Scroll modal into view with smooth behavior
+                            modal.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'center',
+                                inline: 'nearest'
+                            });
+                        }, 50);
+                    }
+                })();
+            ");
         }
     }
 

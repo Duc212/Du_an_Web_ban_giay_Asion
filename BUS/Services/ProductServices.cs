@@ -304,200 +304,213 @@ namespace BUS.Services
 
         public async Task<CommonPagination<GetProductRes>> GetProductLangding(string? Keyword, int? SortType, int? SortPrice, int CurrentPage, int RecordPerPage)
         {
-            //try
-            //{
-            //    var query = from product in _productRepository.AsNoTrackingQueryable()
-            //                join brand in _brandRepository.AsNoTrackingQueryable()
-            //                    on product.BrandId equals brand.BrandID
-            //                join gender in _genderRepository.AsNoTrackingQueryable()
-            //                    on product.GenderId equals gender.GenderID
-            //                select new { product, brand, gender };
+            try
+            {
+                // Tạo query ban đầu với thông tin về giá từ variants
+                var query = from product in _productRepository.AsNoTrackingQueryable()
+                            join brand in _brandRepository.AsNoTrackingQueryable()
+                                on product.BrandId equals brand.BrandID
+                            join gender in _genderRepository.AsNoTrackingQueryable()
+                                on product.GenderId equals gender.GenderID
+                            join productVariant in _productVariantRepository.AsNoTrackingQueryable()
+                                on product.ProductID equals productVariant.ProductID into productVariants
+                            select new
+                            {
+                                product,
+                                brand,
+                                gender,
+                                MinSellingPrice = productVariants.Any() ? productVariants.Min(v => v.SellingPrice) : 0,
+                                MaxImportPrice = productVariants.Any() ? productVariants.Max(v => v.ImportPrice) : 0
+                            };
 
-            //    // Lọc theo từ khóa
-            //    if (!string.IsNullOrWhiteSpace(Keyword))
-            //    {
-            //        query = query.Where(x => x.product.Name.Contains(Keyword));
-            //    }
+                // Lọc theo từ khóa
+                if (!string.IsNullOrWhiteSpace(Keyword))
+                {
+                    query = query.Where(x => x.product.Name.Contains(Keyword));
+                }
 
-            //    // Lọc theo giá
-            //    if (SortPrice.HasValue)
-            //    {
-            //        switch (SortPrice.Value)
-            //        {
-            //            case 1: // dưới 500k
-            //                query = query.Where(x => x.product.Price < 500_000);
-            //                break;
-            //            case 2: // 500k - 1tr
-            //                query = query.Where(x => x.product.Price >= 500_000 && x.product.Price < 1_000_000);
-            //                break;
-            //            case 3: // 1tr - 2tr
-            //                query = query.Where(x => x.product.Price >= 1_000_000 && x.product.Price < 2_000_000);
-            //                break;
-            //            case 4: // trên 5tr
-            //                query = query.Where(x => x.product.Price > 5_000_000);
-            //                break;
-            //                // 0 hoặc khác: tất cả
-            //        }
-            //    }
+                // Lọc theo khoảng giá
+                if (SortPrice.HasValue)
+                {
+                    switch (SortPrice.Value)
+                    {
+                        case 1: // dưới 500k
+                            query = query.Where(x => x.MinSellingPrice < 500_000);
+                            break;
+                        case 2: // 500k - 1tr
+                            query = query.Where(x => x.MinSellingPrice >= 500_000 && x.MinSellingPrice < 1_000_000);
+                            break;
+                        case 3: // 1tr - 2tr
+                            query = query.Where(x => x.MinSellingPrice >= 1_000_000 && x.MinSellingPrice < 2_000_000);
+                            break;
+                        case 4: // trên 5tr
+                            query = query.Where(x => x.MinSellingPrice > 5_000_000);
+                            break;
+                    }
+                }
 
-            //    // Sắp xếp
-            //    switch (SortType)
-            //    {
-            //        case 1: // A-Z
-            //            query = query.OrderBy(x => x.product.Name);
-            //            break;
-            //        case 2: // Z-A
-            //            query = query.OrderByDescending(x => x.product.Name);
-            //            break;
-            //        case 3: // Giá tăng dần
-            //            query = query.OrderBy(x => x.product.Price);
-            //            break;
-            //        case 4: // Giá giảm dần
-            //            query = query.OrderByDescending(x => x.product.Price);
-            //            break;
-            //        case 5: // Mới nhất
-            //            query = query.OrderByDescending(x => x.product.CreatedAt);
-            //            break;
-            //        case 6: // Đánh giá cao nhất (tạm thời theo ProductID, cần join bảng đánh giá nếu có)
-            //            query = query.OrderByDescending(x => x.product.ProductID);
-            //            break;
-            //        default:
-            //            query = query.OrderBy(x => x.product.ProductID);
-            //            break;
-            //    }
+                // Sắp xếp
+                query = SortType switch
+                {
+                    1 => query.OrderBy(x => x.product.Name), // A-Z
+                    2 => query.OrderByDescending(x => x.product.Name), // Z-A
+                    3 => query.OrderBy(x => x.MinSellingPrice), // Giá tăng dần
+                    4 => query.OrderByDescending(x => x.MinSellingPrice), // Giá giảm dần
+                    5 => query.OrderByDescending(x => x.product.CreatedAt), // Mới nhất
+                    6 => query.OrderByDescending(x => x.product.ProductID), // Đánh giá cao nhất (tạm thời)
+                    _ => query.OrderBy(x => x.product.ProductID)
+                };
 
-            //    var totalRecords = await query.CountAsync();
+                var totalRecords = await query.CountAsync();
 
-            //    var pagedProducts = await query
-            //        .Skip((CurrentPage - 1) * RecordPerPage)
-            //        .Take(RecordPerPage)
-            //        .ToListAsync();
+                var pagedProducts = await query
+                    .Skip((CurrentPage - 1) * RecordPerPage)
+                    .Take(RecordPerPage)
+                    .ToListAsync();
 
-            //    var productIds = pagedProducts.Select(p => p.product.ProductID).ToList();
+                var productIds = pagedProducts.Select(p => p.product.ProductID).ToList();
 
-            //    // Lấy variants, images như logic cũ
-            //    var variants = await _productVariantRepository.AsNoTrackingQueryable()
-            //        .Where(v => productIds.Contains(v.ProductID))
-            //        .Include(v => v.Size)
-            //        .Include(v => v.Color)
-            //        .ToListAsync();
+                // Lấy variants với thông tin Color và Size
+                var allVariants = await _productVariantRepository.AsNoTrackingQueryable()
+                    .Where(v => productIds.Contains(v.ProductID))
+                    .Include(v => v.Size)
+                    .Include(v => v.Color)
+                    .ToListAsync();
 
-            //    var productImages = await _productImageRepository.AsNoTrackingQueryable()
-            //        .Where(img => productIds.Contains(img.ProductID) && img.IsActive)
-            //        .Include(img => img.Color)
-            //        .OrderBy(img => img.DisplayOrder)
-            //        .ToListAsync();
+                // Lấy ảnh sản phẩm với thông tin Color
+                var productImages = await _productImageRepository.AsNoTrackingQueryable()
+                    .Where(img => productIds.Contains(img.ProductID) && img.IsActive)
+                    .Include(img => img.Color)
+                    .OrderBy(img => img.DisplayOrder)
+                    .ToListAsync();
 
-            //    var variantGroups = variants.GroupBy(v => v.ProductID).ToDictionary(g => g.Key, g => g.ToList());
-            //    var imageGroups = productImages.GroupBy(img => img.ProductID).ToDictionary(g => g.Key, g => g.ToList());
+                var variantGroups = allVariants.GroupBy(v => v.ProductID).ToDictionary(g => g.Key, g => g.ToList());
+                var imageGroups = productImages.GroupBy(img => img.ProductID).ToDictionary(g => g.Key, g => g.ToList());
 
-            //    var productList = pagedProducts.Select(item =>
-            //    {
-            //        var productVariants = variantGroups.GetValueOrDefault(item.product.ProductID, new List<ProductVariant>());
-            //        var images = imageGroups.GetValueOrDefault(item.product.ProductID, new List<ProductImage>());
+                var productList = pagedProducts.Select(item =>
+                {
+                    var productVariants = variantGroups.GetValueOrDefault(item.product.ProductID, new List<ProductVariant>());
+                    var images = imageGroups.GetValueOrDefault(item.product.ProductID, new List<ProductImage>());
 
-            //        var imageUrls = new List<string>();
-            //        if (images.Any())
-            //        {
-            //            var defaultImage = images.FirstOrDefault(img => img.IsDefault);
-            //            if (defaultImage != null)
-            //            {
-            //                imageUrls.Add(defaultImage.ImageUrl);
-            //            }
-            //            var otherImages = images.Where(img => !img.IsDefault)
-            //                .OrderBy(img => img.DisplayOrder)
-            //                .Select(img => img.ImageUrl);
-            //            imageUrls.AddRange(otherImages);
-            //        }
-            //        else if (!string.IsNullOrEmpty(item.product.ImageUrl))
-            //        {
-            //            imageUrls.Add(item.product.ImageUrl);
-            //        }
-            //        else
-            //        {
-            //            imageUrls.Add("/images/products/default-shoe.jpg");
-            //        }
+                    var imageUrls = BuildImageUrls(images, item.product.ImageUrl);
+                    var (availableColors, colorImages) = BuildColorData(productVariants, images, imageUrls);
+                    var availableSizes = GetAvailableSizes(productVariants);
 
-            //        var colorImages = new Dictionary<string, List<string>>();
-            //        var availableColors = productVariants
-            //            .Where(v => v.Color != null && v.StockQuantity > 0)
-            //            .Select(v => v.Color!.Name)
-            //            .Distinct()
-            //            .ToList();
+                    var minSellingPrice = item.MinSellingPrice;
+                    var maxImportPrice = item.MaxImportPrice;
+                    var originalPrice = maxImportPrice > minSellingPrice ? maxImportPrice : (decimal?)null;
 
-            //        foreach (var colorName in availableColors)
-            //        {
-            //            var colorVariant = productVariants.FirstOrDefault(v => v.Color?.Name == colorName);
-            //            if (colorVariant?.Color != null)
-            //            {
-            //                var colorSpecificImages = images
-            //                    .Where(img => img.ColorID == colorVariant.Color.ColorID)
-            //                    .OrderBy(img => img.DisplayOrder)
-            //                    .Select(img => img.ImageUrl)
-            //                    .ToList();
+                    return new GetProductRes
+                    {
+                        Id = item.product.ProductID,
+                        Name = item.product.Name,
+                        Brand = item.brand.Name,
+                        Price = minSellingPrice,
+                        OriginalPrice = originalPrice,
+                        Description = item.product.Description ?? string.Empty,
+                        CategoryId = item.product.CategoryId,
+                        InStock = productVariants.Sum(v => v.StockQuantity) > 0,
+                        StockQuantity = productVariants.Sum(v => v.StockQuantity),
+                        Sizes = availableSizes,
+                        Colors = availableColors,
+                        Rating = GetProductRating(item.product.ProductID),
+                        ReviewCount = GetProductReviewCount(item.product.ProductID),
+                        Features = GetProductFeatures(item.product.ProductID),
+                        Images = imageUrls,
+                        ColorImages = colorImages,
+                        Badge = DetermineBadge(item.product, productVariants)
+                    };
+                }).ToList();
 
-            //                if (colorSpecificImages.Any())
-            //                {
-            //                    colorImages[colorName] = colorSpecificImages;
-            //                }
-            //                else
-            //                {
-            //                    colorImages[colorName] = imageUrls.Take(1).ToList();
-            //                }
-            //            }
-            //        }
-
-            //        var minSellingPrice = productVariants.Any() ? productVariants.Min(v => v.SellingPrice) : 0;
-            //        var maxImportPrice = productVariants.Any() ? productVariants.Max(v => v.ImportPrice) : 0;
-            //        var originalPrice = maxImportPrice > minSellingPrice ? maxImportPrice : (decimal?)null;
-
-            //        var availableSizes = productVariants
-            //            .Where(v => v.Size != null && v.StockQuantity > 0)
-            //            .Select(v => v.Size!.Value)
-            //            .Distinct()
-            //            .OrderBy(s => s)
-            //            .ToList();
-
-            //        return new GetProductRes
-            //        {
-            //            Id = item.product.ProductID,
-            //            Name = item.product.Name,
-            //            Brand = item.brand.Name,
-            //            Price = minSellingPrice,
-            //            OriginalPrice = originalPrice,
-            //            Description = item.product.Description ?? string.Empty,
-            //            CategoryId = item.product.CategoryId,
-            //            InStock = productVariants.Sum(v => v.StockQuantity) > 0,
-            //            StockQuantity = productVariants.Sum(v => v.StockQuantity),
-            //            Sizes = availableSizes,
-            //            Colors = availableColors,
-            //            Rating = GetProductRating(item.product.ProductID),
-            //            ReviewCount = GetProductReviewCount(item.product.ProductID),
-            //            Features = GetProductFeatures(item.product.ProductID),
-            //            Images = imageUrls,
-            //            ColorImages = colorImages,
-            //            Badge = DetermineBadge(item.product, productVariants)
-            //        };
-            //    }).ToList();
-
-            //    return new CommonPagination<GetProductRes>
-            //    {
-            //        Success = true,
-            //        Message = "Lấy danh sách sản phẩm thành công",
-            //        Data = productList,
-            //        TotalRecord = totalRecords
-            //    };
-            //}
-            //catch (Exception ex)
-            //{
-            //    return new CommonPagination<GetProductRes>
-            //    {
-            //        Success = false,
-            //        Message = $"Lỗi: {ex.Message}",
-            //        Data = new List<GetProductRes>(),
-            //        TotalRecord = 0
-            //    };
-            //}
+                return new CommonPagination<GetProductRes>
+                {
+                    Success = true,
+                    Message = "Lấy danh sách sản phẩm thành công",
+                    Data = productList,
+                    TotalRecord = totalRecords
+                };
+            }
+            catch (Exception ex)
+            {
+                return new CommonPagination<GetProductRes>
+                {
+                    Success = false,
+                    Message = $"Lỗi: {ex.Message}",
+                    Data = new List<GetProductRes>(),
+                    TotalRecord = 0
+                };
+            }
         }
+
+        private static List<string> BuildImageUrls(List<ProductImage> images, string? productImageUrl)
+        {
+            var imageUrls = new List<string>();
+
+            if (images.Any())
+            {
+                var defaultImage = images.FirstOrDefault(img => img.IsDefault);
+                if (defaultImage != null)
+                {
+                    imageUrls.Add(defaultImage.ImageUrl);
+                }
+
+                var otherImages = images.Where(img => !img.IsDefault)
+                    .OrderBy(img => img.DisplayOrder)
+                    .Select(img => img.ImageUrl);
+                imageUrls.AddRange(otherImages);
+            }
+            else if (!string.IsNullOrEmpty(productImageUrl))
+            {
+                imageUrls.Add(productImageUrl);
+            }
+            else
+            {
+                imageUrls.Add("/images/products/default-shoe.jpg");
+            }
+
+            return imageUrls;
         }
+
+        private static (List<string> Colors, Dictionary<string, List<string>> ColorImages) BuildColorData(
+            List<ProductVariant> variants,
+            List<ProductImage> images,
+            List<string> defaultImages)
+        {
+            var colorImages = new Dictionary<string, List<string>>();
+            var availableColors = variants
+                .Where(v => v.Color != null && v.StockQuantity > 0)
+                .Select(v => v.Color!.Name)
+                .Distinct()
+                .ToList();
+
+            foreach (var colorName in availableColors)
+            {
+                var colorVariant = variants.FirstOrDefault(v => v.Color?.Name == colorName);
+                if (colorVariant?.Color != null)
+                {
+                    var colorSpecificImages = images
+                        .Where(img => img.ColorID == colorVariant.Color.ColorID)
+                        .OrderBy(img => img.DisplayOrder)
+                        .Select(img => img.ImageUrl)
+                        .ToList();
+
+                    colorImages[colorName] = colorSpecificImages.Any()
+                        ? colorSpecificImages
+                        : defaultImages.Take(1).ToList();
+                }
+            }
+
+            return (availableColors, colorImages);
+        }
+
+        private static List<string> GetAvailableSizes(List<ProductVariant> variants)
+        {
+            return variants
+                .Where(v => v.Size != null && v.StockQuantity > 0)
+                .Select(v => v.Size!.Value)
+                .Distinct()
+                .OrderBy(s => s)
+                .ToList();
+        }
+    }
 }
