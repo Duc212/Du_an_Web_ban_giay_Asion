@@ -17,14 +17,14 @@
         <nav>
             <ul class="nav-menu">
                 <li><a href="/">Trang chủ</a></li>
-                <li class="dropdown-menu-item" 
-                    @onmouseenter="() => ShowCategoryDropdown = true"
-                    @onmouseleave="() => ShowCategoryDropdown = false">
-                    <a href="/shop">Danh mục <i class="fas fa-chevron-down"></i></a>
+                <li class="dropdown-menu-item"
+                    @onclick:stopPropagation="true"
+                    @onclick="ToggleCategoryDropdown">
+                    <a href="#" @onclick:preventDefault>Danh mục <i class="fas fa-chevron-down"></i></a>
                     
                     @if (ShowCategoryDropdown)
                     {
-                        <div class="mega-dropdown">
+                        <div class="mega-dropdown" @onclick:stopPropagation="true">
                             <div class="mega-dropdown-content">
                                 <div class="categories-column">
                                     <h4>Danh Mục</h4>
@@ -92,6 +92,11 @@
         </div>
     </div>
 </header>
+
+@if (ShowCategoryDropdown)
+{
+    <div class="category-dropdown-overlay" @onclick="() => ShowCategoryDropdown = false"></div>
+}
 
 <!-- Cart Summary Dropdown -->
 @if (ShowCartSummary)
@@ -358,6 +363,11 @@
             "#C0C0C0" => "Bạc",
             _ => "Màu khác"
         };
+    }
+
+    private void ToggleCategoryDropdown()
+    {
+        ShowCategoryDropdown = !ShowCategoryDropdown;
     }
 
     private async void SelectCategory(CategoryItem category)

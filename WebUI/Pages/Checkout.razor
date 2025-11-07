@@ -1,0 +1,270 @@
+@page "/checkout"
+@using WebUI.Services
+@using WebUI.Services.Interfaces
+@using WebUI.Models
+@inject NavigationManager Navigation
+@inject CartService CartService
+@inject IToastService ToastService
+
+<div class="checkout-page">
+    <div class="checkout-container">
+        <div class="checkout-steps">
+            <div class="step-dot active">1</div>
+            <span class="step-label active">Giỏ hàng</span>
+            <div class="step-divider active"></div>
+            <div class="step-dot active">2</div>
+            <span class="step-label active">Thông tin giao hàng</span>
+            <div class="step-divider"></div>
+            <div class="step-dot">3</div>
+            <span class="step-label">Thanh toán</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 24px; max-width: 800px; margin: 0 auto;">
+            <!-- Shipping form + Selected items -->
+            <div class="checkout-main">
+                <div class="shipping-card">
+                    <h3>Thông tin giao hàng</h3>
+                    <div class="checkout-form-grid">
+                        <div>
+                            <label>Họ và tên</label>
+                            <input class="bw-input" @bind="Shipping.FullName" placeholder="Nguyễn Văn A" />
+                        </div>
+                        <div>
+                            <label>Email</label>
+                            <input class="bw-input" @bind="Shipping.Email" placeholder="email@example.com" />
+                        </div>
+                        <div>
+                            <label>Số điện thoại</label>
+                            <input class="bw-input" @bind="Shipping.Phone" placeholder="0901234567" />
+                        </div>
+                        <div>
+                            <label>Tỉnh/Thành</label>
+                            <input class="bw-input" @bind="Shipping.City" placeholder="TP. Hồ Chí Minh" />
+                        </div>
+                        <div class="full">
+                            <label>Địa chỉ</label>
+                            <input class="bw-input" @bind="Shipping.Address" placeholder="Số nhà, đường, phường/xã, quận/huyện" />
+                        </div>
+                        <div class="full">
+                            <label>Ghi chú</label>
+                            <textarea class="bw-textarea" rows="3" @bind="Shipping.Note" placeholder="Yêu cầu giao hàng, ghi chú bổ sung..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="shipping-card" style="margin-top: 24px;">
+                    <h3>Phương thức vận chuyển</h3>
+                    <div class="payment-methods-section">
+                        <div class="payment-option-radio @(SelectedShippingMethod == "standard" ? "selected" : "")" @onclick="SelectStandardShipping">
+                            <input type="radio" name="shipping" value="standard" checked="@(SelectedShippingMethod == "standard")" />
+                            <div class="payment-option-info">
+                                <div class="payment-option-name">Ship thường</div>
+                                <div class="payment-option-desc">Giao hàng trong 3-5 ngày làm việc</div>
+                            </div>
+                            <div class="payment-option-fee">@(Subtotal >= 500000 ? "Miễn phí" : "30.000đ")</div>
+                        </div>
+                        <div class="payment-option-radio @(SelectedShippingMethod == "express" ? "selected" : "")" @onclick="SelectExpressShipping">
+                            <input type="radio" name="shipping" value="express" checked="@(SelectedShippingMethod == "express")" />
+                            <div class="payment-option-info">
+                                <div class="payment-option-name">Ship hỏa tốc</div>
+                                <div class="payment-option-desc">Giao hàng trong 1-2 ngày làm việc</div>
+                            </div>
+                            <div class="payment-option-fee">@(Subtotal >= 500000 ? "20.000đ" : "50.000đ")</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="order-items-card">
+                    <h3>Sản phẩm đã chọn</h3>
+                    <div class="order-items-list">
+                        @if (SelectedApiItems?.Any() == true)
+                        {
+                            @foreach (var i in SelectedApiItems!)
+                            {
+                                <div class="order-item-row">
+                                    <img src="@i.ImageUrl" class="order-item-thumb" />
+                                    <div style="flex:1; min-width:0;">
+                                        <p class="order-item-name">@i.ProductName</p>
+                                        <div class="order-item-meta">Size: @i.Size • @i.Color × @i.Quantity</div>
+                                    </div>
+                                    <div style="font-weight:800;">@i.TotalPriceFormatted</div>
+                                </div>
+                            }
+                        }
+                        else if (SelectedLocalItems?.Any() == true)
+                        {
+                            @foreach (var i in SelectedLocalItems!)
+                            {
+                                <div class="order-item-row">
+                                    <img src="@i.Product.PrimaryImageUrl" class="order-item-thumb" />
+                                    <div style="flex:1; min-width:0;">
+                                        <p class="order-item-name">@i.Product.Name</p>
+                                        <div class="order-item-meta">@((!string.IsNullOrEmpty(i.SelectedSize)?$"Size: {i.SelectedSize} • ":""))@((!string.IsNullOrEmpty(i.SelectedColor)?$"{i.SelectedColor} • ":""))× @i.Quantity</div>
+                                    </div>
+                                    <div style="font-weight:800;">@((i.Product.Price * i.Quantity).ToString("N0"))đ</div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div>Không có sản phẩm được chọn.</div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="summary-card" style="max-width: 100%;">
+                <h3 class="summary-header">Tóm tắt đơn hàng</h3>
+                <div class="summary-divider"></div>
+                <div class="summary-row">
+                    <span class="summary-label">Tạm tính</span>
+                    <span class="summary-value">@SubtotalFormatted</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Phí vận chuyển</span>
+                    <span class="summary-value">@ShippingFeeFormatted</span>
+                </div>
+                <div class="summary-divider"></div>
+                <div class="summary-row total">
+                    <span class="summary-label">Tổng cộng</span>
+                    <span class="summary-value">@TotalFormatted</span>
+                </div>
+                <button class="btn-pay-now" @onclick="GoToPayment" disabled="@(!HasAnySelection)">
+                    <i class="fas fa-credit-card"></i>
+                    Thanh toán ngay
+                </button>
+                <button class="btn-continue" style='width:100%; margin-top:12px;' @onclick='() => Navigation.NavigateTo("/cart")'>
+                    <i class="fas fa-arrow-left"></i>
+                    Quay lại giỏ hàng
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private class ShippingInfo
+    {
+        public string FullName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Phone { get; set; } = "";
+        public string City { get; set; } = "";
+        public string Address { get; set; } = "";
+        public string Note { get; set; } = "";
+    }
+
+    private ShippingInfo Shipping = new();
+    private string SelectedShippingMethod = "standard"; // "standard" hoặc "express"
+
+    private List<WebUI.Models.Cart.CartItemResponse>? SelectedApiItems;
+    private List<WebUI.Services.CartItem>? SelectedLocalItems;
+
+    private bool HasAnySelection => (SelectedApiItems?.Any() == true) || (SelectedLocalItems?.Any() == true);
+
+    private decimal Subtotal =>
+        (SelectedApiItems?.Sum(x => x.TotalPrice) ?? 0) +
+        (SelectedLocalItems?.Sum(x => x.Product.Price * x.Quantity) ?? 0);
+
+    private decimal ShippingFee
+    {
+        get
+        {
+            if (Subtotal >= 500000)
+            {
+                // Miễn phí ship thường, chỉ tính phí ship hỏa tốc
+                return SelectedShippingMethod == "express" ? 20000 : 0;
+            }
+            else
+            {
+                // Ship thường: 30.000đ, Ship hỏa tốc: 50.000đ
+                return SelectedShippingMethod == "express" ? 50000 : 30000;
+            }
+        }
+    }
+
+    private decimal Total => Subtotal + ShippingFee;
+    private string SubtotalFormatted => $"{Subtotal:N0}đ";
+    private string ShippingFeeFormatted => ShippingFee == 0 ? "Miễn phí" : $"{ShippingFee:N0}đ";
+    private string TotalFormatted => $"{Total:N0}đ";
+
+    protected override void OnInitialized()
+    {
+        // Pull selections from CartService
+        if (CartService.SelectedApiCartItemIds.Any())
+        {
+            // NOTE: In a real app, fetch details again; here we reuse from header/cart by calling GetCartFromApiAsync if needed
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Load API cart and filter selected items
+            var apiCart = await CartService.GetCartFromApiAsync();
+            if (apiCart != null && apiCart.Items.Any())
+            {
+                SelectedApiItems = apiCart.Items.Where(i => CartService.SelectedApiCartItemIds.Contains(i.CartItemID)).ToList();
+            }
+            else
+            {
+                var localAll = CartService.GetItems();
+                SelectedLocalItems = localAll.Where(i => CartService.SelectedLocalProductIds.Contains(i.Product.Id)).ToList();
+            }
+            StateHasChanged();
+        }
+    }
+
+    private void SelectStandardShipping()
+    {
+        SelectedShippingMethod = "standard";
+        StateHasChanged();
+    }
+
+    private void SelectExpressShipping()
+    {
+        SelectedShippingMethod = "express";
+        StateHasChanged();
+    }
+
+    private void GoToPayment()
+    {
+        if (!HasAnySelection)
+        {
+            ToastService.ShowWarning("Vui lòng chọn sản phẩm để thanh toán");
+            return;
+        }
+
+        // Validate shipping info
+        if (string.IsNullOrWhiteSpace(Shipping.FullName) || 
+            string.IsNullOrWhiteSpace(Shipping.Phone) || 
+            string.IsNullOrWhiteSpace(Shipping.Address) || 
+            string.IsNullOrWhiteSpace(Shipping.City))
+        {
+            ToastService.ShowWarning("Vui lòng điền đầy đủ thông tin giao hàng");
+            return;
+        }
+
+        // Lưu thông tin checkout vào CartService
+    CartService.CheckoutInfo = new CheckoutInfo
+        {
+            FullName = Shipping.FullName,
+            Email = Shipping.Email,
+            Phone = Shipping.Phone,
+            City = Shipping.City,
+            Address = Shipping.Address,
+            Note = Shipping.Note,
+            ShippingMethod = SelectedShippingMethod,
+            ShippingFee = ShippingFee,
+            Subtotal = Subtotal,
+            Total = Total,
+            SelectedApiItems = SelectedApiItems,
+            SelectedLocalItems = SelectedLocalItems
+        };
+
+        Navigation.NavigateTo("/payment");
+    }
+}
+
+

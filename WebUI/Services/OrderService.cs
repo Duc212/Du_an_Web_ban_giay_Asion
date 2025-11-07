@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text.Json;
 using WebUI.Models;
 using WebUI.Services.Interfaces;
 
@@ -49,20 +50,37 @@ namespace WebUI.Services
 
                 if (response.IsSuccessStatusCode)
                 {
-                    // API trả về success, parse response
-                    return new CreateOrderResponse
+                    // API trả về CommonResponse<bool>
+                    var apiResponse = await response.Content.ReadFromJsonAsync<CommonResponse<bool>>(
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                    );
+
+                    if (apiResponse != null && apiResponse.Success)
                     {
-                        Success = true,
-                        Message = "Đặt hàng thành công",
-                        Data = new OrderData
+                        // Lấy OrderID từ response hoặc từ request (nếu API trả về)
+                        // Tạm thời dùng timestamp làm OrderNumber
+                        return new CreateOrderResponse
                         {
-                            OrderId = "temp-order-id", // API sẽ trả về OrderID
-                            OrderNumber = DateTime.Now.Ticks.ToString(),
-                            Status = "pending",
-                            TotalAmount = request.OrderDetails.Sum(x => x.Quantity * 100000), // Tạm tính
-                            CreatedAt = DateTime.Now
-                        }
-                    };
+                            Success = true,
+                            Message = apiResponse.Message ?? "Đặt hàng thành công",
+                            Data = new OrderData
+                            {
+                                OrderId = DateTime.Now.Ticks.ToString(), // Tạm thời, cần lấy từ API response
+                                OrderNumber = DateTime.Now.Ticks.ToString(),
+                                Status = "pending",
+                                TotalAmount = 0, // Sẽ tính từ order details
+                                CreatedAt = DateTime.Now
+                            }
+                        };
+                    }
+                    else
+                    {
+                        return new CreateOrderResponse
+                        {
+                            Success = false,
+                            Message = apiResponse?.Message ?? "Tạo đơn hàng thất bại"
+                        };
+                    }
                 }
                 else
                 {

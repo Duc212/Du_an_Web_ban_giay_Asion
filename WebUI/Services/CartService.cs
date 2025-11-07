@@ -28,6 +28,9 @@ namespace WebUI.Services
         // Selected items for checkout (local cart product IDs)
         public HashSet<int> SelectedLocalProductIds { get; set; } = new();
         
+        // Checkout information
+        public CheckoutInfo? CheckoutInfo { get; set; }
+        
         public event Action? OnCartChanged;
 
         public CartService(HttpClient httpClient, ConfigurationService configService, IAuthService authService)
@@ -228,11 +231,26 @@ namespace WebUI.Services
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var result = await response.Content.ReadFromJsonAsync<AddToCartResponse>();
-                    if (result != null && result.Success)
+                    // Backend returns CommonResponse<CartSummaryRes>
+                    var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<CartSummaryResponse>>(
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                    );
+                    if (apiResponse != null && apiResponse.Success)
                     {
                         OnCartChanged?.Invoke();
-                        return result;
+                        return new AddToCartResponse
+                        {
+                            Success = true,
+                            Message = apiResponse.Message ?? "Đã thêm sản phẩm vào giỏ hàng",
+                            CartSummary = apiResponse.Data != null ? new CartSummary
+                            {
+                                TotalItems = apiResponse.Data.UniqueProductCount,
+                                TotalQuantity = apiResponse.Data.TotalItems,
+                                TotalAmount = apiResponse.Data.TotalAmount,
+                                Discount = 0,
+                                FinalAmount = apiResponse.Data.TotalAmount
+                            } : null
+                        };
                     }
                 }
                 AddItemLocally(product, quantity, size, color);
@@ -417,5 +435,24 @@ namespace WebUI.Services
                 return false;
             }
         }
+    }
+
+    /// <summary>
+    /// Thông tin checkout để truyền từ Checkout sang Payment
+    /// </summary>
+    public class CheckoutInfo
+    {
+        public string FullName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string City { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
+        public string? Note { get; set; }
+        public string ShippingMethod { get; set; } = "standard";
+        public decimal ShippingFee { get; set; }
+        public decimal Subtotal { get; set; }
+        public decimal Total { get; set; }
+        public List<Models.Cart.CartItemResponse>? SelectedApiItems { get; set; }
+        public List<CartItem>? SelectedLocalItems { get; set; }
     }
 }

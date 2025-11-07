@@ -24,6 +24,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<OrderService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 // Register Google Auth Service
 builder.Services.AddScoped<GoogleAuthService>();

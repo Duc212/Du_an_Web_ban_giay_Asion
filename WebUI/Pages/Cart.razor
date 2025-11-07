@@ -9,8 +9,7 @@
 @inject IJSRuntime JSRuntime
 @inject IToastService ToastService
 
-<link href="css/ecommerce-theme.css" rel="stylesheet" />
-<link href="css/cart-modern.css" rel="stylesheet" />
+@* Unified minimal theme styles are in asion.css *@
 
 <div class="cart-page">
     <div class="cart-container">
@@ -42,12 +41,12 @@
         {
             <div style="text-align: center; padding: 3rem;">
                 <div class="loading-spinner"></div>
-                <p style="margin-top: 1rem; color: var(--gray-600);">Đang tải giỏ hàng...</p>
+                <p style="margin-top: 1rem; color: var(--color-gray);">Đang tải giỏ hàng...</p>
             </div>
         }
         else if (HasCartItems())
         {
-            <div class="cart-grid">
+            <div style="display: flex; flex-direction: column; gap: 32px;">
                 <!-- Cart Items List -->
                 <div class="cart-items">
                     @if (ApiCart?.Items.Any() == true)
@@ -170,7 +169,7 @@
                 </div>
 
                 <!-- Cart Summary -->
-                <div class="cart-summary">
+                <div class="cart-summary" style="max-width: 600px; margin: 0 auto; width: 100%;">
                     <h3 class="summary-title">Tóm tắt đơn hàng</h3>
                     
                     <div class="summary-row">
@@ -203,7 +202,7 @@
                         Thanh toán @(HasSelectedItems() ? $"({(ApiCart != null ? SelectedItems.Count : SelectedLocalItems.Count)} sản phẩm)" : "")
                     </button>
 
-                    <button class="btn-continue" @onclick="ContinueShopping" style="margin-top:0.5rem;">
+                    <button class="btn-continue" @onclick="ContinueShopping" style="margin-top:0.5rem; width: 100%;">
                         <i class="fas fa-arrow-left"></i>
                         Tiếp tục mua sắm
                     </button>

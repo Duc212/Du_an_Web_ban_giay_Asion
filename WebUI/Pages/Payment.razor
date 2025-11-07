@@ -3,13 +3,14 @@
 @using WebUI.Services
 @using WebUI.Services.Interfaces
 @inject OrderService OrderService
+@inject IPaymentService PaymentService
+@inject CartService CartService
 @inject IAuthService AuthService
 @inject NavigationManager Navigation
 @inject IToastService ToastService
 @inject IJSRuntime JSRuntime
 
-<link href="css/ecommerce-theme.css" rel="stylesheet" />
-<link href="css/payment-clean.css" rel="stylesheet" />
+@* Unified minimal theme styles are in asion.css *@
 
 <div class="payment-page">
     <div class="payment-container">
@@ -41,16 +42,53 @@
             </div>
         </div>
 
+        <!-- Progress Bar -->
+        <div class="payment-progress">
+            <div class="payment-progress-bar"></div>
+        </div>
+
         @if (IsProcessing)
         {
-            <div class="loading-overlay">
-                <div class="loading-spinner"></div>
+            <div class="payment-status processing">
+                <div class="payment-status-icon">
+                    <i class="fas fa-spinner"></i>
+                </div>
+                <h2 class="payment-status-title">Đang xử lý thanh toán...</h2>
+                <p class="payment-status-message">Vui lòng đợi trong giây lát</p>
+            </div>
+        }
+        else if (PaymentStatus == "success")
+        {
+            <div class="payment-status success">
+                <div class="payment-status-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h2 class="payment-status-title">Thanh toán thành công!</h2>
+                <p class="payment-status-message">Đơn hàng của bạn đã được xác nhận</p>
+                <button class="btn-complete" @onclick='() => Navigation.NavigateTo("/")'>
+                    <i class="fas fa-home"></i>
+                    Trở về trang chủ
+                </button>
+            </div>
+        }
+        else if (PaymentStatus == "failed")
+        {
+            <div class="payment-status failed">
+                <div class="payment-status-icon">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <h2 class="payment-status-title">Thanh toán thất bại</h2>
+                <p class="payment-status-message">Vui lòng thử lại hoặc chọn phương thức thanh toán khác</p>
+                <button class="btn-continue" @onclick='() => PaymentStatus = ""'>
+                    <i class="fas fa-redo"></i>
+                    Thử lại
+                </button>
             </div>
         }
         else
         {
-            <div class="payment-grid">
-                <!-- Left Column - Payment Details -->
+            <div style="display: flex; flex-direction: column; gap: 24px; max-width: 800px; margin: 0 auto;">
+                <!-- Payment Details -->
                 <div class="payment-methods-section">
                     <!-- Shipping Info Card -->
                     <div class="shipping-info-card">
@@ -215,71 +253,54 @@
                         </div>
                     </div>
 
-                    <!-- Terms & Conditions -->
+                </div>
+
+                <!-- Order Summary -->
+                <div class="summary-card" style="max-width: 100%;">
+                    <h3 class="summary-header">Tóm tắt đơn hàng</h3>
+                    <div class="summary-divider"></div>
+                    <div class="summary-row">
+                        <span class="summary-label">Tạm tính</span>
+                        <span class="summary-value">@SubTotal.ToString("N0")đ</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Phí vận chuyển</span>
+                        <span class="summary-value">@ShippingFee.ToString("N0")đ</span>
+                    </div>
+                    @if (SelectedPaymentMethod == "cod")
+                    {
+                        <div class="summary-row">
+                            <span class="summary-label">Phí thu hộ COD</span>
+                            <span class="summary-value">15.000đ</span>
+                        </div>
+                    }
+                    @if (Discount > 0)
+                    {
+                        <div class="summary-row discount">
+                            <span class="summary-label">Giảm giá</span>
+                            <span class="summary-value">-@Discount.ToString("N0")đ</span>
+                        </div>
+                    }
+                    <div class="summary-divider"></div>
+                    <div class="summary-row total">
+                        <span class="summary-label">Tổng cộng</span>
+                        <span class="summary-value">@GetFinalTotal()</span>
+                    </div>
                     <div class="terms-section">
                         <input type="checkbox" class="terms-checkbox" @bind="AgreeTerms" id="agreeTerms" />
                         <label for="agreeTerms" class="terms-text">
                             Tôi đồng ý với <a href="#" class="terms-link">Điều khoản & Điều kiện</a> của Asion
                         </label>
                     </div>
-                </div>
-
-                <!-- Right Column - Order Summary -->
-                <div class="order-summary-sidebar">
-                    <div class="summary-card">
-                        <h3 class="summary-header">Tóm tắt đơn hàng</h3>
-
-                        <div class="summary-divider"></div>
-
-                        <!-- Price Breakdown -->
-                        <div class="summary-row">
-                            <span class="summary-label">Tạm tính</span>
-                            <span class="summary-value">@SubTotal.ToString("N0")đ</span>
-                        </div>
-                        <div class="summary-row">
-                            <span class="summary-label">Phí vận chuyển</span>
-                            <span class="summary-value">@ShippingFee.ToString("N0")đ</span>
-                        </div>
-                        @if (SelectedPaymentMethod == "cod")
-                        {
-                            <div class="summary-row">
-                                <span class="summary-label">Phí thu hộ COD</span>
-                                <span class="summary-value">15.000đ</span>
-                            </div>
-                        }
-                        @if (Discount > 0)
-                        {
-                            <div class="summary-row discount">
-                                <span class="summary-label">Giảm giá</span>
-                                <span class="summary-value">-@Discount.ToString("N0")đ</span>
-                            </div>
-                        }
-                        <div class="summary-divider"></div>
-                        <div class="summary-row total">
-                            <span class="summary-label">Tổng cộng</span>
-                            <span class="summary-value">@GetFinalTotal()</span>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <button class="btn-confirm-payment" 
-                                @onclick="HandlePayment"
-                                disabled="@(!AgreeTerms || IsProcessing)">
-                            @if (IsProcessing)
-                            {
-                                <div class="loading-spinner"></div>
-                                <span>Đang xử lý...</span>
-                            }
-                            else
-                            {
-                                <i class="fas fa-lock"></i>
-                                <span>Xác nhận thanh toán</span>
-                            }
-                        </button>
-
-                        <div class="security-badge">
-                            <i class="fas fa-shield-alt security-icon"></i>
-                            <span>Giao dịch bảo mật SSL</span>
-                        </div>
+                    <button class="btn-confirm-payment" 
+                            @onclick="HandlePayment"
+                            disabled="@(!AgreeTerms || IsProcessing)">
+                        <i class="fas fa-lock"></i>
+                        <span>Xác nhận thanh toán</span>
+                    </button>
+                    <div class="security-badge">
+                        <i class="fas fa-shield-alt security-icon"></i>
+                        <span>Giao dịch bảo mật SSL</span>
                     </div>
                 </div>
             </div>
@@ -292,17 +313,37 @@
     public string? OrderId { get; set; }
 
     private string OrderNumber = DateTime.Now.Ticks.ToString().Substring(8);
-    private string ReceiverName = "Nguyễn Văn A";
-    private string ReceiverPhone = "0912345678";
-    private string ShippingAddress = "123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh";
+    private string ReceiverName = string.Empty;
+    private string ReceiverPhone = string.Empty;
+    private string ShippingAddress = string.Empty;
     
     private string SelectedPaymentMethod = "cod";
     private bool AgreeTerms = false;
     private bool IsProcessing = false;
+    private string PaymentStatus = ""; // "", "processing", "success", "failed"
     
-    private decimal SubTotal = 3290000;
-    private decimal ShippingFee = 50000;
+    private decimal SubTotal = 0;
+    private decimal ShippingFee = 0;
     private decimal Discount = 0;
+    private int? CreatedOrderId = null;
+
+    protected override void OnInitialized()
+    {
+        // Lấy thông tin từ Checkout
+        var checkoutInfo = CartService.CheckoutInfo;
+        if (checkoutInfo == null)
+        {
+            // Nếu không có thông tin checkout, quay lại trang checkout
+            Navigation.NavigateTo("/checkout");
+            return;
+        }
+
+        ReceiverName = checkoutInfo.FullName;
+        ReceiverPhone = checkoutInfo.Phone;
+        ShippingAddress = $"{checkoutInfo.Address}, {checkoutInfo.City}";
+        SubTotal = checkoutInfo.Subtotal;
+        ShippingFee = checkoutInfo.ShippingFee;
+    }
 
     private async Task HandlePayment()
     {
@@ -312,23 +353,156 @@
             return;
         }
 
+        var checkoutInfo = CartService.CheckoutInfo;
+        if (checkoutInfo == null)
+        {
+            await ToastService.ShowError("Không tìm thấy thông tin đơn hàng. Vui lòng quay lại trang checkout.");
+            Navigation.NavigateTo("/checkout");
+            return;
+        }
+
         IsProcessing = true;
+        PaymentStatus = "processing";
         StateHasChanged();
 
-        await Task.Delay(2000); // Simulate payment processing
+        try
+        {
+            // 1. Tạo đơn hàng trước
+            var orderRequest = new CreateOrderRequest
+            {
+                UserID = AuthService.IsAuthenticated ? GetUserId() : 0, // Cần lấy UserID từ AuthService
+                PaymentID = GetPaymentId(SelectedPaymentMethod) ?? 0, // Map payment method to PaymentID
+                OrderType = "online",
+                Address = $"{checkoutInfo.Address}, {checkoutInfo.City}",
+                Note = checkoutInfo.Note,
+                OrderDetails = GetOrderDetails(checkoutInfo)
+            };
 
-        await ToastService.ShowSuccess("Thanh toán thành công!");
-        Navigation.NavigateTo($"/order-success/{OrderNumber}");
+            var createOrderResult = await OrderService.CreateOrderAsync(orderRequest);
+
+            if (!createOrderResult.Success)
+            {
+                PaymentStatus = "failed";
+                IsProcessing = false;
+                await ToastService.ShowError(createOrderResult.Message ?? "Không thể tạo đơn hàng");
+                StateHasChanged();
+                return;
+            }
+
+            // Lưu OrderID (tạm thời dùng timestamp, cần lấy từ API response)
+            CreatedOrderId = int.Parse(createOrderResult.Data?.OrderId ?? DateTime.Now.Ticks.ToString().Substring(8));
+
+            // 2. Xử lý thanh toán theo phương thức đã chọn
+            if (SelectedPaymentMethod == "vnpay")
+            {
+                // Tạo URL thanh toán VNPay
+                var paymentResult = await PaymentService.CreateVNPayPaymentUrlAsync(
+                    CreatedOrderId.Value,
+                    GetFinalTotalAmount(),
+                    $"Thanh toan don hang #{CreatedOrderId}"
+                );
+
+                if (paymentResult.Success && !string.IsNullOrEmpty(paymentResult.PaymentUrl))
+                {
+                    // Redirect đến VNPay
+                    await JSRuntime.InvokeVoidAsync("window.location.href", paymentResult.PaymentUrl);
+                    return;
+                }
+                else
+                {
+                    PaymentStatus = "failed";
+                    IsProcessing = false;
+                    await ToastService.ShowError(paymentResult.Message ?? "Không thể tạo URL thanh toán VNPay");
+                    StateHasChanged();
+                    return;
+                }
+            }
+            else
+            {
+                // COD hoặc các phương thức khác - chỉ cần tạo order
+                PaymentStatus = "success";
+                IsProcessing = false;
+                await ToastService.ShowSuccess("Đặt hàng thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.");
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Payment] Exception in HandlePayment: {ex.Message}");
+            PaymentStatus = "failed";
+            IsProcessing = false;
+            await ToastService.ShowError($"Lỗi: {ex.Message}");
+            StateHasChanged();
+        }
     }
 
-    private string GetFinalTotal()
+    private int GetUserId()
+    {
+        // TODO: Lấy UserID từ AuthService
+        // Tạm thời return 0 hoặc lấy từ token
+        return 0;
+    }
+
+    private int? GetPaymentId(string paymentMethod)
+    {
+        // Map payment method to PaymentID
+        // TODO: Lấy từ database hoặc config
+        return paymentMethod switch
+        {
+            "cod" => 1, // COD
+            "vnpay" => 2, // VNPay
+            "momo" => 3, // MoMo
+            "banking" => 4, // Banking
+            _ => null
+        };
+    }
+
+    private List<OrderDetailRequest> GetOrderDetails(CheckoutInfo checkoutInfo)
+    {
+        var orderDetails = new List<OrderDetailRequest>();
+
+        if (checkoutInfo.SelectedApiItems != null && checkoutInfo.SelectedApiItems.Any())
+        {
+            foreach (var item in checkoutInfo.SelectedApiItems)
+            {
+                orderDetails.Add(new OrderDetailRequest
+                {
+                    VariantID = item.VariantID,
+                    Quantity = item.Quantity
+                });
+            }
+        }
+        else if (checkoutInfo.SelectedLocalItems != null && checkoutInfo.SelectedLocalItems.Any())
+        {
+            // Với local items, cần tìm VariantID từ Product
+            // TODO: Cần lấy VariantID từ Product service hoặc từ cart item
+            // Tạm thời dùng ProductId làm VariantID (cần sửa lại)
+            foreach (var item in checkoutInfo.SelectedLocalItems)
+            {
+                orderDetails.Add(new OrderDetailRequest
+                {
+                    VariantID = item.Product.Id, // Tạm thời, cần lấy đúng VariantID
+                    Quantity = item.Quantity
+                });
+            }
+        }
+
+        return orderDetails;
+    }
+
+    private decimal GetFinalTotalAmount()
     {
         decimal total = SubTotal + ShippingFee - Discount;
         if (SelectedPaymentMethod == "cod")
         {
             total += 15000; // COD fee
         }
-        return $"{total:N0}đ";
+        return total;
+    }
+
+    private string GetFinalTotal()
+    {
+        return $"{GetFinalTotalAmount():N0}đ";
     }
 
     private async Task CopyToClipboard(string text)
