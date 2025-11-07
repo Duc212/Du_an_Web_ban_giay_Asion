@@ -24,5 +24,12 @@ namespace API.Controllers
             var result = await _productService.GetProductLangding(currentPage, recordPerPage);
             return result;
         }
+        [HttpGet]
+        [Route("GetCategory")]
+        public async Task<CommonResponse<List<GetListCategoryRes>>> GetListCategory()
+        {
+            var result = await _productService.GetListCategory();
+            return result;
+        }
     }
 }

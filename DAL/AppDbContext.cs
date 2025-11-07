@@ -99,11 +99,12 @@ namespace DAL
 
             // Seed Category
             modelBuilder.Entity<Category>().HasData(
-                  new Category { CategoryID = 1, Name = "Chạy bộ", Description = "Giày dành cho chạy bộ và tập luyện cardio" },
-                   new Category { CategoryID = 2, Name = "Thời trang", Description = "Giày thể thao thời trang hàng ngày" },
-                    new Category { CategoryID = 3, Name = "Bóng rổ", Description = "Giày chuyên dụng cho bóng rổ" },
-                new Category { CategoryID = 4, Name = "Tennis", Description = "Giày chuyên dụng cho tennis" },
-               new Category { CategoryID = 5, Name = "Skateboard", Description = "Giày dành cho skateboarding" }
+                  new Category { CategoryID = 1, Name = "Chạy bộ", Description = "Giày dành cho chạy bộ và tập luyện cardio",Icon = "fas fa-running" },
+                   new Category { CategoryID = 2, Name = "Giày Bóng Rổ", Description = "Giày thể thao thời trang hàng ngày", Icon = "fas fa-basketball-ball" },
+                    new Category { CategoryID = 3, Name = "Giày Lifestyle", Description = "Giày chuyên dụng cho bóng rổ", Icon = "fas fa-shoe-prints" },
+                new Category { CategoryID = 4, Name = "Giày Bóng Đá", Description = "Giày chuyên dụng cho tennis", Icon = "fas fa-futbol" },
+               new Category { CategoryID = 5, Name = "Giày Gym", Description = "Giày dành cho skateboarding", Icon = "fas fa-dumbbell" },
+               new Category { CategoryID = 6, Name = "Giày Trẻ Em", Description = "Giày dành cho skateboarding", Icon = "fas fa-fas fa-child" }
                );
 
             // Seed Color

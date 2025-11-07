@@ -222,16 +222,32 @@
     private int? SelectedCategoryId = null;
     private string SelectedCategoryName = "";
     private List<Product> CategoryProducts = new();
-    
-    private List<CategoryItem> CategoryList = new()
+    private List<CategoryItem> CategoryList = new();
+
+    private async Task LoadCategoriesAsync()
     {
-        new CategoryItem { Id = 1, Name = "Giày Chạy Bộ", Icon = "fas fa-running", Count = 250 },
-        new CategoryItem { Id = 2, Name = "Giày Bóng Rổ", Icon = "fas fa-basketball-ball", Count = 180 },
-        new CategoryItem { Id = 3, Name = "Giày Lifestyle", Icon = "fas fa-shoe-prints", Count = 320 },
-        new CategoryItem { Id = 4, Name = "Giày Bóng Đá", Icon = "fas fa-futbol", Count = 150 },
-        new CategoryItem { Id = 5, Name = "Giày Gym", Icon = "fas fa-dumbbell", Count = 200 },
-        new CategoryItem { Id = 6, Name = "Giày Trẻ Em", Icon = "fas fa-child", Count = 280 }
-    };
+        try
+        {
+            var response = await ProductService.GetCategoriesAsync();
+            if (response?.Success == true && response.Data != null)
+            {
+                // Map Categories từ API sang CategoryItem với icons tương ứng
+                CategoryList = response.Data.Select(c => new CategoryItem 
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Count = 0, // Tạm thời để 0, cần thêm field ProductCount vào model Category
+                    Icon = c.Icon ?? "fas fa-tags" 
+                }).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading categories: {ex.Message}");
+            CategoryList = new(); // Initialize empty list if API fails
+        }
+    }
+   
 
     protected override async Task OnInitializedAsync()
     {
@@ -241,6 +257,7 @@
         // Wait for AuthService to initialize
         await Task.Delay(100);
         await LoadCartAsync();
+        await LoadCategoriesAsync();
     }
 
     private async void OnAuthStateChanged(object? sender, bool isAuthenticated)

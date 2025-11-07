@@ -1,6 +1,7 @@
 using System.Text.Json;
 using WebUI.Models;
 using WebUI.Services.Interfaces;
+using WebUI.Constants;
 
 namespace WebUI.Services
 {
@@ -11,18 +12,41 @@ namespace WebUI.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ConfigurationService _configService;
+        private string? _apiBaseUrl;
 
         public ProductService(HttpClient httpClient, ConfigurationService configService)
         {
             _httpClient = httpClient;
             _configService = configService;
+            InitializeApiBaseUrl();
+        }
+
+        private async void InitializeApiBaseUrl()
+        {
+            try
+            {
+                _apiBaseUrl = await _configService.GetApiBaseUrlAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error initializing API base URL: {ex.Message}");
+            }
+        }
+
+        private async Task<string> GetApiBaseUrl()
+        {
+            if (string.IsNullOrEmpty(_apiBaseUrl))
+            {
+                _apiBaseUrl = await _configService.GetApiBaseUrlAsync();
+            }
+            return _apiBaseUrl;
         }
 
         public async Task<List<Product>> GetAllProductsAsync()
         {
             try
             {
-                var apiBaseUrl = await _configService.GetApiBaseUrlAsync();
+                var apiBaseUrl = await GetApiBaseUrl();
                 var response = await _httpClient.GetAsync($"{apiBaseUrl}/api/ProductLanding/GetListProduct?currentPage=1&recordPerPage=100");
                 if (response.IsSuccessStatusCode)
                 {
@@ -232,7 +256,7 @@ namespace WebUI.Services
         {
             try
             {
-                var apiBaseUrl = await _configService.GetApiBaseUrlAsync();
+                var apiBaseUrl = await GetApiBaseUrl();
                 var response = await _httpClient.GetAsync($"{apiBaseUrl}/api/ProductLanding/GetListProduct?currentPage={currentPage}&recordPerPage={recordPerPage}");
                 if (response.IsSuccessStatusCode)
                 {
@@ -250,6 +274,40 @@ namespace WebUI.Services
             {
                 Console.WriteLine($"Error calling API with pagination: {ex.Message}");
                 return new ProductApiResponse();
+            }
+        }
+
+        public async Task<CommonResponse<List<Category>>> GetCategoriesAsync()
+        {
+            try
+            {
+                var apiBaseUrl = await GetApiBaseUrl();
+                var response = await _httpClient.GetAsync($"{apiBaseUrl}{ApiEndpoints.ProductCategories}");
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonSerializer.Deserialize<CommonResponse<List<Category>>>(json, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                    return apiResponse ?? new CommonResponse<List<Category>>();
+                }
+                
+                return new CommonResponse<List<Category>> 
+                { 
+                    Success = false, 
+                    Message = $"API returned status code: {response.StatusCode}"
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting categories: {ex.Message}");
+                return new CommonResponse<List<Category>> 
+                { 
+                    Success = false, 
+                    Message = "Error occurred while fetching categories" 
+                };
             }
         }
     }

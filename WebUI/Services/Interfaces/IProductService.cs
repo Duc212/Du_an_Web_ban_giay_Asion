@@ -62,5 +62,7 @@ namespace WebUI.Services.Interfaces
         /// Lấy sản phẩm với phân trang từ API
         /// </summary>
         Task<ProductApiResponse> GetProductsWithPaginationAsync(int currentPage = 1, int recordPerPage = 12);
+
+        Task<CommonResponse<List<Category>>> GetCategoriesAsync();
     }
 }

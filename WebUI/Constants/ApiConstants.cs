@@ -17,7 +17,7 @@ namespace WebUI.Constants
         public const string Products = "/api/Products";
         public const string ProductDetails = "/api/Products/{0}";
         public const string ProductSearch = "/api/Products/search";
-        public const string ProductCategories = "/api/Products/categories";
+        public const string ProductCategories = "/api/ProductLanding/GetCategory";
 
         // Cart endpoints
         public const string Cart = "/api/Cart";

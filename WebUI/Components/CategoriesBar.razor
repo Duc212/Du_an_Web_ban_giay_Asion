@@ -1,3 +1,6 @@
+@using WebUI.Services
+@using WebUI.Services.Interfaces
+@inject IProductService ProductService
 @* Categories Carousel Component *@
 <section class="categories-carousel">
     <div class="carousel-container">
@@ -363,18 +366,36 @@
     private int CurrentSlide = 0;
     private const int CategoriesPerSlide = 3;
 
-    private List<CategoryModel> Categories = new()
-{
-new CategoryModel { Id = 1, Name = "Giày Chạy Bộ", Icon = "fas fa-running", Count = 250 },
-new CategoryModel { Id = 2, Name = "Giày Bóng Rổ", Icon = "fas fa-basketball-ball", Count = 180 },
-new CategoryModel { Id = 3, Name = "Giày Lifestyle", Icon = "fas fa-shoe-prints", Count = 320 },
-new CategoryModel { Id = 4, Name = "Giày Bóng Đá", Icon = "fas fa-futbol", Count = 150 },
-new CategoryModel { Id = 5, Name = "Giày Gym", Icon = "fas fa-dumbbell", Count = 200 },
-new CategoryModel { Id = 6, Name = "Giày Trẻ Em", Icon = "fas fa-child", Count = 280 },
+    private List<CategoryModel> Categories = new();
+    private int TotalSlides => (int)Math.Ceiling((double)Categories.Count / CategoriesPerSlide);
+    private async Task LoadCategoriesAsync()
+    {
+        try
+        {
+            var response = await ProductService.GetCategoriesAsync();
+            if (response?.Success == true && response.Data != null)
+            {
+                // Map Categories từ API sang CategoryModel
+                Categories = response.Data.Select(c => new CategoryModel
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Count = 0, // TODO: Đợi API cập nhật thêm field ProductCount
+                    Icon = c.Icon ?? "fas fa-tags" // Sử dụng icon từ API hoặc fallback icon
+                }).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[CategoriesBar] Error loading categories: {ex.Message}");
+            Categories = new(); // Initialize empty list if API fails
+        }
+    }
 
-        new CategoryModel { Id = 6, Name = "Giày Trẻ Em", Icon = "fas fa-child", Count = 280 }
-    };    private int TotalSlides => (int)Math.Ceiling((double)Categories.Count / CategoriesPerSlide);
-
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCategoriesAsync();
+    }
     private List<CategoryModel> GetCategoriesForSlide(int slideIndex)
     {
         return Categories

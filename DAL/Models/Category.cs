@@ -1,10 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DAL.Models
 {
@@ -16,7 +11,8 @@ namespace DAL.Models
         public string Name { get; set; }
         [Unicode(true), MaxLength(250)]
         public string? Description { get; set; }
-
+        [MaxLength(250)]
+        public string Icon { get; set; }
         public ICollection<Product> Products { get; set; } = new List<Product>();
     }
 }
