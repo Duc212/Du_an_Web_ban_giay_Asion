@@ -380,7 +380,7 @@
                 {
                     Id = c.Id,
                     Name = c.Name,
-                    Count = 0, // TODO: Đợi API cập nhật thêm field ProductCount
+                    Count = c.Count, 
                     Icon = c.Icon ?? "fas fa-tags" // Sử dụng icon từ API hoặc fallback icon
                 }).ToList();
             }

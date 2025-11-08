@@ -6,9 +6,9 @@ namespace BUS.Services.Interfaces
 {
     public interface IProductServices
     {
-        Task<CommonPagination<GetProductRes>> GetProductLangding(int CurrentPage, int RecordPerPage);
+        Task<CommonPagination<GetProductRes>> GetProductLanding(int? CategoryId, int CurrentPage, int RecordPerPage);
         Task<CommonResponse<List<GetListCategoryRes>>> GetListCategory();
 
-        Task<CommonPagination<GetProductRes>> GetProductLangding(string? Keyword,int? SortType,int? SortPrice,int CurrentPage, int RecordPerPage);
+        Task<CommonPagination<GetProductRes>> GetProductShop(int? categoryId,string? Keyword,int? SortType,int? SortPrice,int CurrentPage, int RecordPerPage);
     }
 }

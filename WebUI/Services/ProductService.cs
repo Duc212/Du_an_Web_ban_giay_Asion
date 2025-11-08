@@ -42,12 +42,22 @@ namespace WebUI.Services
             return _apiBaseUrl;
         }
 
-        public async Task<List<Product>> GetAllProductsAsync()
+        public async Task<List<Product>> GetAllProductsAsync(int? categoryId = null, int currentPage = 1, int recordPerPage = 12)
         {
             try
             {
                 var apiBaseUrl = await GetApiBaseUrl();
-                var response = await _httpClient.GetAsync($"{apiBaseUrl}/api/ProductLanding/GetListProduct?currentPage=1&recordPerPage=100");
+                Console.WriteLine($"[ProductService] API Base URL: {apiBaseUrl}");
+                
+                var url = $"{apiBaseUrl}/api/ProductLanding/GetListProduct?currentPage={currentPage}&recordPerPage={recordPerPage}";
+                if (categoryId.HasValue)
+                {
+                    url += $"&categoryId={categoryId}";
+                }
+                
+                Console.WriteLine($"[ProductService] Calling API: {url}");
+                var response = await _httpClient.GetAsync(url);
+                Console.WriteLine($"[ProductService] API Response Status: {response.StatusCode}");
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync();
@@ -113,16 +123,7 @@ namespace WebUI.Services
 
         public async Task<List<Product>> GetProductsByCategoryAsync(int categoryId)
         {
-            try
-            {
-                var allProducts = await GetAllProductsAsync();
-                return allProducts.Where(p => p.CategoryId == categoryId).ToList();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error getting products by category: {ex.Message}");
-                return new List<Product>();
-            }
+            return await GetAllProductsAsync(categoryId);
         }
 
         public async Task<List<Product>> SearchProductsAsync(string searchTerm)

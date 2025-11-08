@@ -12,12 +12,13 @@
         public bool InStock { get; set; } = true;
         public int StockQuantity { get; set; }
         public List<string> Sizes { get; set; } = new();
-        public List<string> Colors { get; set; } = new();
+        public List<GetColorRes> Colors { get; set; } = new();
         public float Rating { get; set; }
         public int ReviewCount { get; set; }
         public List<string> Features { get; set; } = new();
+        public string ImageUrl {  get; set; }
         public List<string> Images { get; set; } = new();
-        public Dictionary<string, List<string>> ColorImages { get; set; } = new();
+        public List<GetColorImageRes> ColorImages { get; set; } = new();
         public string? Badge { get; set; }
 
         public string Vendor => Brand;

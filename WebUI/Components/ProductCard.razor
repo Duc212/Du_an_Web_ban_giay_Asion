@@ -14,7 +14,7 @@
             </span>
         }
 
-        <img src="@Product.PrimaryImageUrl"
+        <img src="@Product.ImageUrl"
              alt="@Product.Name"
              class="card-image"
              onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
@@ -55,10 +55,22 @@
             {
                 <span class="product-price--old">@Product.OldPriceFormatted</span>
             }
-            @if (!string.IsNullOrEmpty(Product.Discount))
+            @if (Product.Discount.HasValue)
             {
-                <span class="product-discount">@Product.Discount</span>
+                <span class="product-discount">-@(Product.Discount.Value)%</span>
             }
+        </div>
+
+        <div class="product-rating">
+            <div class="stars">
+                @for (var i = 1; i <= 5; i++)
+                {
+                    var starClass = i <= Math.Floor(Product.Rating) ? "fas" : 
+                                  i - Math.Floor(Product.Rating) <= 0.5 ? "fas fa-star-half-alt" : "far";
+                    <i class="@($"{starClass} fa-star")"></i>
+                }
+            </div>
+            <span class="rating-count">(@Product.ReviewCount đánh giá)</span>
         </div>
     </div>
 </div>

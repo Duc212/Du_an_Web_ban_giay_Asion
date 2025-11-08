@@ -24,7 +24,7 @@
                                 <img src="@CurrentImageUrl"
                                      alt="@Product.Name"
                                      class="product-preview__image"
-                                     onerror="this.src='@Product.PrimaryImageUrl'" />
+                                     onerror="this.src='@Product.ImageUrl'" />
                             </div>
                         </div>
                         <div class="col-md-7">
@@ -69,16 +69,16 @@
                             {
                                 <div class="color-item">
                                     <button type="button"
-                                            class="color-swatch @(SelectedColor == color ? "color-swatch--active" : null)"
-                                            style="background-color: @GetColorCode(color); @(color.ToUpper() == "#FFFFFF" ? "border: 1px solid #cbd5e1;" : string.Empty)"
-                                            @onclick="() => SelectColor(color)"
-                                            title="@GetColorName(color)">
-                                        @if (SelectedColor == color)
+                                            class="color-swatch @(SelectedColor == color.HexColor ? "color-swatch--active" : null)"
+                                            style="background-color: @color.HexColor; @(color.HexColor.ToUpper() == "#FFFFFF" ? "border: 1px solid #cbd5e1;" : string.Empty)"
+                                            @onclick="() => SelectColor(color.HexColor)"
+                                            title="@color.ColorName">
+                                        @if (SelectedColor == color.HexColor)
                                         {
                                             <i class="fas fa-check"></i>
                                         }
                                     </button>
-                                    <span class="color-label">@GetColorName(color)</span>
+                                    <span class="color-label">@color.ColorName</span>
                                 </div>
                             }
                         </div>
@@ -153,7 +153,7 @@
 
     // Get available sizes and colors from product data
     private List<string> AvailableSizes => Product?.Sizes ?? new List<string>();
-    private List<string> AvailableColors => Product?.Colors ?? new List<string>();
+    private List<ColorInfo> AvailableColors => Product?.Colors ?? new List<ColorInfo>();
 
     private ElementReference? modalOverlayRef;
     private ElementReference? modalShellRef;
@@ -166,7 +166,7 @@
             SelectedSize = "";
             SelectedColor = "";
             Quantity = 1;
-            CurrentImageUrl = Product.PrimaryImageUrl; // Set default image
+            CurrentImageUrl = Product.ImageUrl; // Set default image
         }
     }
 
@@ -251,18 +251,19 @@
     {
         if (Product?.ColorImages != null && Product.ColorImages.Any())
         {
-            if (Product.ColorImages.ContainsKey(color) && Product.ColorImages[color].Any())
+            var colorInfo = Product.ColorImages.FirstOrDefault(ci => ci.Color == GetColorName(color));
+            if (colorInfo?.ImageColors != null && colorInfo.ImageColors.Any())
             {
-                CurrentImageUrl = Product.ColorImages[color].First();
+                CurrentImageUrl = colorInfo.ImageColors.First();
             }
             else
             {
-                CurrentImageUrl = Product.PrimaryImageUrl;
+                CurrentImageUrl = Product.ImageUrl;
             }
         }
         else
         {
-            CurrentImageUrl = Product?.PrimaryImageUrl ?? "";
+            CurrentImageUrl = Product?.ImageUrl ?? "";
         }
     }
 

@@ -19,9 +19,9 @@ namespace API.Controllers
 
         [HttpGet]
         [Route("GetListProduct")]
-        public async Task<CommonPagination<GetProductRes>> GetListProduct(int currentPage = 1, int recordPerPage = 12)
+        public async Task<CommonPagination<GetProductRes>> GetListProduct(int categoryId = -1, int currentPage = 1, int recordPerPage = 12)
         {
-            var result = await _productService.GetProductLangding(currentPage, recordPerPage);
+            var result = await _productService.GetProductLanding(categoryId, currentPage, recordPerPage);
             return result;
         }
         [HttpGet]
@@ -29,6 +29,13 @@ namespace API.Controllers
         public async Task<CommonResponse<List<GetListCategoryRes>>> GetListCategory()
         {
             var result = await _productService.GetListCategory();
+            return result;
+        }
+        [HttpGet]
+        [HttpGet("GetProductShop")]
+        public async Task<CommonPagination<GetProductRes>> GetProductLangding(int? CategoryId, string? Keyword, int? SortType, int? SortPrice, int CurrentPage, int RecordPerPage)
+        {
+            var result = await _productService.GetProductShop(CategoryId, Keyword, SortType, SortPrice, CurrentPage, RecordPerPage);
             return result;
         }
     }

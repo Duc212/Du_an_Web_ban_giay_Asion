@@ -211,7 +211,7 @@ namespace WebUI.Services
                     // Cache fields (không gửi lên API nhưng có thể dùng sau)
                     ProductName = product.Name,
                     Price = product.Price,
-                    ImageUrl = product.PrimaryImageUrl
+                    ImageUrl = product.ImageUrl
                 };
 
                 var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{apiBaseUrl}/api/Cart/AddToCart")

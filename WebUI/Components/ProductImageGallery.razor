@@ -103,7 +103,7 @@
     private void UpdateImageByColor()
     {
         Console.WriteLine($"UpdateImageByColor - SelectedColor: '{SelectedColor}'");
-        Console.WriteLine($"ColorImages available: {Product?.ColorImages?.Keys.Count ?? 0}");
+        Console.WriteLine($"ColorImages available: {Product?.ColorImages?.Count ?? 0}");
         
         // Priority 1: If "ALL" is selected, show first available image from all images
         if (SelectedColor == "ALL")
@@ -119,10 +119,10 @@
             // If no general images, use first color image available
             if (Product?.ColorImages != null && Product.ColorImages.Any())
             {
-                var firstColorImages = Product.ColorImages.Values.FirstOrDefault(imgs => imgs != null && imgs.Any());
-                if (firstColorImages != null && firstColorImages.Any())
+                var firstColorImage = Product.ColorImages.FirstOrDefault()?.ImageColors?.FirstOrDefault();
+                if (!string.IsNullOrEmpty(firstColorImage))
                 {
-                    SelectedImageUrl = firstColorImages.First();
+                    SelectedImageUrl = firstColorImage;
                     Console.WriteLine($"Using first color image (ALL selected): {SelectedImageUrl}");
                     return;
                 }
@@ -131,13 +131,12 @@
         
         // Priority 2: Show specific color images if color is selected and exists
         if (!string.IsNullOrEmpty(SelectedColor) && SelectedColor != "ALL" &&
-            Product?.ColorImages != null && 
-            Product.ColorImages.ContainsKey(SelectedColor))
+            Product?.ColorImages != null)
         {
-            var colorImages = Product.ColorImages[SelectedColor];
-            if (colorImages != null && colorImages.Any())
+            var colorInfo = Product.ColorImages.FirstOrDefault(ci => ci.Color == SelectedColor);
+            if (colorInfo?.ImageColors != null && colorInfo.ImageColors.Any())
             {
-                SelectedImageUrl = colorImages.First();
+                SelectedImageUrl = colorInfo.ImageColors.First();
                 Console.WriteLine($"Using color-specific image: {SelectedImageUrl}");
                 return;
             }
@@ -152,7 +151,7 @@
         }
         
         // Priority 3: Fallback to primary image
-        SelectedImageUrl = Product?.PrimaryImageUrl ?? "";
+        SelectedImageUrl = Product?.ImageUrl ?? "";
         Console.WriteLine($"Using fallback image: {SelectedImageUrl}");
     }
 
@@ -174,11 +173,11 @@
             // Add all ColorImages
             if (Product?.ColorImages != null && Product.ColorImages.Any())
             {
-                foreach (var kvp in Product.ColorImages)
+                foreach (var colorInfo in Product.ColorImages)
                 {
-                    if (kvp.Value != null && kvp.Value.Any())
+                    if (colorInfo.ImageColors != null && colorInfo.ImageColors.Any())
                     {
-                        images.AddRange(kvp.Value);
+                        images.AddRange(colorInfo.ImageColors);
                     }
                 }
             }
@@ -188,14 +187,12 @@
         }
         
         // 2. If specific color is selected, show ONLY that color's images
-        if (!string.IsNullOrEmpty(SelectedColor) && 
-            Product?.ColorImages != null && 
-            Product.ColorImages.ContainsKey(SelectedColor))
+        if (!string.IsNullOrEmpty(SelectedColor) && Product?.ColorImages != null)
         {
-            var colorImages = Product.ColorImages[SelectedColor];
-            if (colorImages != null && colorImages.Any())
+            var colorInfo = Product.ColorImages.FirstOrDefault(ci => ci.Color == SelectedColor);
+            if (colorInfo?.ImageColors != null && colorInfo.ImageColors.Any())
             {
-                images.AddRange(colorImages);
+                images.AddRange(colorInfo.ImageColors);
                 Console.WriteLine($"Showing {images.Count} color-specific images for {SelectedColor}");
                 return images.Where(img => !string.IsNullOrEmpty(img)).Distinct().ToList();
             }
@@ -211,21 +208,21 @@
         // 3. If no general images, show all color images as fallback
         if (!images.Any() && Product?.ColorImages != null && Product.ColorImages.Any())
         {
-            foreach (var kvp in Product.ColorImages)
+            foreach (var colorInfo in Product.ColorImages)
             {
-                if (kvp.Value != null && kvp.Value.Any())
+                if (colorInfo.ImageColors != null && colorInfo.ImageColors.Any())
                 {
-                    images.AddRange(kvp.Value);
+                    images.AddRange(colorInfo.ImageColors);
                 }
             }
             Console.WriteLine($"Showing {images.Count} images from all colors (fallback)");
         }
         
-        // 4. Final fallback to PrimaryImageUrl
+        // 4. Final fallback to ImageUrl
         if (!images.Any())
         {
-            images.Add(Product?.PrimaryImageUrl ?? "");
-            Console.WriteLine("Using final fallback to PrimaryImageUrl");
+            images.Add(Product?.ImageUrl ?? "");
+            Console.WriteLine("Using fallback to ImageUrl");
         }
         
         // Remove duplicates and empty strings

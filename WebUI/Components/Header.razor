@@ -28,11 +28,12 @@
                             <div class="mega-dropdown-content">
                                 <div class="categories-column">
                                     <h4>Danh Mục</h4>
-                                    <ul class="category-list">
+                                    <ul class="category-list" style="max-height: 400px; overflow-y: auto;">
                                         @foreach (var category in CategoryList)
                                         {
-                                            <li @onmouseenter="() => SelectCategory(category)"
-                                                class="@(SelectedCategoryId == category.Id ? "active" : "")">
+                                            <li @onmouseenter="async () => await LoadCategoryProducts(category)"
+                                                class="category-item @(SelectedCategoryId == category.Id ? "active" : "")"
+                                                style="cursor: pointer; padding: 8px 16px;">
                                                 <i class="@category.Icon"></i>
                                                 <span>@category.Name</span>
                                                 <span class="count">(@category.Count)</span>
@@ -49,7 +50,7 @@
                                             @foreach (var product in CategoryProducts.Take(6))
                                             {
                                                 <a href="/product/@product.Id" class="product-preview-card">
-                                                    <img src="@product.PrimaryImageUrl" alt="@product.Name" />
+                                                    <img src="@product.ImageUrl" alt="@product.Name" />
                                                     <div class="product-preview-info">
                                                         <h5>@product.Name</h5>
                                                         <p class="brand">@product.Brand</p>
@@ -158,7 +159,7 @@
                         @foreach (var item in LocalCartItems)
                         {
                             <div class="cart-item-row">
-                                <img src="@item.Product.PrimaryImageUrl" alt="@item.Product.Name" class="item-thumb" />
+                                <img src="@item.Product.ImageUrl" alt="@item.Product.Name" class="item-thumb" />
                                 <div class="item-info">
                                     <h4>@item.Product.Name</h4>
                                     <p>@item.Product.Brand</p>
@@ -236,7 +237,7 @@
                 {
                     Id = c.Id,
                     Name = c.Name,
-                    Count = 0, // Tạm thời để 0, cần thêm field ProductCount vào model Category
+                    Count = c.Count, 
                     Icon = c.Icon ?? "fas fa-tags" 
                 }).ToList();
             }
@@ -387,23 +388,132 @@
         ShowCategoryDropdown = !ShowCategoryDropdown;
     }
 
-    private async void SelectCategory(CategoryItem category)
+    private async Task OnCategoryHover(CategoryItem category)
     {
-        SelectedCategoryId = category.Id;
-        SelectedCategoryName = category.Name;
+        try 
+        {
+            Console.WriteLine($"[Header] Category clicked: {category.Name}");
+            
+            SelectedCategoryId = category.Id;
+            SelectedCategoryName = category.Name;
+            StateHasChanged(); // Update UI immediately
+            
+            // Get products from API
+            var products = await ProductService.GetAllProductsAsync(
+                categoryId: category.Id,
+                currentPage: 1,
+                recordPerPage: 6
+            );
+            
+            if (products != null && products.Any())
+            {
+                CategoryProducts = products;
+                Console.WriteLine($"[Header] Loaded {products.Count} products");
+                Console.WriteLine($"[Header] First product: {products.First().Name}");
+            }
+            else
+            {
+                CategoryProducts = new List<Product>();
+                Console.WriteLine("[Header] No products found");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Header] Error: {ex.Message}");
+            CategoryProducts = new List<Product>();
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadCategoryProducts(CategoryItem category)
+    {
+        if (category == null) return;
         
         try
         {
-            // Load real products from API
-            var apiResponse = await ProductService.GetProductsWithPaginationAsync(1, 12);
-            if (apiResponse?.Data != null && apiResponse.Data.Any())
+            Console.WriteLine($"[Header] Mouse entered category: {category.Name} (ID: {category.Id})");
+            
+            // Cập nhật UI ngay lập tức để hiển thị trạng thái loading
+            SelectedCategoryId = category.Id;
+            SelectedCategoryName = category.Name;
+            CategoryProducts = new List<Product>();
+            StateHasChanged();
+
+            Console.WriteLine($"[Header] Calling API GetAllProductsAsync with categoryId: {category.Id}");
+
+            // Gọi API để lấy sản phẩm
+            var products = await ProductService.GetAllProductsAsync(
+                categoryId: category.Id,
+                currentPage: 1,
+                recordPerPage: 6
+            );
+
+            Console.WriteLine($"[Header] API response received. Products count: {products?.Count ?? 0}");
+
+            if (products != null && products.Any())
             {
-                CategoryProducts = apiResponse.Data.Take(6).ToList();
+                CategoryProducts = products;
+                Console.WriteLine($"[Header] First product: {products.First().Name}, Price: {products.First().PriceFormatted}");
+                foreach (var product in products)
+                {
+                    Console.WriteLine($"[Header] - {product.Name} ({product.Id})");
+                }
+            }
+            else
+            {
+                Console.WriteLine("[Header] No products returned from API");
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"[Header] Error loading products: {ex.Message}");
+            Console.WriteLine($"[Header] Stack trace: {ex.StackTrace}");
+            CategoryProducts = new List<Product>();
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+
+    private async Task SelectCategory(CategoryItem category)
+    {
+        try
+        {
+            Console.WriteLine($"[Header] Selecting category: {category.Name} (ID: {category.Id})");
+            
+            SelectedCategoryId = category.Id;
+            SelectedCategoryName = category.Name;
+            
+            // Lấy sản phẩm theo danh mục từ API với phân trang
+            Console.WriteLine($"[Header] Fetching products for category {category.Id}...");
+            
+            var products = await ProductService.GetAllProductsAsync(
+                categoryId: category.Id,
+                currentPage: 1,
+                recordPerPage: 6  // Chỉ lấy 6 sản phẩm cho preview
+            );
+            
+            Console.WriteLine($"[Header] Received {products?.Count ?? 0} products from API");
+            
+            if (products != null && products.Any())
+            {
+                CategoryProducts = products;
+                Console.WriteLine($"[Header] First product: {products.First().Name}");
+            }
+            else
+            {
+                CategoryProducts = new List<Product>();
+                Console.WriteLine("[Header] No products found for category");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Header] Error loading products: {ex.Message}");
+            Console.WriteLine($"[Header] Stack trace: {ex.StackTrace}");
             CategoryProducts = new List<Product>();
         }
         

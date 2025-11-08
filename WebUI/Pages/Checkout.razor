@@ -96,7 +96,7 @@
                             @foreach (var i in SelectedLocalItems!)
                             {
                                 <div class="order-item-row">
-                                    <img src="@i.Product.PrimaryImageUrl" class="order-item-thumb" />
+                                    <img src="@i.Product.ImageUrl" class="order-item-thumb" />
                                     <div style="flex:1; min-width:0;">
                                         <p class="order-item-name">@i.Product.Name</p>
                                         <div class="order-item-meta">@((!string.IsNullOrEmpty(i.SelectedSize)?$"Size: {i.SelectedSize} • ":""))@((!string.IsNullOrEmpty(i.SelectedColor)?$"{i.SelectedColor} • ":""))× @i.Quantity</div>

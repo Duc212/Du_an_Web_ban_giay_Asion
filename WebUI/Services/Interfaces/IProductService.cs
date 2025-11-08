@@ -9,9 +9,9 @@ namespace WebUI.Services.Interfaces
     public interface IProductService
     {
         /// <summary>
-        /// Lấy danh sách tất cả sản phẩm
+        /// Lấy danh sách tất cả sản phẩm với phân trang
         /// </summary>
-        Task<List<Product>> GetAllProductsAsync();
+        Task<List<Product>> GetAllProductsAsync(int? categoryId = null, int currentPage = 1, int recordPerPage = 12);
 
         /// <summary>
         /// Lấy sản phẩm theo ID
@@ -24,9 +24,9 @@ namespace WebUI.Services.Interfaces
         Task<List<Product>> GetRelatedProductsAsync(int productId, int count = 6);
 
         /// <summary>
-        /// Lấy sản phẩm theo danh mục
+        /// Lấy sản phẩm theo danh mục (deprecated - use GetAllProductsAsync with categoryId instead)
         /// </summary>
-        Task<List<Product>> GetProductsByCategoryAsync(int categoryId);
+        Task<List<Product>> GetProductsByCategoryAsync(int categoryId) => GetAllProductsAsync(categoryId);
 
         /// <summary>
         /// Tìm kiếm sản phẩm
