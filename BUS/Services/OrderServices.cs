@@ -41,7 +41,99 @@ namespace BUS.Services
             _addressRepository = addressRepository;
             _voucherRepository = voucherRepository;
         }
+        public async Task<CommonPagination<List<GetOrderRes>>> GetOrdersByUserId(int userId, int CurrentPage, int RecordPerPage)
+        {
+            // Phân trang trước khi join để tối ưu hiệu năng
+            var ordersPage = await _orderRepository.AsQueryable()
+                .Where(o => o.UserID == userId)
+                .OrderByDescending(o => o.OrderDate)
+                .Skip((CurrentPage - 1) * RecordPerPage)
+                .Take(RecordPerPage)
+                .ToListAsync();
 
+            var orderIds = ordersPage.Select(o => o.OrderID).ToList();
+
+            var orderDetails = await _orderDetailRepository.AsQueryable()
+                .Where(od => orderIds.Contains(od.OrderID))
+                .ToListAsync();
+
+            var variantIds = orderDetails.Select(od => od.VariantID).Distinct().ToList();
+            var variants = await _variantRepository.AsQueryable()
+                .Where(v => variantIds.Contains(v.VariantID))
+                .ToListAsync();
+
+            var productIds = variants.Select(v => v.ProductID).Distinct().ToList();
+            var products = await _variantRepository.DbContext.Set<Product>()
+                .Where(p => productIds.Contains(p.ProductID))
+                .ToListAsync();
+
+            var brandIds = products.Select(p => p.BrandId).Distinct().ToList();
+            var brands = await _variantRepository.DbContext.Set<Brand>()
+                .Where(b => brandIds.Contains(b.BrandID))
+                .ToListAsync();
+
+            var sizeIds = variants.Where(v => v.SizeID.HasValue).Select(v => v.SizeID.Value).Distinct().ToList();
+            var sizes = await _variantRepository.DbContext.Set<Size>()
+                .Where(s => sizeIds.Contains(s.SizeID))
+                .ToListAsync();
+
+            var colorIds = variants.Where(v => v.ColorID.HasValue).Select(v => v.ColorID.Value).Distinct().ToList();
+            var colors = await _variantRepository.DbContext.Set<Color>()
+                .Where(c => colorIds.Contains(c.ColorID))
+                .ToListAsync();
+
+            var user = await _userRepository.AsQueryable().FirstOrDefaultAsync(u => u.UserID == userId);
+            var address = await _addressRepository.AsQueryable().FirstOrDefaultAsync(a => a.UserID == userId);
+
+            var data = ordersPage.Select(o => new GetOrderRes
+            {
+                OrderId = o.OrderID.ToString(),
+                OrderNumber = o.OrderCode,
+                UserId = o.UserID?.ToString() ?? string.Empty,
+                ReceiverName = user?.FullName ?? string.Empty,
+                ReceiverPhone = user?.Phone ?? string.Empty,
+                ReceiverEmail = user?.Email ?? string.Empty,
+                ShippingAddress = address?.AddressDetail ?? o.Address ?? string.Empty,
+                Ward = address?.Ward ?? string.Empty,
+                District = address?.Street ?? string.Empty,
+                City = address?.City ?? string.Empty,
+                Status = o.Status.ToString(),
+                PaymentMethod = string.Empty,
+                PaymentStatus = string.Empty,
+                SubTotal =0,
+                ShippingFee =0,
+                Discount =0,
+                TotalAmount = o.TotalAmount,
+                CreatedAt = o.OrderDate,
+                Items = orderDetails.Where(od => od.OrderID == o.OrderID).Select(od => {
+                    var variant = variants.FirstOrDefault(v => v.VariantID == od.VariantID);
+                    var product = products.FirstOrDefault(p => p.ProductID == variant?.ProductID);
+                    var brand = brands.FirstOrDefault(b => b.BrandID == product?.BrandId);
+                    var size = sizes.FirstOrDefault(s => s.SizeID == variant?.SizeID);
+                    var color = colors.FirstOrDefault(c => c.ColorID == variant?.ColorID);
+                    return new GetOrderItemRes
+                    {
+                        OrderItemId = od.OrderDetailID.ToString(),
+                        ProductId = product?.ProductID ??0,
+                        ProductName = product?.Name ?? string.Empty,
+                        Brand = brand?.Name ?? string.Empty,
+                        Quantity = od.Quantity,
+                        Price = variant?.SellingPrice ??0,
+                        SelectedSize = size?.Value ?? string.Empty,
+                        SelectedColor = color?.Name ?? string.Empty,
+                        ImageUrl = product?.ImageUrl ?? string.Empty
+                    };
+                }).ToList()
+            }).ToList();
+
+            return new CommonPagination<List<GetOrderRes>>
+            {
+                Success = true,
+                Message = "Lấy danh sách đơn hàng thành công.",
+                Data = new List<List<GetOrderRes>> { data },
+                TotalRecord = await _orderRepository.AsQueryable().CountAsync(o => o.UserID == userId)
+            };
+        }
         public async Task<CommonResponse<bool>> CreateOrder(CreateOrderReq req)
         {
             try

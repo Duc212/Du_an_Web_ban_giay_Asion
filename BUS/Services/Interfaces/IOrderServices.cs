@@ -11,5 +11,6 @@ namespace BUS.Services.Interfaces
         Task<CommonPagination<GetListOrderRes>> GetListOrder(string? FullName, string? OrderCode, int? Status,DateTime? CreatedDate,int CurrentPage, int RecordPerPage);
         Task<CommonResponse<GetOrderDetailRes>> GetOrderDetail(int OrderID);
         Task<CommonResponse<bool>> ConfirmOrderAsync(ConfirmOrderReq req);
+        Task<CommonPagination<List<GetOrderRes>>> GetOrdersByUserId(int userId, int CurrentPage, int RecordPerPage);
     }
 }

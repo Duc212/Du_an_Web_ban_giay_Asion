@@ -1,25 +1,34 @@
+@using WebUI.Services.Interfaces
 <!-- Brand Slider Component -->
 <div class="brand-slider">
     <div class="brand-track">
         @foreach (var brand in Brands)
         {
-            <div class="brand-item">@brand</div>
+            <div class="brand-item">@brand.name</div>
         }
         @* Duplicate for seamless scrolling *@
         @foreach (var brand in Brands)
         {
-            <div class="brand-item">@brand</div>
+            <div class="brand-item">@brand.name</div>
         }
     </div>
 </div>
 
+@inject IProductService ProductService
+
 @code {
-    private readonly List<string> Brands = new()
+    private List<GetListBrand> Brands = new();
+
+    protected override async Task OnInitializedAsync()
     {
-        "NEW BALANCE",
-        "ASICS",
-        "CONVERSE",
-        "VANS",
-        "ADIDAS"
-    };
+        var response = await ProductService.GetListBrandAsync();
+        if (response?.Success == true && response.Data != null)
+        {
+            Brands = response.Data;
+        }
+        else
+        {
+            Brands = new List<GetListBrand>();
+        }
+    }
 }

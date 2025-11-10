@@ -38,5 +38,12 @@ namespace API.Controllers
             var result = await _productService.GetProductShop(CategoryId, Keyword, SortType, SortPrice, CurrentPage, RecordPerPage);
             return result;
         }
+        [HttpGet]
+        [Route("GetLisBrand")]
+        public async Task<CommonResponse<List<GetListBrandRes>>> GetListBrand()
+        {
+            return await _productService.GetListBrand();
+        }
+        
     }
 }

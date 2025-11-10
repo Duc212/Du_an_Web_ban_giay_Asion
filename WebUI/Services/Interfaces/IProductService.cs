@@ -64,5 +64,7 @@ namespace WebUI.Services.Interfaces
         Task<ProductApiResponse> GetProductsWithPaginationAsync(int currentPage = 1, int recordPerPage = 12);
 
         Task<CommonResponse<List<Category>>> GetCategoriesAsync();
+        Task<CommonPagination<Product>> GetProductShopAsync(int? categoryId, string? keyword, int? sortType, int? sortPrice, int currentPage, int recordPerPage);
+        Task<CommonResponse<List<GetListBrand>>> GetListBrandAsync();
     }
 }

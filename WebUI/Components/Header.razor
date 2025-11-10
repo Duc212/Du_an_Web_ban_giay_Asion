@@ -17,59 +17,59 @@
         <nav>
             <ul class="nav-menu">
                 <li><a href="/">Trang chủ</a></li>
-                <li class="dropdown-menu-item"
-                    @onclick:stopPropagation="true"
-                    @onclick="ToggleCategoryDropdown">
-                    <a href="#" @onclick:preventDefault>Danh mục <i class="fas fa-chevron-down"></i></a>
-                    
+                <li class="dropdown-menu-item">
+                    <a href="#" @onclick:preventDefault @onclick="ToggleCategoryDropdown">Danh mục <i class="fas fa-chevron-down"></i></a>
                     @if (ShowCategoryDropdown)
                     {
-                        <div class="mega-dropdown" @onclick:stopPropagation="true">
-                            <div class="mega-dropdown-content">
-                                <div class="categories-column">
-                                    <h4>Danh Mục</h4>
-                                    <ul class="category-list" style="max-height: 400px; overflow-y: auto;">
-                                        @foreach (var category in CategoryList)
-                                        {
-                                            <li @onmouseenter="async () => await LoadCategoryProducts(category)"
-                                                class="category-item @(SelectedCategoryId == category.Id ? "active" : "")"
-                                                style="cursor: pointer; padding: 8px 16px;">
-                                                <i class="@category.Icon"></i>
-                                                <span>@category.Name</span>
-                                                <span class="count">(@category.Count)</span>
-                                            </li>
-                                        }
-                                    </ul>
-                                </div>
-                                
-                                <div class="products-column">
-                                    @if (SelectedCategoryId.HasValue && CategoryProducts.Any())
-                                    {
-                                        <h4>Sản phẩm nổi bật</h4>
-                                        <div class="products-preview">
-                                            @foreach (var product in CategoryProducts.Take(6))
+                        <div class="dropdown-overlay" @onclick="CloseCategoryDropdown">
+                            <div class="mega-dropdown mega-dropdown-centered" @onclick:stopPropagation="true">
+                                <div class="mega-dropdown-content">
+                                    <div class="categories-column">
+                                        <h4>Danh Mục</h4>
+                                        <ul class="category-list" style="max-height: 400px; overflow-y: auto;">
+                                            @foreach (var category in CategoryList)
                                             {
-                                                <a href="/product/@product.Id" class="product-preview-card">
-                                                    <img src="@product.ImageUrl" alt="@product.Name" />
-                                                    <div class="product-preview-info">
-                                                        <h5>@product.Name</h5>
-                                                        <p class="brand">@product.Brand</p>
-                                                        <p class="price">@product.PriceFormatted</p>
-                                                    </div>
-                                                </a>
+                                                <button type="button"
+                                                        @onclick="async () => await LoadCategoryProducts(category)"
+                                                        tabindex="0"
+                                                        class="category-item @(SelectedCategoryId == category.Id ? "active" : "")"
+                                                        style="cursor: pointer; padding: 8px 16px; width: 100%; text-align: left; background: none; border: none;">
+                                                    <i class="@category.Icon"></i>
+                                                    <span>@category.Name</span>
+                                                    <span class="count">(@category.Count)</span>
+                                                </button>
                                             }
-                                        </div>
-                                        <a href="/shop?category=@SelectedCategoryName" class="view-all-btn">
-                                            Xem tất cả <i class="fas fa-arrow-right"></i>
-                                        </a>
-                                    }
-                                    else
-                                    {
-                                        <div class="no-products">
-                                            <i class="fas fa-box-open"></i>
-                                            <p>Di chuột qua danh mục để xem sản phẩm</p>
-                                        </div>
-                                    }
+                                        </ul>
+                                    </div>
+                                    <div class="products-column">
+                                        @if (SelectedCategoryId.HasValue && CategoryProducts.Any())
+                                        {
+                                            <h4>Sản phẩm nổi bật</h4>
+                                            <div class="products-preview">
+                                                @foreach (var product in CategoryProducts.Take(9))
+                                                {
+                                                    <a href="/product/@product.Id" class="product-preview-card">
+                                                        <img src="@product.ImageUrl" alt="@product.Name" />
+                                                        <div class="product-preview-info">
+                                                            <h5>@product.Name</h5>
+                                                            <p class="brand">@product.Brand</p>
+                                                            <p class="price">@product.PriceFormatted</p>
+                                                        </div>
+                                                    </a>
+                                                }
+                                            </div>
+                                            <a href="/shop?category=@SelectedCategoryId" class="view-all-btn">
+                                                Xem tất cả <i class="fas fa-arrow-right"></i>
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <div class="no-products">
+                                                <i class="fas fa-box-open"></i>
+                                                <p>Di chuột qua danh mục để xem sản phẩm</p>
+                                            </div>
+                                        }
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -94,10 +94,6 @@
     </div>
 </header>
 
-@if (ShowCategoryDropdown)
-{
-    <div class="category-dropdown-overlay" @onclick="() => ShowCategoryDropdown = false"></div>
-}
 
 <!-- Cart Summary Dropdown -->
 @if (ShowCartSummary)
@@ -232,19 +228,17 @@
             var response = await ProductService.GetCategoriesAsync();
             if (response?.Success == true && response.Data != null)
             {
-                // Map Categories từ API sang CategoryItem với icons tương ứng
                 CategoryList = response.Data.Select(c => new CategoryItem 
                 {
-                    Id = c.Id,
+                    Id = c.CategoryID,
                     Name = c.Name,
                     Count = c.Count, 
                     Icon = c.Icon ?? "fas fa-tags" 
                 }).ToList();
             }
         }
-        catch (Exception ex)
+        catch (Exception )
         {
-            Console.WriteLine($"Error loading categories: {ex.Message}");
             CategoryList = new(); // Initialize empty list if API fails
         }
     }
@@ -383,53 +377,34 @@
         };
     }
 
+    // Dropdown now uses hover and overlay click to close
     private void ToggleCategoryDropdown()
     {
         ShowCategoryDropdown = !ShowCategoryDropdown;
     }
 
-    private async Task OnCategoryHover(CategoryItem category)
+    private void CloseCategoryDropdown()
     {
-        try 
-        {
-            Console.WriteLine($"[Header] Category clicked: {category.Name}");
-            
-            SelectedCategoryId = category.Id;
-            SelectedCategoryName = category.Name;
-            StateHasChanged(); // Update UI immediately
-            
-            // Get products from API
-            var products = await ProductService.GetAllProductsAsync(
-                categoryId: category.Id,
-                currentPage: 1,
-                recordPerPage: 6
-            );
-            
-            if (products != null && products.Any())
-            {
-                CategoryProducts = products;
-                Console.WriteLine($"[Header] Loaded {products.Count} products");
-                Console.WriteLine($"[Header] First product: {products.First().Name}");
-            }
-            else
-            {
-                CategoryProducts = new List<Product>();
-                Console.WriteLine("[Header] No products found");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[Header] Error: {ex.Message}");
-            CategoryProducts = new List<Product>();
-        }
-        finally
-        {
-            StateHasChanged();
-        }
+        ShowCategoryDropdown = false;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        Navigation.LocationChanged -= HandleLocationChanged;
+        Navigation.LocationChanged += HandleLocationChanged;
+    }
+
+    private void HandleLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        ShowCategoryDropdown = false;
+        StateHasChanged();
     }
 
     private async Task LoadCategoryProducts(CategoryItem category)
     {
+         Console.WriteLine($"[Header] LoadCategoryProducts called");
+         Console.WriteLine($"{category}");
+
         if (category == null) return;
         
         try
@@ -448,7 +423,7 @@
             var products = await ProductService.GetAllProductsAsync(
                 categoryId: category.Id,
                 currentPage: 1,
-                recordPerPage: 6
+                recordPerPage: 9
             );
 
             Console.WriteLine($"[Header] API response received. Products count: {products?.Count ?? 0}");
@@ -479,47 +454,6 @@
         }
     }
 
-    private async Task SelectCategory(CategoryItem category)
-    {
-        try
-        {
-            Console.WriteLine($"[Header] Selecting category: {category.Name} (ID: {category.Id})");
-            
-            SelectedCategoryId = category.Id;
-            SelectedCategoryName = category.Name;
-            
-            // Lấy sản phẩm theo danh mục từ API với phân trang
-            Console.WriteLine($"[Header] Fetching products for category {category.Id}...");
-            
-            var products = await ProductService.GetAllProductsAsync(
-                categoryId: category.Id,
-                currentPage: 1,
-                recordPerPage: 6  // Chỉ lấy 6 sản phẩm cho preview
-            );
-            
-            Console.WriteLine($"[Header] Received {products?.Count ?? 0} products from API");
-            
-            if (products != null && products.Any())
-            {
-                CategoryProducts = products;
-                Console.WriteLine($"[Header] First product: {products.First().Name}");
-            }
-            else
-            {
-                CategoryProducts = new List<Product>();
-                Console.WriteLine("[Header] No products found for category");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[Header] Error loading products: {ex.Message}");
-            Console.WriteLine($"[Header] Stack trace: {ex.StackTrace}");
-            CategoryProducts = new List<Product>();
-        }
-        
-        await InvokeAsync(StateHasChanged);
-    }
-
     public void Dispose()
     {
         CartService.OnCartChanged -= UpdateCart;
@@ -533,4 +467,6 @@
         public string Icon { get; set; } = "";
         public int Count { get; set; }
     }
+
+    
 }

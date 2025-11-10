@@ -22,6 +22,26 @@
     <!-- Shop Content -->
     <section class="shop-content">
         <div class="shop-container">
+            <!-- Category Filter -->
+            <div class="filter-bar">
+                <div class="filter-item category-filter">
+                    <label class="category-label" for="category-select">
+                        <i class="fas fa-list"></i>
+                        Danh mục:
+                    </label>
+                    <select id="category-select" class="category-select" @onchange="OnCategoryChanged"
+                        value="@CategoryFilter">
+                        <option value="-1">Tất cả</option>
+                        @if (CategoryList != null)
+                        {
+                            foreach (var cat in CategoryList)
+                            {
+                                <option value="@cat.Id" selected="@(CategoryFilter == cat.Id.ToString())">@cat.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
             @if (IsLoading)
             {
                 <div class="shop-loading">
@@ -31,14 +51,8 @@
             }
             else
             {
-                <ProductsGrid Title="" 
-                              Products="AllProducts"
-                              OnProductSelected="OnProductClick"
-                              OnQuickView="OnQuickView"
-                              EnablePagination="true"
-                              PageSize="24"
-                              ShowProductCount="false"
-                              ShowFilters="true" />
+                <ProductsGrid Title="" Products="AllProducts" OnProductSelected="OnProductClick" OnQuickView="OnQuickView"
+                    EnablePagination="true" PageSize="24" ShowProductCount="false" ShowFilters="true" />
             }
         </div>
     </section>
@@ -47,10 +61,8 @@
 <!-- Size/Color Selection Modal -->
 @if (ShowModal && SelectedProduct != null)
 {
-    <SizeColorSelectionModal Product="SelectedProduct"
-                             IsVisible="ShowModal"
-                             OnClose="CloseModal"
-                             OnAddToCart="HandleAddToCart" />
+    <SizeColorSelectionModal Product="SelectedProduct" IsVisible="ShowModal" OnClose="CloseModal"
+        OnAddToCart="HandleAddToCart" />
 }
 
 <style>
@@ -74,9 +86,9 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: 
-            radial-gradient(circle at 20% 50%, rgba(255,255,255,0.05) 0%, transparent 50%),
-            radial-gradient(circle at 80% 80%, rgba(255,255,255,0.05) 0%, transparent 50%);
+        background:
+            radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
         pointer-events: none;
     }
 
@@ -98,7 +110,7 @@
 
     .shop-subtitle {
         font-size: 18px;
-        color: rgba(255,255,255,0.9);
+        color: rgba(255, 255, 255, 0.9);
         margin: 0;
         animation: fadeInUp 0.6s ease 0.1s backwards;
     }
@@ -118,7 +130,7 @@
         padding: 120px 40px;
         background: white;
         border-radius: 16px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
     }
 
     .shop-loading .spinner-large {
@@ -144,6 +156,7 @@
             opacity: 0;
             transform: translateY(20px);
         }
+
         to {
             opacity: 1;
             transform: translateY(0);
@@ -151,7 +164,9 @@
     }
 
     @@keyframes spin {
-        to { transform: rotate(360deg); }
+        to {
+            transform: rotate(360deg);
+        }
     }
 
     @@media (max-width: 768px) {
@@ -208,6 +223,43 @@
 </style>
 
 @code {
+    // Category filter data
+    private List<CategoryItem> CategoryList { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCategoriesAsync();
+        await LoadProducts();
+    }
+
+    private async Task LoadCategoriesAsync()
+    {
+        try
+        {
+            var response = await ProductService.GetCategoriesAsync();
+            if (response?.Success == true && response.Data != null)
+            {
+                CategoryList = response.Data.Select(c => new CategoryItem
+                {
+                    Id = c.CategoryID,
+                    Name = c.Name,
+                    Count = c.Count,
+                    Icon = c.Icon ?? "fas fa-tags"
+                }).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Shop] Error loading categories: {ex.Message}");
+            CategoryList = new();
+        }
+    }
+
+    private async Task OnCategoryChanged(ChangeEventArgs e)
+    {
+        CategoryFilter = e.Value?.ToString();
+        await LoadProducts();
+    }
     [Parameter]
     [SupplyParameterFromQuery(Name = "category")]
     public string? CategoryFilter { get; set; }
@@ -217,10 +269,6 @@
     private bool ShowModal { get; set; } = false;
     private Product? SelectedProduct { get; set; } = null;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadProducts();
-    }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -235,30 +283,29 @@
             IsLoading = true;
             StateHasChanged();
 
-            // Load products from API - Load more items for shop page
-            int totalPages = 5; // Load first 5 pages = 100 products
-            var allLoadedProducts = new List<Product>();
+            // Call new API: GetProductShop
+            int categoryId = -1;
+            if (!string.IsNullOrWhiteSpace(CategoryFilter) && int.TryParse(CategoryFilter, out var catId))
+                categoryId = catId;
+            string keyword = "";
+            int sortType = -1;
+            int sortPrice = -1;
+            int currentPage = 1;
+            int recordPerPage = 11;
 
-            for (int page = 1; page <= totalPages; page++)
+            // Ghép filter chuẩn: categoryId, sortType, sortPrice đều -1 nếu chưa chọn
+            var apiResponse = await ProductService.GetProductShopAsync(categoryId, keyword, sortType, sortPrice, currentPage,
+            recordPerPage);
+            if (apiResponse?.Success == true && apiResponse.Data != null)
             {
-                var apiResponse = await ProductService.GetProductsWithPaginationAsync(page, 20);
-                if (apiResponse?.Data != null && apiResponse.Data.Any())
-                {
-                    allLoadedProducts.AddRange(apiResponse.Data);
-                }
+                AllProducts = apiResponse.Data;
+            }
+            else
+            {
+                AllProducts = new List<Product>();
             }
 
-            AllProducts = allLoadedProducts;
-
-            // Filter by category if provided
-            if (!string.IsNullOrWhiteSpace(CategoryFilter))
-            {
-                AllProducts = AllProducts
-                    .Where(p => p.Brand.Equals(CategoryFilter, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-            }
-
-            Console.WriteLine($"[Shop] Loaded {AllProducts.Count} products");
+            Console.WriteLine($"[Shop] Loaded {AllProducts.Count} products from GetProductShop");
         }
         catch (Exception ex)
         {
@@ -295,7 +342,7 @@
     private async Task HandleAddToCart(string message)
     {
         Console.WriteLine($"[Shop] Add to cart result: {message}");
-        
+
         // Show toast notification
         if (message.Contains("thành công"))
         {
@@ -305,7 +352,7 @@
         {
             await ToastService.ShowError(message);
         }
-        
+
         CloseModal();
     }
 }

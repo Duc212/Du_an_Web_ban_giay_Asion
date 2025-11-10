@@ -1,3 +1,72 @@
+.terms-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    width: auto;
+    flex-wrap: wrap;
+}
+.checkbox-input {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--color-blue);
+    margin-right: 8px;
+}
+.checkbox-text {
+    display: inline-block;
+    font-size: 14px;
+    color: var(--color-black);
+    font-weight: 500;
+    line-height: 1.5;
+    word-break: normal;
+    white-space: normal;
+    max-width: 90%;
+}
+/* Dropdown sản phẩm nổi bật: 2 sản phẩm 1 dòng */
+.products-preview {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+.product-preview-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    padding: 8px 12px;
+    min-width: 0;
+}
+.product-preview-card img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-right: 12px;
+}
+.product-preview-info {
+    flex: 1;
+    min-width: 0;
+}
+.product-preview-info h5 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 2px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.product-preview-info .brand {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 2px;
+}
+.product-preview-info .price {
+    font-size: 14px;
+    color: #e53935;
+    font-weight: 700;
+}
 /* Asion Styles */
 * {
     margin: 0;

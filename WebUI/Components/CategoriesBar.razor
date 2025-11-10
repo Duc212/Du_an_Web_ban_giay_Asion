@@ -378,7 +378,7 @@
                 // Map Categories từ API sang CategoryModel
                 Categories = response.Data.Select(c => new CategoryModel
                 {
-                    Id = c.Id,
+                    Id = c.CategoryID,
                     Name = c.Name,
                     Count = c.Count, 
                     Icon = c.Icon ?? "fas fa-tags" // Sử dụng icon từ API hoặc fallback icon

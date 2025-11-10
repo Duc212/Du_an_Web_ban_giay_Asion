@@ -92,7 +92,37 @@ namespace WebUI.Services
                 return new Product();
             }
         }
-
+   public async Task<CommonPagination<Product>> GetProductShopAsync(int? categoryId, string? keyword, int? sortType, int? sortPrice, int currentPage, int recordPerPage)
+        {
+            try
+            {
+                var apiBaseUrl = await GetApiBaseUrl();
+                var url = $"{apiBaseUrl}{ApiEndpoints.ProductShop}?" +
+                          $"CategoryId={(categoryId.HasValue ? categoryId.Value : -1)}" +
+                          $"&Keyword={keyword ?? ""}" +
+                          $"&SortType={(sortType.HasValue ? sortType.Value : 1)}" +
+                          $"&SortPrice={(sortPrice.HasValue ? sortPrice.Value : 1)}" +
+                          $"&CurrentPage={currentPage}" +
+                          $"&RecordPerPage={recordPerPage}";
+                Console.WriteLine($"[ProductService] Calling API: {url}");
+                var response = await _httpClient.GetAsync(url);
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonSerializer.Deserialize<CommonPagination<Product>>(json, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                    return apiResponse ?? new CommonPagination<Product>();
+                }
+                return new CommonPagination<Product> { Success = false, Message = $"API returned status code: {response.StatusCode}" };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error calling GetProductShop API: {ex.Message}");
+                return new CommonPagination<Product> { Success = false, Message = "Error occurred while fetching products" };
+            }
+        }
         public async Task<List<Product>> GetRelatedProductsAsync(int productId, int count = 6)
         {
             try
@@ -305,6 +335,40 @@ namespace WebUI.Services
             {
                 Console.WriteLine($"Error getting categories: {ex.Message}");
                 return new CommonResponse<List<Category>> 
+                { 
+                    Success = false, 
+                    Message = "Error occurred while fetching categories" 
+                };
+            }
+        }
+
+        public async Task<CommonResponse<List<GetListBrand>>> GetListBrandAsync()
+        {
+             try
+            {
+                var apiBaseUrl = await GetApiBaseUrl();
+                var response = await _httpClient.GetAsync($"{apiBaseUrl}{ApiEndpoints.GetLisBrand}");
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonSerializer.Deserialize<CommonResponse<List<GetListBrand>>>(json, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                    return apiResponse ?? new CommonResponse<List<GetListBrand>>();
+                }
+                
+                return new CommonResponse<List<GetListBrand>> 
+                { 
+                    Success = false, 
+                    Message = $"API returned status code: {response.StatusCode}"
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting categories: {ex.Message}");
+                return new CommonResponse<List<GetListBrand>> 
                 { 
                     Success = false, 
                     Message = "Error occurred while fetching categories" 

@@ -224,6 +224,23 @@ namespace BUS.Services
             };
         }
 
+        public async Task<CommonResponse<List<GetListBrandRes>>> GetListBrand()
+        {
+            var brands = await _brandRepository.AsQueryable().ToListAsync();
+            var result = brands.Select(b => new GetListBrandRes
+            {
+                BrandID = b.BrandID,
+                Name = b.Name
+            }).ToList();
+
+            return new CommonResponse<List<GetListBrandRes>>
+            {
+                Success = true,
+                Message = "Lấy danh sách thương hiệu thành công",
+                Data = result
+            };
+        }
+
         #endregion
 
         #region Private Helpers

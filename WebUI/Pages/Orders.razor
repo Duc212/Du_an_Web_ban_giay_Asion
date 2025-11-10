@@ -1,0 +1,518 @@
+@page "/orders"
+@using System.Linq
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold mb-3">
+                <i class="bi bi-box-seam me-2"></i>Quản lý đơn hàng
+            </h2>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <ul class="nav nav-tabs mb-4" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link @(activeTab == "all" ? "active" : "")" 
+                    @onclick='() => SetActiveTab("all")'>
+                Tất cả <span class="badge bg-secondary ms-1">@allOrders.Count</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link @(activeTab == "pending" ? "active" : "")" 
+                    @onclick='() => SetActiveTab("pending")'>
+                Chờ xử lý <span class="badge bg-warning text-dark ms-1">@pendingOrders.Count</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link @(activeTab == "shipping" ? "active" : "")" 
+                    @onclick='() => SetActiveTab("shipping")'>
+                Đang giao <span class="badge bg-info ms-1">@shippingOrders.Count</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link @(activeTab == "delivered" ? "active" : "")" 
+                    @onclick='() => SetActiveTab("delivered")'>
+                Đã giao <span class="badge bg-success ms-1">@deliveredOrders.Count</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link @(activeTab == "cancelled" ? "active" : "")" 
+                    @onclick='() => SetActiveTab("cancelled")'>
+                Đã hủy <span class="badge bg-danger ms-1">@cancelledOrders.Count</span>
+            </button>
+        </li>
+    </ul>
+
+    <!-- Search and Filter -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" placeholder="Tìm kiếm theo mã đơn, tên khách hàng..." 
+                       @bind="searchText" @bind:event="oninput">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" @bind="sortBy">
+                <option value="newest">Mới nhất</option>
+                <option value="oldest">Cũ nhất</option>
+                <option value="highest">Giá cao nhất</option>
+                <option value="lowest">Giá thấp nhất</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Orders List -->
+    <div class="row">
+        @if (FilteredOrders.Any())
+        {
+            @foreach (var order in FilteredOrders)
+            {
+                <div class="col-12 mb-3">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white border-bottom">
+                            <div class="row align-items-center">
+                                <div class="col-md-4">
+                                    <strong>Mã đơn:</strong> <span class="text-primary">@order.OrderNumber</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar3 me-1"></i>@order.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                    </small>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    @GetStatusBadge(order.Status)
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <!-- Customer Info -->
+                                    <div class="mb-3">
+                                        <h6 class="mb-2"><i class="bi bi-person me-2"></i>Thông tin khách hàng</h6>
+                                        <p class="mb-1"><strong>Tên:</strong> @order.ReceiverName</p>
+                                        <p class="mb-1"><strong>SĐT:</strong> @order.ReceiverPhone</p>
+                                        <p class="mb-1"><strong>Email:</strong> @order.ReceiverEmail</p>
+                                        <p class="mb-1"><strong>Địa chỉ:</strong> @order.FullAddress</p>
+                                    </div>
+
+                                    <!-- Order Items -->
+                                    <div class="mb-3">
+                                        <h6 class="mb-2"><i class="bi bi-bag me-2"></i>Sản phẩm</h6>
+                                        @foreach (var item in order.Items)
+                                        {
+                                            <div class="d-flex align-items-center mb-2 p-2 border rounded">
+                                                <img src="@item.ImageUrl" alt="@item.ProductName" 
+                                                     class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                                <div class="flex-grow-1">
+                                                    <p class="mb-0 fw-semibold">@item.ProductName</p>
+                                                    <small class="text-muted">
+                                                        @if (!string.IsNullOrEmpty(item.SelectedSize))
+                                                        {
+                                                            <span>Size: @item.SelectedSize</span>
+                                                        }
+                                                        @if (!string.IsNullOrEmpty(item.SelectedColor))
+                                                        {
+                                                            <span class="ms-2">Màu: @item.SelectedColor</span>
+                                                        }
+                                                    </small>
+                                                    <p class="mb-0 mt-1">
+                                                        <span class="text-muted">x@item.Quantity</span>
+                                                        <span class="ms-2 fw-semibold">@item.Price.ToString("N0") ₫</span>
+                                                    </p>
+                                                </div>
+                                                <div class="text-end">
+                                                    <strong>@item.TotalPrice.ToString("N0") ₫</strong>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+
+                                    @if (!string.IsNullOrEmpty(order.Note))
+                                    {
+                                        <div class="alert alert-info mb-0">
+                                            <i class="bi bi-sticky me-2"></i><strong>Ghi chú:</strong> @order.Note
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="col-md-4">
+                                    <!-- Order Summary -->
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h6 class="mb-3">Tóm tắt đơn hàng</h6>
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span>Tạm tính:</span>
+                                                <span>@order.SubTotal.ToString("N0") ₫</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span>Phí vận chuyển:</span>
+                                                <span>@order.ShippingFee.ToString("N0") ₫</span>
+                                            </div>
+                                            @if (order.Discount > 0)
+                                            {
+                                                <div class="d-flex justify-content-between mb-2 text-success">
+                                                    <span>Giảm giá:</span>
+                                                    <span>-@order.Discount.ToString("N0") ₫</span>
+                                                </div>
+                                            }
+                                            <hr>
+                                            <div class="d-flex justify-content-between fw-bold fs-5">
+                                                <span>Tổng cộng:</span>
+                                                <span class="text-danger">@order.TotalAmount.ToString("N0") ₫</span>
+                                            </div>
+                                            <div class="mt-3">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-credit-card me-1"></i>@GetPaymentMethodText(order.PaymentMethod)
+                                                </small>
+                                                <br>
+                                                <small class="text-muted">
+                                                    Trạng thái: @GetPaymentStatusBadge(order.PaymentStatus)
+                                                </small>
+                                            </div>
+
+                                            <!-- Actions -->
+                                            <div class="mt-3 d-grid gap-2">
+                                                <button class="btn btn-outline-primary btn-sm" 
+                                                        @onclick="() => ViewOrderDetail(order.OrderId)">
+                                                    <i class="bi bi-eye me-1"></i>Chi tiết
+                                                </button>
+                                                @if (order.Status == "pending")
+                                                {
+                                                    <button class="btn btn-success btn-sm" 
+                                                            @onclick="() => ConfirmOrder(order.OrderId)">
+                                                        <i class="bi bi-check-circle me-1"></i>Xác nhận
+                                                    </button>
+                                                    <button class="btn btn-danger btn-sm" 
+                                                            @onclick="() => CancelOrder(order.OrderId)">
+                                                        <i class="bi bi-x-circle me-1"></i>Hủy đơn
+                                                    </button>
+                                                }
+                                                @if (order.Status == "shipping")
+                                                {
+                                                    <button class="btn btn-success btn-sm" 
+                                                            @onclick="() => CompleteOrder(order.OrderId)">
+                                                        <i class="bi bi-check-circle me-1"></i>Đã giao hàng
+                                                    </button>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="alert alert-info text-center">
+                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                    <p class="mb-0">Không có đơn hàng nào</p>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private string activeTab = "all";
+    private string searchText = "";
+    private string sortBy = "newest";
+
+    private List<Order> allOrders = new();
+    private List<Order> pendingOrders => allOrders.Where(o => o.Status == "pending").ToList();
+    private List<Order> shippingOrders => allOrders.Where(o => o.Status == "shipping").ToList();
+    private List<Order> deliveredOrders => allOrders.Where(o => o.Status == "delivered").ToList();
+    private List<Order> cancelledOrders => allOrders.Where(o => o.Status == "cancelled").ToList();
+
+    private List<Order> FilteredOrders
+    {
+        get
+        {
+            var orders = activeTab switch
+            {
+                "pending" => pendingOrders,
+                "shipping" => shippingOrders,
+                "delivered" => deliveredOrders,
+                "cancelled" => cancelledOrders,
+                _ => allOrders
+            };
+
+            // Search filter
+            if (!string.IsNullOrWhiteSpace(searchText))
+            {
+                orders = orders.Where(o => 
+                    o.OrderNumber.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                    o.ReceiverName.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                    o.ReceiverPhone.Contains(searchText, StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+            }
+
+            // Sort
+            orders = sortBy switch
+            {
+                "oldest" => orders.OrderBy(o => o.CreatedAt).ToList(),
+                "highest" => orders.OrderByDescending(o => o.TotalAmount).ToList(),
+                "lowest" => orders.OrderBy(o => o.TotalAmount).ToList(),
+                _ => orders.OrderByDescending(o => o.CreatedAt).ToList()
+            };
+
+            return orders;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        // Load sample data
+        LoadSampleOrders();
+    }
+
+    private void SetActiveTab(string tab)
+    {
+        activeTab = tab;
+    }
+
+    private MarkupString GetStatusBadge(string status)
+    {
+        return status switch
+        {
+            "pending" => new MarkupString("<span class='badge bg-warning text-dark'><i class='bi bi-clock me-1'></i>Chờ xử lý</span>"),
+            "confirmed" => new MarkupString("<span class='badge bg-primary'><i class='bi bi-check-circle me-1'></i>Đã xác nhận</span>"),
+            "shipping" => new MarkupString("<span class='badge bg-info'><i class='bi bi-truck me-1'></i>Đang giao</span>"),
+            "delivered" => new MarkupString("<span class='badge bg-success'><i class='bi bi-box-seam me-1'></i>Đã giao</span>"),
+            "cancelled" => new MarkupString("<span class='badge bg-danger'><i class='bi bi-x-circle me-1'></i>Đã hủy</span>"),
+            _ => new MarkupString("<span class='badge bg-secondary'>Không xác định</span>")
+        };
+    }
+
+    private MarkupString GetPaymentStatusBadge(string status)
+    {
+        return status switch
+        {
+            "paid" => new MarkupString("<span class='badge bg-success'>Đã thanh toán</span>"),
+            "pending" => new MarkupString("<span class='badge bg-warning text-dark'>Chờ thanh toán</span>"),
+            "failed" => new MarkupString("<span class='badge bg-danger'>Thất bại</span>"),
+            _ => new MarkupString("<span class='badge bg-secondary'>Chưa thanh toán</span>")
+        };
+    }
+
+    private string GetPaymentMethodText(string method)
+    {
+        return method switch
+        {
+            "cod" => "Thanh toán khi nhận hàng",
+            "card" => "Thanh toán thẻ",
+            "wallet" => "Ví điện tử",
+            "transfer" => "Chuyển khoản",
+            _ => "Không xác định"
+        };
+    }
+
+    private void ViewOrderDetail(string orderId)
+    {
+        // Navigate to order detail page
+        Console.WriteLine($"View detail: {orderId}");
+    }
+
+    private void ConfirmOrder(string orderId)
+    {
+        var order = allOrders.FirstOrDefault(o => o.OrderId == orderId);
+        if (order != null)
+        {
+            order.Status = "confirmed";
+            order.UpdatedAt = DateTime.Now;
+        }
+    }
+
+    private void CancelOrder(string orderId)
+    {
+        var order = allOrders.FirstOrDefault(o => o.OrderId == orderId);
+        if (order != null)
+        {
+            order.Status = "cancelled";
+            order.UpdatedAt = DateTime.Now;
+        }
+    }
+
+    private void CompleteOrder(string orderId)
+    {
+        var order = allOrders.FirstOrDefault(o => o.OrderId == orderId);
+        if (order != null)
+        {
+            order.Status = "delivered";
+            order.UpdatedAt = DateTime.Now;
+        }
+    }
+
+    private void LoadSampleOrders()
+    {
+        allOrders = new List<Order>
+        {
+            new Order
+            {
+                OrderId = "1",
+                OrderNumber = "ORD-2024-001",
+                UserId = "user1",
+                ReceiverName = "Nguyễn Văn A",
+                ReceiverPhone = "0901234567",
+                ReceiverEmail = "nguyenvana@email.com",
+                ShippingAddress = "123 Đường ABC",
+                Ward = "Phường 1",
+                District = "Quận 1",
+                City = "TP. Hồ Chí Minh",
+                Status = "pending",
+                PaymentMethod = "cod",
+                PaymentStatus = "pending",
+                SubTotal = 1500000,
+                ShippingFee = 30000,
+                Discount = 0,
+                TotalAmount = 1530000,
+                CreatedAt = DateTime.Now.AddHours(-2),
+                Items = new List<OrderItem>
+                {
+                    new OrderItem
+                    {
+                        OrderItemId = "1",
+                        ProductId = 1,
+                        ProductName = "Áo thun nam basic",
+                        Brand = "Brand A",
+                        Quantity = 2,
+                        Price = 250000,
+                        SelectedSize = "L",
+                        SelectedColor = "Đen",
+                        ImageUrl = "https://placehold.co/200x200/4F46E5/FFF?text=Shirt"
+                    },
+                    new OrderItem
+                    {
+                        OrderItemId = "2",
+                        ProductId = 2,
+                        ProductName = "Quần jean nam slim fit",
+                        Brand = "Brand B",
+                        Quantity = 1,
+                        Price = 1000000,
+                        SelectedSize = "32",
+                        SelectedColor = "Xanh đậm",
+                        ImageUrl = "https://placehold.co/200x200/10B981/FFF?text=Jean"
+                    }
+                }
+            },
+            new Order
+            {
+                OrderId = "2",
+                OrderNumber = "ORD-2024-002",
+                UserId = "user2",
+                ReceiverName = "Trần Thị B",
+                ReceiverPhone = "0912345678",
+                ReceiverEmail = "tranthib@email.com",
+                ShippingAddress = "456 Đường XYZ",
+                Ward = "Phường 2",
+                District = "Quận 3",
+                City = "TP. Hồ Chí Minh",
+                Status = "shipping",
+                PaymentMethod = "card",
+                PaymentStatus = "paid",
+                SubTotal = 2500000,
+                ShippingFee = 50000,
+                Discount = 250000,
+                TotalAmount = 2300000,
+                CreatedAt = DateTime.Now.AddDays(-1),
+                Note = "Giao hàng buổi chiều sau 2h",
+                Items = new List<OrderItem>
+                {
+                    new OrderItem
+                    {
+                        OrderItemId = "3",
+                        ProductId = 3,
+                        ProductName = "Váy maxi nữ",
+                        Brand = "Brand C",
+                        Quantity = 1,
+                        Price = 2500000,
+                        SelectedSize = "M",
+                        SelectedColor = "Đỏ",
+                        ImageUrl = "https://placehold.co/200x200/EF4444/FFF?text=Dress"
+                    }
+                }
+            },
+            new Order
+            {
+                OrderId = "3",
+                OrderNumber = "ORD-2024-003",
+                UserId = "user3",
+                ReceiverName = "Lê Văn C",
+                ReceiverPhone = "0923456789",
+                ReceiverEmail = "levanc@email.com",
+                ShippingAddress = "789 Đường DEF",
+                Ward = "Phường 3",
+                District = "Quận 5",
+                City = "TP. Hồ Chí Minh",
+                Status = "delivered",
+                PaymentMethod = "wallet",
+                PaymentStatus = "paid",
+                SubTotal = 800000,
+                ShippingFee = 25000,
+                Discount = 80000,
+                TotalAmount = 745000,
+                CreatedAt = DateTime.Now.AddDays(-3),
+                Items = new List<OrderItem>
+                {
+                    new OrderItem
+                    {
+                        OrderItemId = "4",
+                        ProductId = 4,
+                        ProductName = "Giày sneaker nam",
+                        Brand = "Brand D",
+                        Quantity = 1,
+                        Price = 800000,
+                        SelectedSize = "42",
+                        SelectedColor = "Trắng",
+                        ImageUrl = "https://placehold.co/200x200/F59E0B/FFF?text=Shoes"
+                    }
+                }
+            },
+            new Order
+            {
+                OrderId = "4",
+                OrderNumber = "ORD-2024-004",
+                UserId = "user4",
+                ReceiverName = "Phạm Thị D",
+                ReceiverPhone = "0934567890",
+                ReceiverEmail = "phamthid@email.com",
+                ShippingAddress = "321 Đường GHI",
+                Ward = "Phường 4",
+                District = "Quận 7",
+                City = "TP. Hồ Chí Minh",
+                Status = "cancelled",
+                PaymentMethod = "cod",
+                PaymentStatus = "pending",
+                SubTotal = 1200000,
+                ShippingFee = 30000,
+                Discount = 0,
+                TotalAmount = 1230000,
+                CreatedAt = DateTime.Now.AddDays(-5),
+                Note = "Khách hàng hủy đơn do đổi ý",
+                Items = new List<OrderItem>
+                {
+                    new OrderItem
+                    {
+                        OrderItemId = "5",
+                        ProductId = 5,
+                        ProductName = "Túi xách nữ",
+                        Brand = "Brand E",
+                        Quantity = 1,
+                        Price = 1200000,
+                        SelectedColor = "Nâu",
+                        ImageUrl = "https://placehold.co/200x200/8B5CF6/FFF?text=Bag"
+                    }
+                }
+            }
+        };
+    }
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">

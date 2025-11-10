@@ -10,5 +10,6 @@ namespace BUS.Services.Interfaces
         Task<CommonResponse<List<GetListCategoryRes>>> GetListCategory();
 
         Task<CommonPagination<GetProductRes>> GetProductShop(int? categoryId,string? Keyword,int? SortType,int? SortPrice,int CurrentPage, int RecordPerPage);
+        Task<CommonResponse<List<GetListBrandRes>>> GetListBrand();
     }
 }

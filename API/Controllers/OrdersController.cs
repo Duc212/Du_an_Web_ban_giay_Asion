@@ -45,5 +45,12 @@ namespace API.Controllers
         {
             return await _orderServices.ConfirmOrderAsync(req);
         }
+        [HttpGet]
+        [Route("GetListOrderByUser")]
+        public async Task<CommonPagination<List<GetOrderRes>>> GetListOrder(int CurrentPage, int RecordPerPage)
+        {
+            var userId = HttpContextHelper.GetUserId();
+            return await _orderServices.GetOrdersByUserId(userId, CurrentPage, RecordPerPage);
+        }
     }
 }
