@@ -417,28 +417,33 @@
 .size-btn {
     min-width: 48px;
     height: 48px;
-    border: 2px solid var(--border-color);
-    background: var(--background-primary);
-    border-radius: var(--border-radius);
+    border: 2px solid #dee2e6;
+    background: #ffffff;
+    border-radius: 8px;
     cursor: pointer;
-    transition: var(--transition);
+    transition: all 0.3s ease;
     font-weight: 500;
     display: flex;
     align-items: center;
     justify-content: center;
+    color: #495057;
 }
 
 .size-btn:hover {
-    border-color: var(--primary-color);
+    border-color: #2563eb;
     background: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(37, 99, 235, 0.15);
 }
 
 .size-btn.selected {
-    background-color: white;
-    color: var(--primary-color);
-    border-color: var(--primary-color);
-    border-width: 2px;
-    font-weight: 600;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    color: #ffffff !important;
+    border-color: #2563eb !important;
+    border-width: 2px !important;
+    font-weight: 700 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3) !important;
 }
 
 .size-guide-link {
@@ -459,26 +464,29 @@
 }
 
 .color-btn {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border: 3px solid transparent;
     border-radius: 50%;
     cursor: pointer;
-    transition: var(--transition);
+    transition: all 0.3s ease;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .color-btn.selected {
-    border-color: var(--primary-color);
-    border-width: 4px;
-    transform: scale(1.1);
+    border-color: #2563eb !important;
+    border-width: 4px !important;
+    transform: scale(1.15) !important;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4) !important;
 }
 
 .color-btn:hover {
     transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* All Colors Button */

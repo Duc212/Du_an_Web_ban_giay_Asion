@@ -22,6 +22,7 @@ namespace WebUI.Services
         private readonly HttpClient _httpClient;
         private readonly ConfigurationService _configService;
         private readonly IAuthService? _authService;
+        private readonly IJSRuntime _jsRuntime;
 
         // Selected items for checkout (API cart item IDs)
         public HashSet<int> SelectedApiCartItemIds { get; set; } = new();
@@ -34,11 +35,35 @@ namespace WebUI.Services
 
         public event Action? OnCartChanged;
 
-        public CartService(HttpClient httpClient, ConfigurationService configService, IAuthService authService)
+        public CartService(HttpClient httpClient, ConfigurationService configService, IAuthService authService, IJSRuntime jsRuntime)
         {
             _httpClient = httpClient;
             _configService = configService;
             _authService = authService;
+            _jsRuntime = jsRuntime;
+
+            // Subscribe to auth state changes to migrate guest cart
+            _authService.AuthStateChanged += async (s, isAuth) =>
+            {
+                if (isAuth)
+                {
+                    try
+                    {
+                        await MigrateGuestCartToUserAsync();
+                        await RefreshApiCartToLocalAsync();
+                        OnCartChanged?.Invoke();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[CartService] Migrate error: {ex.Message}");
+                    }
+                }
+                else
+                {
+                    // When logging out keep current local items (already in _items)
+                    OnCartChanged?.Invoke();
+                }
+            };
         }
 
         public List<CartItem> GetItems() => _items.ToList();
@@ -195,7 +220,7 @@ namespace WebUI.Services
         /// <summary>
         /// Call API để thêm vào giỏ hàng (cho user đã login)
         /// </summary>
-        private async Task<AddToCartResponse> AddToCartViaApiAsync(Product product, int quantity, string? size, string? color)
+        private async Task<AddToCartResponse> AddToCartViaApiAsync(Product product, int quantity, string? size, string? color, bool updateLocal = true)
         {
             try
             {
@@ -209,6 +234,7 @@ namespace WebUI.Services
                     SelectedSize = size ?? "",
                     SelectedColor = color ?? "",
                     SessionId = sessionId,
+                    UserId = _authService?.CurrentUser?.Id,
                     // Cache fields (không gửi lên API nhưng có thể dùng sau)
                     ProductName = product.Name,
                     Price = product.Price,
@@ -238,6 +264,11 @@ namespace WebUI.Services
                     );
                     if (apiResponse != null && apiResponse.Success)
                     {
+                        if (updateLocal)
+                        {
+                            // Mirror locally for UI consistency
+                            AddItemLocally(product, quantity, size, color);
+                        }
                         OnCartChanged?.Invoke();
                         return new AddToCartResponse
                         {
@@ -302,9 +333,48 @@ namespace WebUI.Services
         /// </summary>
         private string GetOrCreateSessionId()
         {
-            // TODO: Implement proper session management
-            // For now, generate a simple GUID
-            return Guid.NewGuid().ToString();
+            try
+            {
+                // Attempt to get existing sessionId from localStorage
+                var existing = _jsRuntime.InvokeAsync<string>("localStorage.getItem", "asion_sessionId").GetAwaiter().GetResult();
+                if (!string.IsNullOrWhiteSpace(existing))
+                {
+                    return existing;
+                }
+            }
+            catch { }
+
+            var newId = Guid.NewGuid().ToString();
+            try
+            {
+                _jsRuntime.InvokeVoidAsync("localStorage.setItem", "asion_sessionId", newId);
+            }
+            catch { }
+            return newId;
+        }
+
+        /// <summary>
+        /// Push all guest local items to API cart after login.
+        /// </summary>
+        private async Task MigrateGuestCartToUserAsync()
+        {
+            if (_authService == null || !_authService.IsAuthenticated) return;
+            var itemsSnapshot = _items.ToList();
+            foreach (var item in itemsSnapshot)
+            {
+                // Send to API without duplicating local list
+                await AddToCartViaApiAsync(item.Product, item.Quantity, item.SelectedSize, item.SelectedColor, false);
+            }
+        }
+
+        /// <summary>
+        /// Optionally refresh local cart from API (only summary amounts reflected; item details require API data mapping).
+        /// </summary>
+        private async Task RefreshApiCartToLocalAsync()
+        {
+            var apiCart = await GetCartFromApiAsync();
+            if (apiCart == null) return;
+            // Strategy: keep local list as-is (already mirrored). Could extend to reconcile quantities.
         }
 
         /// <summary>

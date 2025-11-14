@@ -248,9 +248,8 @@
                 }).ToList();
             }
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"[Shop] Error loading categories: {ex.Message}");
             CategoryList = new();
         }
     }
@@ -304,12 +303,9 @@
             {
                 AllProducts = new List<Product>();
             }
-
-            Console.WriteLine($"[Shop] Loaded {AllProducts.Count} products from GetProductShop");
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"[Shop] Error loading products: {ex.Message}");
             AllProducts = new List<Product>();
         }
         finally
@@ -326,7 +322,6 @@
 
     private void OnQuickView(Product product)
     {
-        Console.WriteLine($"Quick view: {product.Name}");
         SelectedProduct = product;
         ShowModal = true;
         StateHasChanged();
@@ -341,18 +336,14 @@
 
     private async Task HandleAddToCart(string message)
     {
-        Console.WriteLine($"[Shop] Add to cart result: {message}");
-
-        // Show toast notification
         if (message.Contains("thành công"))
         {
-            await ToastService.ShowSuccess(message);
+            await ToastService.ShowSuccess("Đã thêm vào giỏ hàng!");
         }
         else
         {
             await ToastService.ShowError(message);
         }
-
         CloseModal();
     }
 }

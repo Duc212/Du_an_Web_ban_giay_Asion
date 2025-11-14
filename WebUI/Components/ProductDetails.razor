@@ -63,11 +63,24 @@
                 <div class="size-options">
                     @foreach (var size in AvailableSizes)
                     {
-                        var sizeValue = size; // Capture variable for lambda
+                        var sizeValue = size;
                         var isSelected = !string.IsNullOrEmpty(SelectedSize) && SelectedSize.Equals(sizeValue, StringComparison.OrdinalIgnoreCase);
+                        var buttonStyle = isSelected 
+                            ? "min-width: 48px; height: 48px; padding: 0 16px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; background: linear-gradient(135deg, rgb(37, 99, 235) 0%, rgb(29, 78, 216) 100%); color: rgb(255, 255, 255); border: 2px solid rgb(37, 99, 235); box-shadow: rgba(37, 99, 235, 0.3) 0px 6px 16px; transform: translateY(-2px);"
+                            : "min-width: 48px; height: 48px; padding: 0 16px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; font-weight: 500; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; background: rgb(255, 255, 255); color: rgb(73, 80, 87); border: 2px solid rgb(222, 226, 230);";
+                        
+                        @if (isSelected)
+                        {
+                            <text><!-- Selected: @sizeValue (SelectedSize=@SelectedSize) --></text>
+                        }
+                        
                         <button type="button"
-                                class="size-btn @(isSelected ? "selected" : "")"
+                                style="@buttonStyle"
                                 @onclick="@(() => SelectSize(sizeValue))">
+                            @if (isSelected)
+                            {
+                                <i class="fas fa-check" style="margin-right: 4px; font-size: 12px;"></i>
+                            }
                             @sizeValue
                         </button>
                     }
@@ -90,22 +103,28 @@
                 <div class="color-options">
                     @foreach (var color in AvailableColors)
                     {
-                        var colorHex = color.Value; // Capture variable for lambda
+                        var colorHex = color.Value;
                         var isSelected = !string.IsNullOrEmpty(SelectedColor) && SelectedColor.Equals(colorHex, StringComparison.OrdinalIgnoreCase);
+                        var borderStyle = isSelected 
+                            ? "4px solid rgb(37, 99, 235)"
+                            : (colorHex.ToUpper() == "#FFFFFF" ? "3px solid rgb(222, 226, 230)" : "3px solid transparent");
+                        var boxShadowStyle = isSelected
+                            ? "rgba(37, 99, 235, 0.4) 0px 6px 20px"
+                            : "rgba(0, 0, 0, 0.1) 0px 2px 8px";
+                        var transformStyle = isSelected ? "scale(1.15)" : "scale(1)";
+                        var buttonStyle = $"width: 44px; height: 44px; border-radius: 50%; cursor: pointer; transition: all 0.3s ease; position: relative; display: flex; align-items: center; justify-content: center; background-color: {colorHex}; border: {borderStyle}; box-shadow: {boxShadowStyle}; transform: {transformStyle};";
+                        
                         <div class="color-item">
                             <button type="button"
-                                    class="color-btn @(isSelected ? "selected" : "")"
-                                    style="background-color: @colorHex; @(colorHex.ToUpper() == "#FFFFFF" ? "border: 2px solid #dee2e6;" : "")"
+                                    style="@buttonStyle"
                                     title="@color.Name"
                                     @onclick="@(() => SelectColor(colorHex))">
                                 @if (isSelected)
                                 {
                                     <i class="fas fa-check" 
-                                       style="color: @(colorHex.ToUpper() == "#FFFFFF" || colorHex.ToUpper() == "#FFFF00" ? "#000" : "#fff"); 
-                                              font-size: 12px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                                       style="color: @(colorHex.ToUpper() == "#FFFFFF" || colorHex.ToUpper() == "#FFFF00" ? "#000" : "#fff"); font-size: 14px; font-weight: bold;"></i>
                                 }
                             </button>
-                            <span class="color-name">@color.Name</span>
                         </div>
                     }
                 </div>
@@ -270,6 +289,7 @@
     private string SelectedSize { get; set; } = "";
     private string SelectedColor { get; set; } = "";
     private bool IsInWishlist { get; set; } = false;
+    private bool _initialized = false;
 
     // Available Options (will be populated from Product data)
     private List<string> AvailableSizes { get; set; } = new();
@@ -284,9 +304,14 @@
                 .Select(c => (c.ColorName, c.HexColor))
                 .ToList();
             
-            Quantity = InitialQuantity > 0 ? InitialQuantity : 1;
-            SelectedSize = InitialSize ?? "";
-            SelectedColor = InitialColor ?? "";
+            // Only set initial values on first load, don't reset user selections
+            if (!_initialized)
+            {
+                Quantity = InitialQuantity > 0 ? InitialQuantity : 1;
+                SelectedSize = InitialSize ?? "";
+                SelectedColor = InitialColor ?? "";
+                _initialized = true;
+            }
         }
     }
 
@@ -307,16 +332,22 @@
 
     private async Task SelectSize(string size)
     {
+        Console.WriteLine($"SelectSize called: {size}");
         SelectedSize = size;
+        Console.WriteLine($"SelectedSize set to: {SelectedSize}");
+        StateHasChanged(); // Force UI update first
+        await InvokeAsync(StateHasChanged); // Ensure UI updates on correct thread
         await OnSizeChanged.InvokeAsync(size);
-        StateHasChanged();
     }
 
     private async Task SelectColor(string color)
     {
+        Console.WriteLine($"SelectColor called: {color}");
         SelectedColor = color;
+        Console.WriteLine($"SelectedColor set to: {SelectedColor}");
+        StateHasChanged(); // Force UI update first
+        await InvokeAsync(StateHasChanged); // Ensure UI updates on correct thread
         await OnColorChanged.InvokeAsync(SelectedColor);
-        StateHasChanged();
     }
 
     private async Task IncreaseQuantity()

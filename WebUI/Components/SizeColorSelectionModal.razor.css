@@ -1,3 +1,10 @@
+/* ==============================================
+   NOTE: Modal overlay styles moved to global CSS
+   (wwwroot/css/size-color-modal.css) to avoid 
+   Blazor scoping issues that prevent full-width overlay
+   ============================================== */
+
+/* Animations are kept here for component-level elements */
 @keyframes modalFadeIn {
     from {
         opacity: 0;
@@ -18,56 +25,29 @@
     }
 }
 
-/* Ensure modal is always on top, regardless of parent containers */
-.modal-overlay,
-.modal-overlay * {
+/* Box sizing for all modal elements */
+::deep .modal-overlay,
+::deep .modal-overlay * {
     box-sizing: border-box;
 }
 
-/* Prevent parent containers from affecting modal positioning */
-.modal-overlay {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    z-index: 9999 !important;
-    background: rgba(15, 23, 42, 0.45);
-    backdrop-filter: blur(8px);
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 20px;
-    animation: modalFadeIn 0.25s ease;
-    overflow-y: auto;
-    
-    -webkit-overflow-scrolling: touch;
-    margin: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    max-width: none !important;
-    max-height: none !important;
-    isolation: isolate;
-    contain: layout style paint;
-    /* Ensure modal is not clipped by parent containers */
-    clip: auto !important;
-    clip-path: none !important;
-}
+/* Modal overlay styles are now in global CSS */
+/* See: wwwroot/css/size-color-modal.css */
 
 .modal-shell {
-    width: min(520px, calc(100vw - 40px));
-    max-width: 520px;
-    max-height: min(85vh, 680px);
+    width: min(580px, calc(100vw - 40px));
+    max-width: 580px;
+    max-height: min(90vh, 750px);
     margin: auto;
     background: #ffffff;
     border-radius: 20px;
-    box-shadow: 0 30px 60px rgba(15, 23, 42, 0.25);
+    box-shadow: 0 30px 60px rgba(15, 23, 42, 0.3), 0 10px 20px rgba(15, 23, 42, 0.15);
     display: flex;
     flex-direction: column;
     overflow: hidden;
     animation: modalSlideIn 0.3s ease;
     position: relative !important;
-    z-index: 10000 !important;
+    z-index: 100000 !important;
     transform: none !important;
     /* Ensure modal stays centered */
     align-self: center;
@@ -250,19 +230,20 @@
     flex-direction: column;
     align-items: center;
     gap: 8px;
+    width: 100%;
 }
 
 .color-swatch {
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
-    border: 1px solid transparent;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid transparent;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     color: #ffffff;
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-    box-shadow: 0 10px 18px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
 }
 
 .color-swatch i {
@@ -410,7 +391,7 @@
 
 @media (max-width: 768px) {
     .modal-overlay {
-        padding: 16px;
+        padding: 20px 16px;
         align-items: center !important;
         justify-content: center !important;
     }
@@ -418,8 +399,9 @@
     .modal-shell {
         width: calc(100vw - 32px);
         max-width: calc(100vw - 32px);
-        max-height: calc(100vh - 32px);
-        margin: 0;
+        max-height: calc(95vh - 40px);
+        margin: auto;
+        align-self: center;
     }
 
     .modal-header,
@@ -460,4 +442,15 @@
         width: 40px;
         height: 40px;
     }
+}
+
+/* Global body overlay (added via body.modal-open-overlay class) to guarantee full-width coverage
+   independent of any transformed parents that might clip position:fixed elements. */
+body.modal-open-overlay::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 99998; /* Just below modal-shell (100000) */
+    pointer-events: none;
 }

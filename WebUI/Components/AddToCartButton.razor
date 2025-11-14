@@ -2,6 +2,7 @@
 @using WebUI.Services
 @inject CartService CartService
 @inject IJSRuntime JSRuntime
+@inject IToastService ToastService
 
 <button class="btn-add-to-cart @CssClass" 
         @onclick="HandleAddToCart" 
@@ -37,7 +38,7 @@
         if (UseDirectAdd && !string.IsNullOrEmpty(SelectedSize) && !string.IsNullOrEmpty(SelectedColor))
         {
             CartService.AddItem(Product, Quantity, SelectedSize, SelectedColor);
-            await ShowToast("✓ Thêm sản phẩm vào giỏ hàng thành công!");
+            await ToastService.ShowSuccess("Đã thêm vào giỏ hàng!");
         }
         else
         {
@@ -55,18 +56,14 @@
 
     private async Task OnModalAddToCart(string message)
     {
-        await ShowToast(message);
-    }
-
-    private async Task ShowToast(string message)
-    {
-        await JSRuntime.InvokeVoidAsync("eval", $@"
-            let toast = document.createElement('div');
-            toast.innerHTML = '{message}';
-            toast.style.cssText = 'position:fixed;top:20px;right:20px;background:#4CAF50;color:white;padding:12px 20px;border-radius:4px;z-index:9999;font-weight:600;';
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 2000);
-        ");
+        if (message.Contains("thành công") || message.Contains("Thêm"))
+        {
+            await ToastService.ShowSuccess("Đã thêm vào giỏ hàng!");
+        }
+        else
+        {
+            await ToastService.ShowError(message);
+        }
     }
 }
 

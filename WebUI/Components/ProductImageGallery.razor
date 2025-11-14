@@ -105,6 +105,15 @@
         Console.WriteLine($"UpdateImageByColor - SelectedColor: '{SelectedColor}'");
         Console.WriteLine($"ColorImages available: {Product?.ColorImages?.Count ?? 0}");
         
+        // Debug: Print all available color info
+        if (Product?.ColorImages != null)
+        {
+            foreach (var ci in Product.ColorImages)
+            {
+                Console.WriteLine($"  ColorImageInfo - Color: '{ci.Color}', ImageCount: {ci.ImageColors?.Count ?? 0}");
+            }
+        }
+        
         // Priority 1: If "ALL" is selected, show first available image from all images
         if (SelectedColor == "ALL")
         {
@@ -133,16 +142,32 @@
         if (!string.IsNullOrEmpty(SelectedColor) && SelectedColor != "ALL" &&
             Product?.ColorImages != null)
         {
-            var colorInfo = Product.ColorImages.FirstOrDefault(ci => ci.Color == SelectedColor);
-            if (colorInfo?.ImageColors != null && colorInfo.ImageColors.Any())
+            // Find color name from hex code using Product.Colors
+            string colorName = Product.Colors?.FirstOrDefault(c => 
+                c.HexColor.Equals(SelectedColor, StringComparison.OrdinalIgnoreCase))?.ColorName ?? "";
+            
+            Console.WriteLine($"Converting hex '{SelectedColor}' to color name '{colorName}'");
+            
+            if (!string.IsNullOrEmpty(colorName))
             {
-                SelectedImageUrl = colorInfo.ImageColors.First();
-                Console.WriteLine($"Using color-specific image: {SelectedImageUrl}");
-                return;
+                // Match ColorImageInfo by color name
+                var colorImageInfo = Product.ColorImages.FirstOrDefault(ci => 
+                    ci.Color.Equals(colorName, StringComparison.OrdinalIgnoreCase));
+                
+                if (colorImageInfo?.ImageColors != null && colorImageInfo.ImageColors.Any())
+                {
+                    SelectedImageUrl = colorImageInfo.ImageColors.First();
+                    Console.WriteLine($"Using color-specific image for '{colorName}': {SelectedImageUrl}");
+                    return;
+                }
+                else
+                {
+                    Console.WriteLine($"No color-specific images found for '{colorName}'");
+                }
             }
         }
         
-        // Priority 2: Use general Images array if available
+        // Priority 3: Use general Images array if available
         if (Product?.Images != null && Product.Images.Any())
         {
             SelectedImageUrl = Product.Images.First();
@@ -150,7 +175,7 @@
             return;
         }
         
-        // Priority 3: Fallback to primary image
+        // Priority 4: Fallback to primary image
         SelectedImageUrl = Product?.ImageUrl ?? "";
         Console.WriteLine($"Using fallback image: {SelectedImageUrl}");
     }
@@ -187,14 +212,30 @@
         }
         
         // 2. If specific color is selected, show ONLY that color's images
-        if (!string.IsNullOrEmpty(SelectedColor) && Product?.ColorImages != null)
+        if (!string.IsNullOrEmpty(SelectedColor) && SelectedColor != "ALL" && Product?.ColorImages != null)
         {
-            var colorInfo = Product.ColorImages.FirstOrDefault(ci => ci.Color == SelectedColor);
-            if (colorInfo?.ImageColors != null && colorInfo.ImageColors.Any())
+            // Find color name from hex code using Product.Colors
+            string colorName = Product.Colors?.FirstOrDefault(c => 
+                c.HexColor.Equals(SelectedColor, StringComparison.OrdinalIgnoreCase))?.ColorName ?? "";
+            
+            Console.WriteLine($"GetProductImages - Converting hex '{SelectedColor}' to color name '{colorName}'");
+            
+            if (!string.IsNullOrEmpty(colorName))
             {
-                images.AddRange(colorInfo.ImageColors);
-                Console.WriteLine($"Showing {images.Count} color-specific images for {SelectedColor}");
-                return images.Where(img => !string.IsNullOrEmpty(img)).Distinct().ToList();
+                // Match ColorImageInfo by color name
+                var colorImageInfo = Product.ColorImages.FirstOrDefault(ci => 
+                    ci.Color.Equals(colorName, StringComparison.OrdinalIgnoreCase));
+                
+                if (colorImageInfo?.ImageColors != null && colorImageInfo.ImageColors.Any())
+                {
+                    images.AddRange(colorImageInfo.ImageColors);
+                    Console.WriteLine($"Showing {images.Count} color-specific images for '{colorName}'");
+                    return images.Where(img => !string.IsNullOrEmpty(img)).Distinct().ToList();
+                }
+                else
+                {
+                    Console.WriteLine($"No images found for color '{colorName}', falling back to general images");
+                }
             }
         }
         

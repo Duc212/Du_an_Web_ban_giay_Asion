@@ -152,20 +152,11 @@
 
             if (response.Success)
             {
-                var sizeColorInfo = !string.IsNullOrEmpty(SelectedSize) || !string.IsNullOrEmpty(SelectedColor) 
-                    ? $" (Size: {SelectedSize ?? "N/A"}, Color: {SelectedColor ?? "N/A"})" 
-                    : "";
-                
-                var cartInfo = response.CartSummary != null 
-                    ? $" | Cart: {response.CartSummary.TotalItems} items" 
-                    : "";
-
-                await ShowToast("success", "Added to Cart!", 
-                    $"{CurrentProduct.Name} (x{Quantity}){sizeColorInfo}{cartInfo}");
+                await ToastService.ShowSuccess("Đã thêm vào giỏ hàng!");
             }
             else
             {
-                await ShowToast("error", "Error!", response.Message);
+                await ToastService.ShowError(response.Message);
             }
         }
     }

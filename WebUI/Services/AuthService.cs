@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text;
 using Microsoft.JSInterop;
 using WebUI.Models;
 using WebUI.Services.Interfaces;
@@ -861,6 +862,52 @@ namespace WebUI.Services
         public async Task InitializeAsync()
         {
             await LoadAuthDataAsync();
+        }
+
+        /// <summary>
+        /// Trả về UserId dạng int nếu có. Ưu tiên từ CurrentUser.Id, fallback decode JWT.
+        /// </summary>
+        public int? GetCurrentUserId()
+        {
+            if (_currentUser != null && int.TryParse(_currentUser.Id, out var idFromUser))
+            {
+                return idFromUser;
+            }
+
+            if (!string.IsNullOrEmpty(_currentToken))
+            {
+                var parts = _currentToken.Split('.');
+                if (parts.Length >= 2)
+                {
+                    try
+                    {
+                        var payload = parts[1];
+                        // Base64Url decode
+                        payload = payload.PadRight(payload.Length + (4 - payload.Length % 4) % 4, '=')
+                                             .Replace('-', '+')
+                                             .Replace('_', '/');
+                        var json = Encoding.UTF8.GetString(Convert.FromBase64String(payload));
+                        using var doc = JsonDocument.Parse(json);
+                        if (doc.RootElement.TryGetProperty("userId", out var userIdProp) && userIdProp.TryGetInt32(out var idClaim))
+                        {
+                            return idClaim;
+                        }
+                        if (doc.RootElement.TryGetProperty("sub", out var subProp))
+                        {
+                            var subStr = subProp.GetString();
+                            if (int.TryParse(subStr, out var subId))
+                            {
+                                return subId;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore decode errors
+                    }
+                }
+            }
+            return null;
         }
     }
 }

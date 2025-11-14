@@ -93,6 +93,45 @@
                         </div>
                     </div>
 
+                    <!-- Order Items Card -->
+                    <div class="order-items-card">
+                        <h3>Sản phẩm đã chọn</h3>
+                        <div class="order-items-list">
+                            @if (CartService.CheckoutInfo?.SelectedApiItems?.Any() == true)
+                            {
+                                @foreach (var i in CartService.CheckoutInfo.SelectedApiItems)
+                                {
+                                    <div class="order-item-row">
+                                        <img src="@i.ImageUrl" class="order-item-thumb" />
+                                        <div style="flex:1; min-width:0;">
+                                            <p class="order-item-name">@i.ProductName</p>
+                                            <div class="order-item-meta">Size: @i.Size • @i.Color × @i.Quantity</div>
+                                        </div>
+                                        <div style="font-weight:800;">@i.TotalPriceFormatted</div>
+                                    </div>
+                                }
+                            }
+                            else if (CartService.CheckoutInfo?.SelectedLocalItems?.Any() == true)
+                            {
+                                @foreach (var i in CartService.CheckoutInfo.SelectedLocalItems)
+                                {
+                                    <div class="order-item-row">
+                                        <img src="@i.Product.ImageUrl" class="order-item-thumb" />
+                                        <div style="flex:1; min-width:0;">
+                                            <p class="order-item-name">@i.Product.Name</p>
+                                            <div class="order-item-meta">@((!string.IsNullOrEmpty(i.SelectedSize)?$"Size: {i.SelectedSize} • ":""))@((!string.IsNullOrEmpty(i.SelectedColor)?$"{i.SelectedColor} • ":""))× @i.Quantity</div>
+                                        </div>
+                                        <div style="font-weight:800;">@((i.Product.Price * i.Quantity).ToString("N0"))đ</div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div>Không có sản phẩm được chọn.</div>
+                            }
+                        </div>
+                    </div>
+
                     <!-- Payment Method Selection -->
                     <div class="payment-card">
                         <h2 class="card-title">
@@ -112,120 +151,6 @@
                                 </div>
                                 <div class="payment-fee">+15.000đ</div>
                             </div>
-
-                            <!-- Banking Transfer -->
-                            <div class="payment-option @(SelectedPaymentMethod == "banking" ? "selected" : "")"
-                                 @onclick='() => SelectedPaymentMethod = "banking"'>
-                                <div class="payment-radio"></div>
-                                <div class="payment-icon-wrapper">🏦</div>
-                                <div class="payment-info">
-                                    <div class="payment-method-name">Chuyển khoản ngân hàng</div>
-                                    <div class="payment-method-description">Chuyển khoản qua Internet Banking</div>
-                                </div>
-                                <div class="payment-fee">Miễn phí</div>
-                            </div>
-                            @if (SelectedPaymentMethod == "banking")
-                            {
-                                <div class="payment-details">
-                                    <div class="bank-info">
-                                        <div class="bank-info-row">
-                                            <span class="bank-label">Ngân hàng:</span>
-                                            <span class="bank-value">Vietcombank</span>
-                                        </div>
-                                        <div class="bank-info-row">
-                                            <span class="bank-label">Số tài khoản:</span>
-                                            <span class="bank-value">
-                                                1234567890
-                                                <button class="btn-copy" @onclick='() => CopyToClipboard("1234567890")'>
-                                                    Copy
-                                                </button>
-                                            </span>
-                                        </div>
-                                        <div class="bank-info-row">
-                                            <span class="bank-label">Chủ TK:</span>
-                                            <span class="bank-value">CÔNG TY ASION</span>
-                                        </div>
-                                        <div class="bank-info-row">
-                                            <span class="bank-label">Nội dung:</span>
-                                            <span class="bank-value">
-                                                ORD-@OrderNumber
-                                                <button class="btn-copy" @onclick='() => CopyToClipboard($"ORD-{OrderNumber}")'>
-                                                    Copy
-                                                </button>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-
-                            <!-- Momo -->
-                            <div class="payment-option @(SelectedPaymentMethod == "momo" ? "selected" : "")"
-                                 @onclick='() => SelectedPaymentMethod = "momo"'>
-                                <div class="payment-radio"></div>
-                                <div class="payment-icon-wrapper">📱</div>
-                                <div class="payment-info">
-                                    <div class="payment-method-name">Ví MoMo</div>
-                                    <div class="payment-method-description">Quét mã QR để thanh toán</div>
-                                </div>
-                                <div class="payment-fee">Miễn phí</div>
-                            </div>
-                            @if (SelectedPaymentMethod == "momo")
-                            {
-                                <div class="payment-details">
-                                    <div class="qr-code-section">
-                                        <div class="qr-code-image" style="background: var(--gray-200); display:flex; align-items:center; justify-content:center; color: var(--gray-500);">
-                                            QR Code
-                                        </div>
-                                        <p class="qr-instruction">Quét mã QR bằng ứng dụng MoMo</p>
-                                    </div>
-                                </div>
-                            }
-
-                            <!-- ZaloPay -->
-                            <div class="payment-option @(SelectedPaymentMethod == "zalopay" ? "selected" : "")"
-                                 @onclick='() => SelectedPaymentMethod = "zalopay"'>
-                                <div class="payment-radio"></div>
-                                <div class="payment-icon-wrapper">💙</div>
-                                <div class="payment-info">
-                                    <div class="payment-method-name">ZaloPay</div>
-                                    <div class="payment-method-description">Thanh toán an toàn với ZaloPay</div>
-                                </div>
-                                <div class="payment-fee">Miễn phí</div>
-                            </div>
-
-                            <!-- Credit Card -->
-                            <div class="payment-option @(SelectedPaymentMethod == "card" ? "selected" : "")"
-                                 @onclick='() => SelectedPaymentMethod = "card"'>
-                                <div class="payment-radio"></div>
-                                <div class="payment-icon-wrapper">💳</div>
-                                <div class="payment-info">
-                                    <div class="payment-method-name">Thẻ tín dụng/Ghi nợ</div>
-                                    <div class="payment-method-description">Visa, MasterCard, JCB</div>
-                                </div>
-                                <div class="payment-fee">Miễn phí</div>
-                            </div>
-                            @if (SelectedPaymentMethod == "card")
-                            {
-                                <div class="payment-details">
-                                    <div class="card-form">
-                                        <div class="form-group">
-                                            <label class="form-label">Số thẻ</label>
-                                            <input type="text" class="form-input" placeholder="1234 5678 9012 3456" />
-                                        </div>
-                                        <div class="card-row">
-                                            <div class="form-group">
-                                                <label class="form-label">Ngày hết hạn</label>
-                                                <input type="text" class="form-input" placeholder="MM/YY" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label">CVV</label>
-                                                <input type="text" class="form-input" placeholder="123" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-
                             <!-- VNPay -->
                             <div class="payment-option @(SelectedPaymentMethod == "vnpay" ? "selected" : "")"
                                  @onclick='() => SelectedPaymentMethod = "vnpay"'>
@@ -249,7 +174,24 @@
                                 </div>
                                 <div class="payment-fee">Miễn phí</div>
                             </div>
-                            @* Không cần nút riêng cho Google Pay, sẽ gọi tự động khi nhấn Thanh toán *@
+
+                            <!-- PayPal -->
+                            <div class="payment-option @(SelectedPaymentMethod == "paypal" ? "selected" : "")"
+                                 @onclick='() => SelectedPaymentMethod = "paypal"'>
+                                <div class="payment-radio"></div>
+                                <div class="payment-icon-wrapper"><i class="fab fa-paypal"></i></div>
+                                <div class="payment-info">
+                                    <div class="payment-method-name">PayPal</div>
+                                    <div class="payment-method-description">Thanh toán quốc tế qua PayPal</div>
+                                </div>
+                                <div class="payment-fee">Miễn phí</div>
+                            </div>
+                            @if (SelectedPaymentMethod == "paypal")
+                            {
+                                <div class="payment-details">
+                                    <div id="paypal-button-container" style="max-width:350px;margin:20px auto;"></div>
+                                </div>
+                            }
 @code {
     // ...existing code...
 
@@ -377,6 +319,7 @@
     private string ShippingAddress = string.Empty;
     
     private string SelectedPaymentMethod = "cod";
+    private bool PayPalButtonRendered = false;
     private bool AgreeTerms = false;
     private bool IsProcessing = false;
     private string PaymentStatus = ""; // "", "processing", "success", "failed"
@@ -399,6 +342,96 @@
         ReceiverName = checkoutInfo.FullName;
         ReceiverPhone = checkoutInfo.Phone;
         ShippingAddress = $"{checkoutInfo.Address}, {checkoutInfo.City}";
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (SelectedPaymentMethod == "paypal" && !PayPalButtonRendered)
+        {
+            PayPalButtonRendered = true;
+            await RenderPayPalButton();
+        }
+        else if (SelectedPaymentMethod != "paypal")
+        {
+            PayPalButtonRendered = false;
+        }
+    }
+
+    /// <summary>
+    /// Đảm bảo order được tạo trước khi xử lý thanh toán. Trả về OrderID nếu thành công.
+    /// </summary>
+    private async Task<int?> EnsureOrderCreated(string paymentMethod)
+    {
+        if (CreatedOrderId != null && CreatedOrderId > 0)
+        {
+            return CreatedOrderId;
+        }
+
+        var checkoutInfo = CartService.CheckoutInfo;
+        if (checkoutInfo == null)
+        {
+            await ToastService.ShowError("Không tìm thấy thông tin đơn hàng. Vui lòng quay lại trang checkout.");
+            Navigation.NavigateTo("/checkout");
+            return null;
+        }
+
+        var orderRequest = new CreateOrderRequest
+        {
+            UserID = AuthService.IsAuthenticated ? GetUserId() : 0,
+            PaymentID = GetPaymentId(paymentMethod) ?? 0,
+            OrderType = "online",
+            Address = $"{checkoutInfo.Address}, {checkoutInfo.City}",
+            Note = checkoutInfo.Note,
+            OrderDetails = GetOrderDetails(checkoutInfo)
+        };
+
+        var createOrderResult = await OrderService.CreateOrderAsync(orderRequest);
+
+        if (!createOrderResult.Success)
+        {
+            await ToastService.ShowError(createOrderResult.Message ?? "Không thể tạo đơn hàng");
+            return null;
+        }
+
+        CreatedOrderId = createOrderResult.Data;
+        return CreatedOrderId;
+    }
+
+    /// <summary>
+    /// Render PayPal button bằng JSInterop, callback về Blazor khi thanh toán thành công hoặc bị từ chối.
+    /// </summary>
+    private async Task RenderPayPalButton()
+    {
+        var amount = GetFinalTotalAmount();
+        // Chuyển VND sang USD (chia cho tỷ giá ~24000)
+        var amountInUSD = (amount / 24000m).ToString("F2");
+        await JSRuntime.InvokeVoidAsync("eval", $@"
+            if (window.paypal) {{
+                paypal.Buttons({{
+                    createOrder: function(data, actions) {{
+                        return actions.order.create({{
+                            purchase_units: [{{
+                                amount: {{ value: '{amountInUSD}', currency_code: 'USD' }}
+                            }}]
+                        }});
+                    }},
+                    onApprove: function(data, actions) {{
+                        return actions.order.capture().then(function(details) {{
+                            DotNet.invokeMethodAsync('WebUI', 'OnPayPalApproved', JSON.stringify(details));
+                        }}).catch(function(err) {{
+                            if (err && err.details && err.details[0].issue === 'INSTRUMENT_DECLINED') {{
+                                return actions.restart();
+                            }}
+                        }});
+                    }},
+                    onError: function(err) {{
+                        if (err && err.details && err.details[0].issue === 'INSTRUMENT_DECLINED') {{
+                            actions.restart();
+                        }}
+                    }}
+                }}).render('#paypal-button-container');
+            }}
+        ");
     }
 
     private async Task HandlePayment()
@@ -478,13 +511,13 @@
                 // COD hoặc các phương thức khác - chỉ cần tạo order
                 PaymentStatus = "success";
                 IsProcessing = false;
+                await ScrollToTop();
                 await ToastService.ShowSuccess("Đặt hàng thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.");
                 StateHasChanged();
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[Payment] Exception in HandlePayment: {ex.Message}");
             PaymentStatus = "failed";
             IsProcessing = false;
             await ToastService.ShowError($"Lỗi: {ex.Message}");
@@ -494,9 +527,7 @@
 
     private int GetUserId()
     {
-        // TODO: Lấy UserID từ AuthService
-        // Tạm thời return 0 hoặc lấy từ token
-        return 0;
+        return AuthService.GetCurrentUserId() ?? 0;
     }
 
     private int? GetPaymentId(string paymentMethod)
@@ -509,6 +540,8 @@
             "vnpay" => 2, // VNPay
             "momo" => 3, // MoMo
             "banking" => 4, // Banking
+            "gpay" => 5, // Google Pay
+            "paypal" => 6, // PayPal
             _ => null
         };
     }
@@ -574,49 +607,31 @@
         StateHasChanged();
         try
         {
-            // Tạo order trước (nếu chưa có)
-            if (CreatedOrderId == null)
+            // Tạo order trước khi redirect đến VNPay
+            var orderId = await EnsureOrderCreated("vnpay");
+            if (orderId == null || orderId <= 0)
             {
-                var orderRequest = new CreateOrderRequest
-                {
-                    UserID = GetUserId(),
-                    Address = CartService.CheckoutInfo?.Address ?? "",
-                    Note = CartService.CheckoutInfo?.Note ?? "",
-                    PaymentID = GetPaymentId("vnpay") ?? 2,
-                    OrderDetails = GetOrderDetails(CartService.CheckoutInfo!)
-                };
-                var orderResult = await OrderService.CreateOrderAsync(orderRequest);
-                if (orderResult.Success)
-                {
-                    CreatedOrderId = Convert.ToInt32(orderResult.Data);
-                }
-                else
-                {
-                    PaymentStatus = "failed";
-                    IsProcessing = false;
-                    await ToastService.ShowError(orderResult.Message ?? "Không thể tạo đơn hàng");
-                    StateHasChanged();
-                    return;
-                }
+                PaymentStatus = "failed";
+                IsProcessing = false;
+                StateHasChanged();
+                return;
             }
-            // Nếu đã có OrderId, mới gọi VNPay
-            if (CreatedOrderId > 0)
+
+            // Tạo URL thanh toán VNPay
+            var response = await PaymentService.CreateVNPayPaymentUrlAsync(orderId.Value, GetFinalTotalAmount(), $"Thanh toan don hang #{orderId}");
+            if (response != null && !string.IsNullOrEmpty(response.PaymentUrl))
             {
-                var response = await PaymentService.CreateVNPayPaymentUrlAsync(CreatedOrderId.Value, GetFinalTotalAmount(), $"Thanh toan don hang #{CreatedOrderId}");
-                if (response != null && !string.IsNullOrEmpty(response.PaymentUrl))
-                {
-                    // Redirect đến VNPay
-                    await JSRuntime.InvokeVoidAsync("open", response.PaymentUrl, "_self");
-                    return;
-                }
-                else
-                {
-                    PaymentStatus = "failed";
-                    IsProcessing = false;
-                    await ToastService.ShowError(response?.Message ?? "Không thể tạo URL thanh toán VNPay");
-                    StateHasChanged();
-                    return;
-                }
+                // Redirect đến VNPay
+                await JSRuntime.InvokeVoidAsync("open", response.PaymentUrl, "_self");
+                return;
+            }
+            else
+            {
+                PaymentStatus = "failed";
+                IsProcessing = false;
+                await ToastService.ShowError(response?.Message ?? "Không thể tạo URL thanh toán VNPay");
+                StateHasChanged();
+                return;
             }
         }
         catch (Exception ex)
@@ -636,29 +651,21 @@
         try
         {
             // Tạo order với phương thức COD
-            var orderRequest = new CreateOrderRequest
-            {
-                UserID = GetUserId(),
-                Address = CartService.CheckoutInfo?.Address ?? "",
-                Note = CartService.CheckoutInfo?.Note ?? "",
-                PaymentID = GetPaymentId("cod") ?? 1,
-                OrderDetails = GetOrderDetails(CartService.CheckoutInfo!)
-            };
-            var orderResult = await OrderService.CreateOrderAsync(orderRequest);
-            if (orderResult.Success)
-            {
-                PaymentStatus = "success";
-                IsProcessing = false;
-                await ToastService.ShowSuccess("Đặt hàng thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.");
-                StateHasChanged();
-            }
-            else
+            var orderId = await EnsureOrderCreated("cod");
+            if (orderId == null || orderId <= 0)
             {
                 PaymentStatus = "failed";
                 IsProcessing = false;
-                await ToastService.ShowError(orderResult.Message ?? "Không thể tạo đơn hàng");
                 StateHasChanged();
+                return;
             }
+
+            // COD: Order đã được tạo, chỉ cần hiển thị thành công
+            PaymentStatus = "success";
+            IsProcessing = false;
+            await ScrollToTop();
+            await ToastService.ShowSuccess("Đặt hàng thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.");
+            StateHasChanged();
         }
         catch (Exception ex)
         {
@@ -672,8 +679,26 @@
 
     // Removed unused GPay fields
 
+    private async Task ScrollToTop()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("eval", "window.scrollTo({ top: 0, behavior: 'smooth' });");
+        }
+        catch
+        {
+            // Silent error handling
+        }
+    }
+
     private async Task OnPayClicked()
     {
+        if (!AgreeTerms)
+        {
+            await ToastService.ShowError("Vui lòng đồng ý với điều khoản sử dụng");
+            return;
+        }
+
         if (SelectedPaymentMethod == "vnpay")
         {
             await HandleVNPayPayment();
@@ -687,28 +712,20 @@
             IsProcessing = true;
             PaymentStatus = "processing";
             StateHasChanged();
+            
             // 1. Tạo đơn hàng trước khi gọi Google Pay
-            var orderRequest = new CreateOrderRequest
-            {
-                UserID = GetUserId(),
-                Address = CartService.CheckoutInfo?.Address ?? "",
-                Note = CartService.CheckoutInfo?.Note ?? "",
-                PaymentID = GetPaymentId("gpay") ?? 0,
-                OrderDetails = GetOrderDetails(CartService.CheckoutInfo!)
-            };
-            var orderResult = await OrderService.CreateOrderAsync(orderRequest);
-            if (!orderResult.Success || orderResult.Data == null)
+            var orderId = await EnsureOrderCreated("gpay");
+            if (orderId == null || orderId <= 0)
             {
                 PaymentStatus = "failed";
                 IsProcessing = false;
-                await ToastService.ShowError(orderResult.Message ?? "Không thể tạo đơn hàng");
                 StateHasChanged();
                 return;
             }
-            var createdOrderId = Convert.ToInt32(orderResult.Data);
+
             var amount = GetFinalTotalAmount();
             // Lưu orderId và amount (VND) vào localStorage
-            await JSRuntime.InvokeVoidAsync("eval", $"localStorage.setItem('gpay_orderId', '{createdOrderId}')");
+            await JSRuntime.InvokeVoidAsync("eval", $"localStorage.setItem('gpay_orderId', '{orderId}')");
             await JSRuntime.InvokeVoidAsync("eval", $"localStorage.setItem('gpay_amount', '{amount:F0}')");
             // 2. Gọi Google Pay SDK qua JSInterop để lấy token và xử lý luôn
             await JSRuntime.InvokeVoidAsync("eval", $@"
@@ -764,6 +781,70 @@
                 }})();
             ");
         }
+        else if (SelectedPaymentMethod == "paypal")
+        {
+            IsProcessing = true;
+            PaymentStatus = "processing";
+            StateHasChanged();
+            
+            // 1. Tạo đơn hàng trước khi hiển thị PayPal button
+            var orderId = await EnsureOrderCreated("paypal");
+            if (orderId == null || orderId <= 0)
+            {
+                PaymentStatus = "failed";
+                IsProcessing = false;
+                StateHasChanged();
+                return;
+            }
+
+            // 2. Lưu orderId để callback PayPal sử dụng
+            await JSRuntime.InvokeVoidAsync("eval", $"localStorage.setItem('paypal_orderId', '{orderId}')");
+            
+            // 3. Reset để render PayPal button
+            IsProcessing = false;
+            PaymentStatus = "";
+            PayPalButtonRendered = false;
+            StateHasChanged();
+        }
+    }
+
+    [JSInvokable]
+    public static async Task OnPayPalApproved(string detailsJson)
+    {
+        var serviceProvider = Program.ServiceProvider;
+        if (serviceProvider == null) return;
+
+        var paymentService = serviceProvider.GetService(typeof(IPaymentService)) as IPaymentService;
+        var nav = serviceProvider.GetService(typeof(NavigationManager)) as NavigationManager;
+        var jsRuntime = serviceProvider.GetService(typeof(IJSRuntime)) as IJSRuntime;
+
+        if (paymentService == null || nav == null || jsRuntime == null) return;
+
+        string? payPalOrderId = null;
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(detailsJson);
+            payPalOrderId = doc.RootElement.GetProperty("id").GetString();
+        }
+        catch { }
+
+        if (string.IsNullOrEmpty(payPalOrderId)) return;
+
+        // Đọc orderId đã tạo trước đó từ localStorage
+        var orderIdStr = await jsRuntime.InvokeAsync<string>("eval", "localStorage.getItem('paypal_orderId')");
+        int storeOrderId = 0;
+        int.TryParse(orderIdStr, out storeOrderId);
+
+        // Capture PayPal payment
+        var captureReq = new CaptureReq { OrderId = payPalOrderId };
+        var captureResult = await paymentService.CapturePayPal(captureReq);
+
+        if (captureResult != null && captureResult.Success)
+        {
+            // Clear localStorage
+            await jsRuntime.InvokeVoidAsync("eval", "localStorage.removeItem('paypal_orderId')");
+            nav.NavigateTo($"/payment-success?transactionId={payPalOrderId}&orderId={storeOrderId}");
+        }
     }
 
     // Khi nhận token từ JS, thực hiện thanh toán luôn
@@ -815,7 +896,5 @@
             navSafe.NavigateTo($"/payment-success?transactionId={gpayResult.TransactionId}&amount={gpayRequest.Amount}");
         }
     }
-
-
 }
 

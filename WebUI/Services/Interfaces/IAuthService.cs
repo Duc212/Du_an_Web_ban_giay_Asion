@@ -98,5 +98,10 @@ namespace WebUI.Services.Interfaces
         /// Khởi tạo AuthService - load auth state từ localStorage
         /// </summary>
         Task InitializeAsync();
+
+        /// <summary>
+        /// Lấy UserId dạng int nếu có (từ CurrentUser hoặc decode JWT token)
+        /// </summary>
+        int? GetCurrentUserId();
     }
 }

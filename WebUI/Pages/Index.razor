@@ -34,7 +34,7 @@ else
                           OnProductSelected="OnProductClick"
                           OnQuickView="OnQuickView"
                           EnablePagination="true"
-                          PageSize="12"
+                          PageSize="15"
                           ShowProductCount="false" />
         </div>
     </section>
@@ -54,7 +54,7 @@ else
                           OnProductSelected="OnProductClick"
                           OnQuickView="OnQuickView"
                           EnablePagination="true"
-                          PageSize="12"
+                          PageSize="15"
                           ShowProductCount="false" />
         </div>
     </section>
@@ -73,7 +73,7 @@ else
                           OnProductSelected="OnProductClick"
                           OnQuickView="OnQuickView"
                           EnablePagination="true"
-                          PageSize="12"
+                          PageSize="15"
                           ShowProductCount="false" />
         </div>
     </section>
@@ -282,9 +282,8 @@ else
                 .ThenByDescending(p => p.Rating)
                 .ToList();
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"[Index] Error loading products: {ex.Message}");
             TrendingProducts = new List<Product>();
             FeaturedProducts = new List<Product>();
             NewProducts = new List<Product>();
@@ -298,21 +297,16 @@ else
 
     private void OnProductClick(Product product)
     {
-        // Navigate to product detail page
-        Console.WriteLine($"Product clicked: {product.Name}");
         Navigation.NavigateTo($"/product/{product.Id}");
     }
 
     private void OnQuickView(Product product)
     {
-        // Handle quick view - show product modal or popup
-        Console.WriteLine($"Quick view: {product.Name}");
+        // Handle quick view
     }
 
     private void OnCategorySelected(CategoriesBar.CategoryModel category)
     {
-        // Navigate to shop page with category filter
-        Console.WriteLine($"Category selected: {category.Name}");
         Navigation.NavigateTo($"/shop?category={Uri.EscapeDataString(category.Name)}");
     }
 }

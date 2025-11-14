@@ -9,6 +9,9 @@ namespace WebUI.Services
     {
         Task<VNPayPaymentResponse> CreateVNPayPaymentUrlAsync(int orderId, decimal amount, string? orderInfo = null);
         Task<PaymentGPayResponse> CreateGPayPaymentAsync(PaymentGPayRequest request);
+        Task<CommonResponse<string>> CreatePayPal(PaymentPayPalReq request);
+        Task<CommonResponse<PayPalOrderRes>> CapturePayPal(CaptureReq request);
+
     }
 
     public class PaymentService : IPaymentService
@@ -133,6 +136,121 @@ namespace WebUI.Services
                 };
             }
         }
+
+        public async Task<CommonResponse<string>> CreatePayPal(PaymentPayPalReq request)
+        {
+            try
+            {
+                var apiBaseUrl = await _configService.GetApiBaseUrlAsync();
+                var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{apiBaseUrl}/api/Payment/CreatePayPal")
+                {
+                    Content = JsonContent.Create(request)
+                };
+
+                if (_authService.IsAuthenticated && !string.IsNullOrEmpty(_authService.CurrentToken))
+                {
+                    httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                        "Bearer",
+                        _authService.CurrentToken
+                    );
+                }
+
+                var response = await _httpClient.SendAsync(httpRequest);
+                var responseContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"[PaymentService] CreatePayPal Response: {response.StatusCode}");
+                Console.WriteLine($"[PaymentService] Response Body: {responseContent}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var apiResponse = await response.Content.ReadFromJsonAsync<CommonResponse<string>>(
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                    );
+
+                    if (apiResponse != null && apiResponse.Success)
+                    {
+                        return new CommonResponse<string>
+                        {
+                            Success = true,
+                            Message = apiResponse.Message ?? "Tạo order PayPal thành công",
+                            Data = apiResponse.Data
+                        };
+                    }
+                }
+
+                return new CommonResponse<string>
+                {
+                    Success = false,
+                    Message = $"Không thể tạo order PayPal: {responseContent}"
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[PaymentService] Exception in CreatePayPal: {ex.Message}");
+                return new CommonResponse<string>
+                {
+                    Success = false,
+                    Message = $"Lỗi khi tạo order PayPal: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<CommonResponse<PayPalOrderRes>> CapturePayPal(CaptureReq request)
+        {
+            try
+            {
+                var apiBaseUrl = await _configService.GetApiBaseUrlAsync();
+                var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{apiBaseUrl}/api/Payment/CapturePayPal")
+                {
+                    Content = JsonContent.Create(request)
+                };
+
+                if (_authService.IsAuthenticated && !string.IsNullOrEmpty(_authService.CurrentToken))
+                {
+                    httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                        "Bearer",
+                        _authService.CurrentToken
+                    );
+                }
+
+                var response = await _httpClient.SendAsync(httpRequest);
+                var responseContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"[PaymentService] CapturePayPal Response: {response.StatusCode}");
+                Console.WriteLine($"[PaymentService] Response Body: {responseContent}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var apiResponse = await response.Content.ReadFromJsonAsync<CommonResponse<PayPalOrderRes>>(
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                    );
+
+                    if (apiResponse != null && apiResponse.Success)
+                    {
+                        return new CommonResponse<PayPalOrderRes>
+                        {
+                            Success = true,
+                            Message = apiResponse.Message ?? "Capture PayPal thành công",
+                            Data = apiResponse.Data
+                        };
+                    }
+                }
+
+                return new CommonResponse<PayPalOrderRes>
+                {
+                    Success = false,
+                    Message = $"Không thể capture PayPal: {responseContent}"
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[PaymentService] Exception in CapturePayPal: {ex.Message}");
+                return new CommonResponse<PayPalOrderRes>
+                {
+                    Success = false,
+                    Message = $"Lỗi khi capture PayPal: {ex.Message}"
+                };
+            }
+        }
+
     }
 
     // Models for VNPay Payment
@@ -172,6 +290,23 @@ namespace WebUI.Services
         public string Message { get; set; } = string.Empty;
         public string? TransactionId { get; set; }
     }
-
+    public class PaymentPayPalReq
+    {
+        public decimal Amount { get; set; }
+        public string Currency { get; set; } = "USD";
+    }
+    public class CaptureReq
+    {
+        public string? OrderId { get; set; }
+    }
+    public class PayPalOrderRes
+    {
+        public string? Id { get; set; }
+        public string? Status { get; set; }
+        public string? CheckoutPaymentIntent { get; set; }
+        public string? CreateTime { get; set; }
+        public string? ExpirationTime { get; set; }
+        public string? UpdateTime { get; set; }
+    }
 }
 

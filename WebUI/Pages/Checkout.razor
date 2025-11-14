@@ -188,12 +188,61 @@
     private string ShippingFeeFormatted => ShippingFee == 0 ? "Miễn phí" : $"{ShippingFee:N0}đ";
     private string TotalFormatted => $"{Total:N0}đ";
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        // Pull selections from CartService
-        if (CartService.SelectedApiCartItemIds.Any())
+        // Load selected items from CartService
+        await LoadSelectedItems();
+        
+        // If no items selected, redirect back to cart
+        if (!HasAnySelection)
         {
-            // NOTE: In a real app, fetch details again; here we reuse from header/cart by calling GetCartFromApiAsync if needed
+            Navigation.NavigateTo("/cart");
+        }
+    }
+
+    private async Task LoadSelectedItems()
+    {
+        try
+        {
+            // Check if user is authenticated and has API cart items selected
+            var apiCart = await CartService.GetCartFromApiAsync();
+            
+            if (apiCart != null && apiCart.Items.Any())
+            {
+                if (CartService.SelectedApiCartItemIds.Any())
+                {
+                    // Filter API cart items based on selected IDs
+                    SelectedApiItems = apiCart.Items
+                        .Where(i => CartService.SelectedApiCartItemIds.Contains(i.CartItemID))
+                        .ToList();
+                }
+                else
+                {
+                    // No selection, use all items
+                    SelectedApiItems = apiCart.Items.ToList();
+                }
+            }
+            else
+            {
+                // Use local cart items for guest users
+                var localAll = CartService.GetItems();
+                
+                if (CartService.SelectedLocalProductIds.Any())
+                {
+                    SelectedLocalItems = localAll
+                        .Where(i => CartService.SelectedLocalProductIds.Contains(i.Product.Id))
+                        .ToList();
+                }
+                else
+                {
+                    // No selection, use all items
+                    SelectedLocalItems = localAll.ToList();
+                }
+            }
+        }
+        catch
+        {
+            // Silent error handling
         }
     }
 
@@ -201,17 +250,6 @@
     {
         if (firstRender)
         {
-            // Load API cart and filter selected items
-            var apiCart = await CartService.GetCartFromApiAsync();
-            if (apiCart != null && apiCart.Items.Any())
-            {
-                SelectedApiItems = apiCart.Items.Where(i => CartService.SelectedApiCartItemIds.Contains(i.CartItemID)).ToList();
-            }
-            else
-            {
-                var localAll = CartService.GetItems();
-                SelectedLocalItems = localAll.Where(i => CartService.SelectedLocalProductIds.Contains(i.Product.Id)).ToList();
-            }
             StateHasChanged();
         }
     }

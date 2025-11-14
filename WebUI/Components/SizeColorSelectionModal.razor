@@ -174,9 +174,21 @@
     {
         if (IsVisible && modalShellRef.HasValue)
         {
-            // Ensure modal is visible and centered when opened
+            // Lock body scroll and ensure modal is centered
             await JSRuntime.InvokeVoidAsync("eval", @"
                 (function() {
+                    // Lock body scroll
+                    document.body.style.overflow = 'hidden';
+                    document.body.style.paddingRight = (window.innerWidth - document.documentElement.clientWidth) + 'px';
+                    // Add global overlay class for full-width dark backdrop
+                    document.body.classList.add('modal-open-overlay');
+                    
+                    // Move modal overlay to body to escape any parent containers
+                    const modalOverlay = document.querySelector('.modal-overlay');
+                    if (modalOverlay && modalOverlay.parentElement !== document.body) {
+                        document.body.appendChild(modalOverlay);
+                    }
+                    
                     const modal = document.querySelector('.modal-shell');
                     if (modal) {
                         // Wait for layout to complete
@@ -190,6 +202,15 @@
                         }, 50);
                     }
                 })();
+            ");
+        }
+        else if (!IsVisible)
+        {
+            // Restore body scroll when modal closes
+            await JSRuntime.InvokeVoidAsync("eval", @"
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+                document.body.classList.remove('modal-open-overlay');
             ");
         }
     }
