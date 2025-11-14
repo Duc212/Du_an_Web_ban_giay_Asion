@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.JSInterop;
 using WebUI.Models;
 using WebUI.Models.Cart;
 using WebUI.Services.Interfaces;
@@ -21,16 +22,16 @@ namespace WebUI.Services
         private readonly HttpClient _httpClient;
         private readonly ConfigurationService _configService;
         private readonly IAuthService? _authService;
-        
+
         // Selected items for checkout (API cart item IDs)
         public HashSet<int> SelectedApiCartItemIds { get; set; } = new();
-        
+
         // Selected items for checkout (local cart product IDs)
         public HashSet<int> SelectedLocalProductIds { get; set; } = new();
-        
+
         // Checkout information
         public CheckoutInfo? CheckoutInfo { get; set; }
-        
+
         public event Action? OnCartChanged;
 
         public CartService(HttpClient httpClient, ConfigurationService configService, IAuthService authService)
@@ -41,16 +42,16 @@ namespace WebUI.Services
         }
 
         public List<CartItem> GetItems() => _items.ToList();
-        
+
         public int GetTotalItems() => _items.Sum(item => item.Quantity);
-        
+
         public decimal GetTotalPrice() => _items.Sum(item => item.TotalPrice);
 
         public void AddItem(Product product, int quantity = 1, string? size = null, string? color = null)
         {
-            var existingItem = _items.FirstOrDefault(item => 
-                item.Product.Id == product.Id && 
-                item.SelectedSize == size && 
+            var existingItem = _items.FirstOrDefault(item =>
+                item.Product.Id == product.Id &&
+                item.SelectedSize == size &&
                 item.SelectedColor == color);
 
             if (existingItem != null)
@@ -222,7 +223,7 @@ namespace WebUI.Services
                 if (_authService != null && !string.IsNullOrEmpty(_authService.CurrentToken))
                 {
                     httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
-                        "Bearer", 
+                        "Bearer",
                         _authService.CurrentToken
                     );
                 }
@@ -337,7 +338,7 @@ namespace WebUI.Services
                     var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<CartSummaryResponse>>(
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
                     );
-                    
+
                     return apiResponse?.Data;
                 }
 
@@ -365,7 +366,7 @@ namespace WebUI.Services
 
                 var apiBaseUrl = await _configService.GetApiBaseUrlAsync();
                 var httpRequest = new HttpRequestMessage(
-                    HttpMethod.Post, 
+                    HttpMethod.Post,
                     $"{apiBaseUrl}/api/Cart/RemoveCartItem?cartItemId={cartItemId}"
                 );
 

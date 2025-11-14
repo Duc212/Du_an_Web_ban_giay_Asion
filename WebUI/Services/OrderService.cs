@@ -7,7 +7,7 @@ namespace WebUI.Services
 {
     public interface IOrderService
     {
-        Task<CreateOrderResponse> CreateOrderAsync(CreateOrderRequest request);
+    Task<CommonResponse<int>> CreateOrderAsync(CreateOrderRequest request);
         Task<Order?> GetOrderByIdAsync(string orderId);
         Task<List<Order>> GetOrderHistoryAsync();
     }
@@ -25,7 +25,7 @@ namespace WebUI.Services
             _authService = authService;
         }
 
-        public async Task<CreateOrderResponse> CreateOrderAsync(CreateOrderRequest request)
+        public async Task<CommonResponse<int>> CreateOrderAsync(CreateOrderRequest request)
         {
             try
             {
@@ -50,42 +50,16 @@ namespace WebUI.Services
 
                 if (response.IsSuccessStatusCode)
                 {
-                    // API trả về CommonResponse<bool>
-                    var apiResponse = await response.Content.ReadFromJsonAsync<CommonResponse<bool>>(
+                    // API trả về CommonResponse<int>
+                    var apiResponse = await response.Content.ReadFromJsonAsync<CommonResponse<int>>(
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
                     );
-
-                    if (apiResponse != null && apiResponse.Success)
-                    {
-                        // Lấy OrderID từ response hoặc từ request (nếu API trả về)
-                        // Tạm thời dùng timestamp làm OrderNumber
-                        return new CreateOrderResponse
-                        {
-                            Success = true,
-                            Message = apiResponse.Message ?? "Đặt hàng thành công",
-                            Data = new OrderData
-                            {
-                                OrderId = DateTime.Now.Ticks.ToString(), // Tạm thời, cần lấy từ API response
-                                OrderNumber = DateTime.Now.Ticks.ToString(),
-                                Status = "pending",
-                                TotalAmount = 0, // Sẽ tính từ order details
-                                CreatedAt = DateTime.Now
-                            }
-                        };
-                    }
-                    else
-                    {
-                        return new CreateOrderResponse
-                        {
-                            Success = false,
-                            Message = apiResponse?.Message ?? "Tạo đơn hàng thất bại"
-                        };
-                    }
+                    return apiResponse ?? new CommonResponse<int> { Success = false, Message = "Không nhận được phản hồi từ API" };
                 }
                 else
                 {
                     Console.WriteLine($"[OrderService] CreateOrder failed: {response.StatusCode} - {responseContent}");
-                    return new CreateOrderResponse
+                    return new CommonResponse<int>
                     {
                         Success = false,
                         Message = $"Tạo đơn hàng thất bại: {responseContent}"
@@ -96,10 +70,11 @@ namespace WebUI.Services
             {
                 Console.WriteLine($"[OrderService] Exception in CreateOrderAsync: {ex.Message}");
                 Console.WriteLine($"[OrderService] StackTrace: {ex.StackTrace}");
-                return new CreateOrderResponse
+                return new CommonResponse<int>
                 {
                     Success = false,
-                    Message = $"Lỗi khi tạo đơn hàng: {ex.Message}"
+                    Message = $"Lỗi khi tạo đơn hàng: {ex.Message}",
+                    Data = 0
                 };
             }
         }

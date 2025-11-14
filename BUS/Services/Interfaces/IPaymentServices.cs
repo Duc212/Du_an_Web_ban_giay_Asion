@@ -11,5 +11,8 @@ namespace BUS.Services.Interfaces
     {
         Task<CommonResponse<VNPayPaymentRes>> CreateVNPayPaymentUrl(VNPayPaymentReq request, string ipAddress);
         Task<CommonResponse<VNPayReturnRes>> ProcessVNPayReturn(IQueryCollection queryParams);
+        Task<CommonResponse<string>> PaymentGPay(PaymentGPayReq req);
+        Task<CommonResponse<string>> CreateOrder(decimal amount, string currency); // S?a method nh?n thêm currency
+        Task<CommonResponse<PayPalOrderRes>> CaptureOrder(string orderId);
     }
 }

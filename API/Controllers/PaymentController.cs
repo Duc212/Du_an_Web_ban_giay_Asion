@@ -4,6 +4,7 @@ using DAL.DTOs.Payments.Res;
 using DAL.Entities;
 using Helper.Utils;
 using Microsoft.AspNetCore.Mvc;
+using PayPalCheckoutSdk.Payments;
 
 namespace API.Controllers
 {
@@ -86,6 +87,23 @@ namespace API.Controllers
             }
 
             return Ok(new { RspCode = "97", Message = "Checksum failed" });
+        }
+        [HttpPost]
+        [Route("PayMentGpay")]
+        public async Task<CommonResponse<string>> PaymentGPay(PaymentGPayReq request)
+        {
+            return await _paymentServices.PaymentGPay(request);
+        }
+        [HttpPost("CreatePayPal")]
+        public async Task<CommonResponse<string>> CreateOrder([FromBody] PaymentPayPalReq request)
+        {
+            return await _paymentServices.CreateOrder(request.Amount, request.Currency);
+        }
+
+        [HttpPost("CapturePayPal")]
+        public async Task<CommonResponse<PayPalOrderRes>> CaptureOrder([FromBody] CaptureReq request)
+        {
+            return await _paymentServices.CaptureOrder(request.OrderId);
         }
     }
 }

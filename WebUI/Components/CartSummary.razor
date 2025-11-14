@@ -3,6 +3,7 @@
 @using WebUI.Models.Cart
 @inject CartService CartService
 @inject IAuthService AuthService
+@inject NavigationManager NavigationManager
 @implements IDisposable
 
 <div class="cart-summary">
@@ -237,6 +238,19 @@
     private void GoToCheckout()
     {
         ShowDropdown = false;
+
+        // Lưu các sản phẩm được chọn vào CartService
+        if (AuthService.IsAuthenticated && ApiCart?.Items != null)
+        {
+            CartService.SelectedApiCartItemIds = ApiCart.Items.Select(i => i.CartItemID).ToHashSet();
+        }
+        else
+        {
+            CartService.SelectedLocalProductIds = CartItems.Select(i => i.Product.Id).ToHashSet();
+        }
+
+        // Chuyển hướng sang trang checkout
+        NavigationManager.NavigateTo("/checkout");
     }
 
     private string FormatPrice(decimal price)

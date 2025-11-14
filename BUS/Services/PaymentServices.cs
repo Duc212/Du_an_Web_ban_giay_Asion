@@ -1,4 +1,5 @@
-﻿using BUS.Services.Interfaces;
+﻿using Azure.Core;
+using BUS.Services.Interfaces;
 using DAL.DTOs.Payments.Req;
 using DAL.DTOs.Payments.Res;
 using DAL.Entities;
@@ -9,22 +10,33 @@ using Helper.VNPay;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using PayPalCheckoutSdk.Core;
+using PayPalCheckoutSdk.Orders;
+using Stripe;
+using System.Text.Json;
+using PayPalOrder = PayPalCheckoutSdk.Orders.Order;
 
 namespace BUS.Services
 {
     public class PaymentServices : IPaymentServices
     {
         private readonly IConfiguration _configuration;
-        private readonly IRepositoryAsync<Order> _orderRepository;
+        private readonly IRepositoryAsync<DAL.Models.Order> _orderRepository;
         private readonly IRepositoryAsync<Payment> _paymentRepository;
-
+        private readonly PayPalHttpClient _client;
         public PaymentServices(
       IConfiguration configuration,
-       IRepositoryAsync<Order> orderRepository,
+       IRepositoryAsync<DAL.Models.Order> orderRepository,
          IRepositoryAsync<Payment> paymentRepository)
         {
             _configuration = configuration;
             _orderRepository = orderRepository;
+            var environment = new SandboxEnvironment(
+ _configuration["PayPal:ClientId"], // lấy từ appsettings
+ _configuration["PayPal:ClientSecret"] // lấy từ appsettings
+);
+
+            _client = new PayPalHttpClient(environment);
             _paymentRepository = paymentRepository;
         }
 
@@ -91,6 +103,80 @@ namespace BUS.Services
                     Message = $"Lỗi: {ex.Message}"
                 };
             }
+        }
+
+        public async Task<CommonResponse<string>> PaymentGPay(PaymentGPayReq request)
+        {
+            var response = new CommonResponse<string>();
+            StripeConfiguration.ApiKey = _configuration["Stripe:SecretKey"];
+
+            try
+            {
+                string tokenId = ExtractStripeTokenId(request.Token);
+                var amount = GetStripeAmount(request.Amount, request.Currency);
+                var currency = NormalizeCurrency(request.Currency);
+
+                var options = new ChargeCreateOptions
+                {
+                    Amount = amount,
+                    Currency = currency,
+                    Description = request.Description ?? "Payment via GPay",
+                    Source = tokenId,
+                };
+
+                var chargeService = new ChargeService();
+                var charge = await chargeService.CreateAsync(options);
+
+                if (charge.Status == "succeeded")
+                {
+                    response.Success = true;
+                    response.Message = "Thanh toán thành công";
+                    response.Data = charge.Id;
+                }
+                else
+                {
+                    response.Success = false;
+                    response.Message = $"Thanh toán thất bại: {charge.Status}";
+                }
+            }
+            catch (StripeException ex)
+            {
+                response.Success = false;
+                response.Message = $"Stripe error: {ex.StripeError?.Message ?? ex.Message}";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = $"Lỗi hệ thống: {ex.Message}";
+            }
+
+            return response;
+        }
+
+        private static string ExtractStripeTokenId(string token)
+        {
+            try
+            {
+                var jsonDoc = JsonDocument.Parse(token);
+                if (jsonDoc.RootElement.TryGetProperty("id", out var idProp))
+                {
+                    return idProp.GetString() ?? token;
+                }
+            }
+            catch { }
+            return token;
+        }
+
+        private static long GetStripeAmount(long amount, string currency)
+        {
+            if ((currency?.ToLower() ?? "usd") == "usd")
+                return amount * 100; // Stripe USD dùng cent
+            return amount; // VND giữ nguyên
+        }
+
+        private static string NormalizeCurrency(string currency)
+        {
+            return (currency?.ToLower() == "vnd") ? "vnd" : "usd";
         }
 
         public async Task<CommonResponse<VNPayReturnRes>> ProcessVNPayReturn(IQueryCollection queryParams)
@@ -219,5 +305,87 @@ namespace BUS.Services
                 };
             }
         }
+
+        public async Task<CommonResponse<string>> CreateOrder(decimal amount, string currency)
+        {
+            try
+            {
+                var request = new OrdersCreateRequest();
+                request.Prefer("return=representation");
+                request.RequestBody(new OrderRequest
+                {
+                    CheckoutPaymentIntent = "CAPTURE",
+                    PurchaseUnits = new List<PurchaseUnitRequest>
+            {
+                new PurchaseUnitRequest
+                {
+                    AmountWithBreakdown = new AmountWithBreakdown
+                    {
+                        CurrencyCode = currency ?? "USD", // Sử dụng currency truyền vào
+                        Value = amount.ToString("F2") 
+                    }
+                }
+            }
+                });
+
+                var response = await _client.Execute(request);
+                var result = response.Result<PayPalOrder>();
+
+                return new CommonResponse<string>
+                {
+                    Success = true,
+                    Message = "Tạo đơn hàng thành công",
+                    Data = result.Id
+                };
+            }
+            catch (Exception ex)
+            {
+                return new CommonResponse<string>
+                {
+                    Success = false,
+                    Message = $"Lỗi khi tạo đơn hàng: {ex.Message}",
+                    Data = null
+                };
+            }
+        }
+
+        public async Task<CommonResponse<PayPalOrderRes>> CaptureOrder(string orderId)
+        {
+            try
+            {
+                var request = new OrdersCaptureRequest(orderId);
+                request.RequestBody(new OrderActionRequest());
+                var response = await _client.Execute(request);
+                var result = response.Result<PayPalOrder>();
+
+                var dto = new PayPalOrderRes
+                {
+                    Id = result.Id,
+                    Status = result.Status,
+                    CheckoutPaymentIntent = result.CheckoutPaymentIntent,
+                    CreateTime = result.CreateTime,
+                    ExpirationTime = result.ExpirationTime,
+                    UpdateTime = result.UpdateTime
+                };
+
+                return new CommonResponse<PayPalOrderRes>
+                {
+                    Success = true,
+                    Message = "Thanh toán thành công",
+                    Data = dto
+                };
+            }
+            catch (Exception ex)
+            {
+                return new CommonResponse<PayPalOrderRes>
+                {
+                    Success = false,
+                    Message = $"Lỗi khi xác nhận đơn hàng: {ex.Message}",
+                    Data = null
+                };
+            }
+        }
+
+
     }
 }

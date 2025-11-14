@@ -1,7 +1,7 @@
 ﻿using AdminWeb;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using AdminWeb.Services;
+//using AdminWeb.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -11,7 +11,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
 // Thêm ProductService vào DI container
-builder.Services.AddScoped<ProductService>();
+//builder.Services.AddScoped<ProductService>();
 
 // Nếu cần sử dụng API base URL từ cấu hình
 // builder.Services.AddHttpClient<ProductService>(client =>

@@ -32,7 +32,7 @@ namespace WebUI.Constants
 
         // Order endpoints
         public const string Orders = "/api/Orders";
-        public const string CreateOrder = "/api/Orders/create";
+        public const string CreateOrder = "/api/Orders/CreateOrder";
         public const string OrderDetails = "/api/Orders/{0}";
         public const string OrderHistory = "/api/Orders/history";
 

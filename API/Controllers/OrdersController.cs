@@ -20,7 +20,7 @@ namespace API.Controllers
         }
         [HttpPost]
         [Route("CreateOrder")]
-        public async Task<CommonResponse<bool>> CreateOrder([FromBody] CreateOrderReq createOrder)
+        public async Task<CommonResponse<int>> CreateOrder([FromBody] CreateOrderReq createOrder)
         {
             var result = await _orderServices.CreateOrder(createOrder);
             return result;
@@ -47,6 +47,7 @@ namespace API.Controllers
         }
         [HttpGet]
         [Route("GetListOrderByUser")]
+        [BAuthorize]
         public async Task<CommonPagination<List<GetOrderRes>>> GetListOrder(int CurrentPage, int RecordPerPage)
         {
             var userId = HttpContextHelper.GetUserId();

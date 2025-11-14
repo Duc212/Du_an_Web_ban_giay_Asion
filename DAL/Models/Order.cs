@@ -30,7 +30,7 @@ namespace DAL.Models
         [MaxLength(200)]
         public string? Address { get; set; }
         [MaxLength(200)]
-        public string Note { get; set; }
+        public string? Note { get; set; }
 
         // Navigation
         public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();

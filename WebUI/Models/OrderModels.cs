@@ -7,7 +7,7 @@ namespace WebUI.Models
     {
         public int UserID { get; set; }
         public int PaymentID { get; set; }
-        public int VoucherID { get; set; }
+        public int? VoucherID { get; set; } = null;
         public string OrderType { get; set; } = "online";
         public string Address { get; set; } = string.Empty;
         public string? Note { get; set; }

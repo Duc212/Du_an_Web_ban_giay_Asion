@@ -1,0 +1,211 @@
+/* ===============================
+   Payment Result Page (Final CSS)
+   =============================== */
+
+:root {
+    --success: #16a34a;
+    --success-light: #dcfce7;
+    --fail: #dc2626;
+    --fail-light: #fee2e2;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --bg: #f9fafb;
+    --card: #ffffff;
+    --border: #e5e7eb;
+    --radius: 16px;
+    --shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+/* ===== Layout ===== */
+.ps-wrap {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--bg);
+    padding: 20px;
+}
+
+.ps-card {
+    width: 100%;
+    max-width: 450px;
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 36px 28px 40px;
+    text-align: center;
+    color: var(--text);
+    animation: fadeIn 0.6s ease both;
+}
+
+/* ===== Icon Section ===== */
+.ps-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 22px;
+}
+
+.ps-icon svg {
+    width: 84px;
+    height: 84px;
+}
+
+/* Vòng tròn màu theo trạng thái */
+.ps-icon.success circle {
+    fill: var(--success-light);
+    stroke: var(--success);
+    stroke-width: 2;
+}
+.ps-icon.fail circle {
+    fill: var(--fail-light);
+    stroke: var(--fail);
+    stroke-width: 2;
+}
+
+/* Dấu check (thành công) */
+.ps-icon.success path {
+    stroke: var(--success);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    animation: draw 0.7s ease forwards;
+}
+
+/* Dấu X (thất bại) */
+.ps-icon.fail path {
+    stroke: var(--fail);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    animation: draw 0.7s ease forwards;
+}
+
+/* ===== Text ===== */
+h1 {
+    font-size: 26px;
+    font-weight: 700;
+    margin: 10px 0 6px;
+}
+.subtitle {
+    color: var(--muted);
+    font-size: 15px;
+    margin-bottom: 20px;
+}
+
+/* ===== Info ===== */
+.ps-info {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 0;
+    margin-bottom: 24px;
+}
+.ps-info .row {
+    display: flex;
+    justify-content: space-between;
+    margin: 8px 0;
+    font-size: 15px;
+}
+.ps-info span { color: var(--muted); }
+.ps-info strong { color: var(--text); font-weight: 600; }
+
+/* ===== Buttons ===== */
+.ps-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.btn {
+    padding: 10px 22px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+/* Nút chính: Xanh lá đậm, gradient, luôn màu xanh */
+.btn.primary {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);
+    border: 1px solid #15803d;
+}
+.btn.primary:hover {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(22, 163, 74, 0.4);
+}
+.btn.primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);
+}
+
+/* Nút phụ: xám nhạt */
+.btn.ghost {
+    background: #f3f4f6;
+    color: var(--text);
+}
+.btn.ghost:hover {
+    background: #e5e7eb;
+    transform: translateY(-2px);
+}
+
+/* ===== Hint ===== */
+.hint {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+/* ===== Animations ===== */
+@keyframes draw {
+    from { stroke-dasharray: 0 100; opacity: 0.5; }
+    to   { stroke-dasharray: 100 0; opacity: 1; }
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 480px) {
+    .ps-card { padding: 28px 18px; }
+    .btn { width: 100%; }
+    .ps-actions { flex-direction: column; }
+}
+
+/* ===== Dark Mode ===== */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #0f172a;
+        --card: #1e293b;
+        --text: #f1f5f9;
+        --muted: #94a3b8;
+        --border: #334155;
+        --success-light: #064e3b;
+        --fail-light: #450a0a;
+        --shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+    }
+
+    .btn.primary {
+        background: linear-gradient(135deg, #22c55e, #15803d);
+        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.45);
+        border: 1px solid #15803d;
+    }
+    .btn.primary:hover {
+        background: linear-gradient(135deg, #34d399, #16a34a);
+    }
+
+    .btn.ghost {
+        background: #334155;
+        color: var(--text);
+    }
+    .btn.ghost:hover {
+        background: #475569;
+    }
+}

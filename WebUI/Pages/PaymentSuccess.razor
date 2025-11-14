@@ -1,0 +1,121 @@
+@page "/payment-success"
+@using Microsoft.AspNetCore.Components
+@inject NavigationManager Navigation
+
+<PageTitle>Thanh toán</PageTitle>
+
+@code {
+    private string? transactionId;
+    private string? rawAmount;
+    private string amountDisplay = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        var uri = new Uri(Navigation.Uri);
+        var queryParams = ParseQueryString(uri.Query);
+
+        transactionId = queryParams.TryGetValue("transactionId", out var tid) ? tid : null;
+        rawAmount     = queryParams.TryGetValue("amount",        out var amt) ? amt : null;
+
+        if (!string.IsNullOrWhiteSpace(rawAmount) &&
+            decimal.TryParse(rawAmount, System.Globalization.NumberStyles.Any,
+                             System.Globalization.CultureInfo.InvariantCulture, out var v))
+        {
+            amountDisplay = string.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:C0}", v);
+        }
+        else
+        {
+            amountDisplay = rawAmount ?? string.Empty;
+        }
+    }
+
+    // Hàm parse query string cho Blazor WebAssembly
+    private Dictionary<string, string> ParseQueryString(string query)
+    {
+        var dict = new Dictionary<string, string>();
+        if (string.IsNullOrWhiteSpace(query)) return dict;
+        // Loại bỏ dấu ? đầu tiên nếu có
+        if (query.StartsWith("?")) query = query.Substring(1);
+        foreach (var pair in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var kv = pair.Split('=', 2);
+            if (kv.Length == 2)
+            {
+                var key = Uri.UnescapeDataString(kv[0]);
+                var value = Uri.UnescapeDataString(kv[1]);
+                dict[key] = value;
+            }
+        }
+        return dict;
+    }
+
+    private void GoOrders() => Navigation.NavigateTo("/orders");
+    private void GoHome()   => Navigation.NavigateTo("/");
+}
+
+<style>
+.ps-icon.success .ring {
+    fill: #d1fae5 !important;
+}
+.ps-icon.success .check {
+    stroke: #22c55e !important;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none !important;
+}
+</style>
+
+@if (!string.IsNullOrWhiteSpace(transactionId) && !string.IsNullOrWhiteSpace(amountDisplay))
+{
+    <div class="ps-wrap">
+        <div class="ps-card">
+            <div class="ps-icon success" role="img" aria-label="Thanh toán thành công">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10" class="ring" fill="#d1fae5"></circle>
+                    <path d="M7 12l3 3 7-7" class="check" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+                </svg>
+            </div>
+
+            <h1>Thanh toán thành công</h1>
+            <p class="subtitle">Cảm ơn bạn! Thanh toán đã được xử lý.</p>
+
+            <div class="ps-info">
+                <div class="row">
+                    <span>Mã giao dịch</span>
+                    <strong>@transactionId</strong>
+                </div>
+                <div class="row">
+                    <span>Số tiền</span>
+                    <strong>@amountDisplay</strong>
+                </div>
+            </div>
+
+            <div class="ps-actions">
+                <button class="btn primary" @onclick="GoOrders">Xem đơn hàng</button>
+                <button class="btn ghost" @onclick="GoHome">Về trang chủ</button>
+            </div>
+
+            <p class="hint">Bạn sẽ nhận email xác nhận trong giây lát.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="ps-wrap">
+        <div class="ps-card">
+            <div class="ps-icon fail" role="img" aria-label="Thanh toán thất bại">
+                <!-- SVG thất bại: dấu X đỏ -->
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10" fill="#fee2e2"></circle>
+                    <path d="M8 8l8 8M16 8l-8 8" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+                </svg>
+            </div>
+            <h1>Thanh toán thất bại</h1>
+            <p class="subtitle">Không tìm thấy thông tin giao dịch hoặc giao dịch không thành công.</p>
+            <div class="ps-actions">
+                <button class="btn ghost" @onclick="GoHome">Về trang chủ</button>
+            </div>
+        </div>
+    </div>
+}

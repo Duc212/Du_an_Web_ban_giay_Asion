@@ -4,35 +4,45 @@ using WebUI;
 using WebUI.Services;
 using WebUI.Services.Interfaces;
 
-var builder = WebAssemblyHostBuilder.CreateDefault(args);
-builder.RootComponents.Add<App>("#app");
-builder.RootComponents.Add<HeadOutlet>("head::after");
+public partial class Program
+{
+    public static IServiceProvider? ServiceProvider { get; set; }
 
-// Register Configuration Service first
-builder.Services.AddScoped<ConfigurationService>();
+    public static async Task Main(string[] args)
+    {
+        var builder = WebAssemblyHostBuilder.CreateDefault(args);
+        builder.RootComponents.Add<App>("#app");
+        builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// Register base HttpClient (without auth)
-builder.Services.AddScoped(sp => new HttpClient 
-{ 
-    BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) 
-});
+        // Register Configuration Service first
+        builder.Services.AddScoped<ConfigurationService>();
 
-// Register Auth Service
-builder.Services.AddScoped<IAuthService, AuthService>();
+        // Register base HttpClient (without auth)
+        builder.Services.AddScoped(sp => new HttpClient
+        {
+            BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
+        });
 
-// Register other Services
-builder.Services.AddScoped<CartService>();
-builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddScoped<OrderService>();
-builder.Services.AddScoped<IPaymentService, PaymentService>();
+        // Register Auth Service
+        builder.Services.AddScoped<IAuthService, AuthService>();
 
-// Register Google Auth Service
-builder.Services.AddScoped<GoogleAuthService>();
+        // Register other Services
+        builder.Services.AddScoped<CartService>();
+        builder.Services.AddScoped<IProductService, ProductService>();
+        builder.Services.AddScoped<OrderService>();
+        builder.Services.AddScoped<IPaymentService, PaymentService>();
 
-// Register Loading Service
-builder.Services.AddScoped<ILoadingService, LoadingService>();
+        // Register Google Auth Service
+        builder.Services.AddScoped<GoogleAuthService>();
 
-// Register Toast Service
-builder.Services.AddSingleton<IToastService, ToastService>();
+        // Register Loading Service
+        builder.Services.AddScoped<ILoadingService, LoadingService>();
 
-await builder.Build().RunAsync();
+        // Register Toast Service
+        builder.Services.AddSingleton<IToastService, ToastService>();
+
+        var host = builder.Build();
+        ServiceProvider = host.Services;
+        await host.RunAsync();
+    }
+}

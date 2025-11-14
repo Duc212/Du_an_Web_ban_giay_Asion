@@ -47,7 +47,7 @@ namespace BUS.Services
             var ordersPage = await _orderRepository.AsQueryable()
                 .Where(o => o.UserID == userId)
                 .OrderByDescending(o => o.OrderDate)
-                .Skip((CurrentPage - 1) * RecordPerPage)
+                .Skip((CurrentPage -1) * RecordPerPage)
                 .Take(RecordPerPage)
                 .ToListAsync();
 
@@ -82,69 +82,86 @@ namespace BUS.Services
                 .Where(c => colorIds.Contains(c.ColorID))
                 .ToListAsync();
 
-            var user = await _userRepository.AsQueryable().FirstOrDefaultAsync(u => u.UserID == userId);
-            var address = await _addressRepository.AsQueryable().FirstOrDefaultAsync(a => a.UserID == userId);
+            // LEFT JOIN user
+            var userIds = ordersPage.Select(o => o.UserID).Distinct().ToList();
+            var users = await _userRepository.AsQueryable()
+                .Where(u => userIds.Contains(u.UserID))
+                .ToListAsync();
 
-            var data = ordersPage.Select(o => new GetOrderRes
-            {
-                OrderId = o.OrderID.ToString(),
-                OrderNumber = o.OrderCode,
-                UserId = o.UserID?.ToString() ?? string.Empty,
-                ReceiverName = user?.FullName ?? string.Empty,
-                ReceiverPhone = user?.Phone ?? string.Empty,
-                ReceiverEmail = user?.Email ?? string.Empty,
-                ShippingAddress = address?.AddressDetail ?? o.Address ?? string.Empty,
-                Ward = address?.Ward ?? string.Empty,
-                District = address?.Street ?? string.Empty,
-                City = address?.City ?? string.Empty,
-                Status = o.Status.ToString(),
-                PaymentMethod = string.Empty,
-                PaymentStatus = string.Empty,
-                SubTotal =0,
-                ShippingFee =0,
-                Discount =0,
-                TotalAmount = o.TotalAmount,
-                CreatedAt = o.OrderDate,
-                Items = orderDetails.Where(od => od.OrderID == o.OrderID).Select(od => {
-                    var variant = variants.FirstOrDefault(v => v.VariantID == od.VariantID);
-                    var product = products.FirstOrDefault(p => p.ProductID == variant?.ProductID);
-                    var brand = brands.FirstOrDefault(b => b.BrandID == product?.BrandId);
-                    var size = sizes.FirstOrDefault(s => s.SizeID == variant?.SizeID);
-                    var color = colors.FirstOrDefault(c => c.ColorID == variant?.ColorID);
-                    return new GetOrderItemRes
-                    {
-                        OrderItemId = od.OrderDetailID.ToString(),
-                        ProductId = product?.ProductID ??0,
-                        ProductName = product?.Name ?? string.Empty,
-                        Brand = brand?.Name ?? string.Empty,
-                        Quantity = od.Quantity,
-                        Price = variant?.SellingPrice ??0,
-                        SelectedSize = size?.Value ?? string.Empty,
-                        SelectedColor = color?.Name ?? string.Empty,
-                        ImageUrl = product?.ImageUrl ?? string.Empty
-                    };
-                }).ToList()
+            // LEFT JOIN voucher
+            var voucherIds = ordersPage.Where(o => o.VoucherID.HasValue).Select(o => o.VoucherID.Value).Distinct().ToList();
+            var vouchers = voucherIds.Count >0
+                ? await _voucherRepository.AsQueryable().Where(v => voucherIds.Contains(v.VoucherID)).ToListAsync()
+                : new List<Voucher>();
+
+            // LEFT JOIN address
+            var addresses = await _addressRepository.AsQueryable()
+                .Where(a => userIds.Contains(a.UserID))
+                .ToListAsync();
+
+            var data = ordersPage.Select(o => {
+                var user = users.FirstOrDefault(u => u.UserID == o.UserID);
+                var address = addresses.FirstOrDefault(a => a.UserID == o.UserID);
+                var voucher = o.VoucherID.HasValue ? vouchers.FirstOrDefault(v => v.VoucherID == o.VoucherID.Value) : null;
+                return new GetOrderRes
+                {
+                    OrderId = o.OrderID.ToString(),
+                    OrderNumber = o.OrderCode,
+                    UserId = o.UserID?.ToString() ?? string.Empty,
+                    ReceiverName = user?.FullName ?? string.Empty,
+                    ReceiverPhone = user?.Phone ?? string.Empty,
+                    ReceiverEmail = user?.Email ?? string.Empty,
+                    ShippingAddress = address?.AddressDetail ?? o.Address ?? string.Empty,
+                    Status = o.Status.ToString(),
+                    PaymentMethod = string.Empty,
+                    PaymentStatus = string.Empty,
+                    SubTotal =0,
+                    ShippingFee =0,
+                    Discount = voucher?.DiscountValue ??0,
+                    TotalAmount = o.TotalAmount,
+                    CreatedAt = o.OrderDate,
+                    Items = orderDetails.Where(od => od.OrderID == o.OrderID).Select(od => {
+                        var variant = variants.FirstOrDefault(v => v.VariantID == od.VariantID);
+                        var product = products.FirstOrDefault(p => p.ProductID == variant?.ProductID);
+                        var brand = brands.FirstOrDefault(b => b.BrandID == product?.BrandId);
+                        var size = sizes.FirstOrDefault(s => s.SizeID == variant?.SizeID);
+                        var color = colors.FirstOrDefault(c => c.ColorID == variant?.ColorID);
+                        return new GetOrderItemRes
+                        {
+                            OrderItemId = od.OrderDetailID.ToString(),
+                            ProductId = product?.ProductID ??0,
+                            ProductName = product?.Name ?? string.Empty,
+                            Brand = brand?.Name ?? string.Empty,
+                            Quantity = od.Quantity,
+                            Price = variant?.SellingPrice ??0,
+                            SelectedSize = size?.Value ?? string.Empty,
+                            SelectedColor = color?.Name ?? string.Empty,
+                            ImageUrl = product?.ImageUrl ?? string.Empty
+                        };
+                    }).ToList()
+                };
             }).ToList();
 
             return new CommonPagination<List<GetOrderRes>>
             {
                 Success = true,
-                Message = "Lấy danh sách đơn hàng thành công.",
+                Message = "Lấy danh sách đơn hàng thành công.",
                 Data = new List<List<GetOrderRes>> { data },
                 TotalRecord = await _orderRepository.AsQueryable().CountAsync(o => o.UserID == userId)
             };
         }
-        public async Task<CommonResponse<bool>> CreateOrder(CreateOrderReq req)
+        public async Task<CommonResponse<int>> CreateOrder(CreateOrderReq req)
         {
             try
             {
+                int orderId = 0; // khai báo bên ngoài để lưu lại ID
+
                 await _unitOfWork.ExecuteInTransactionAsync(async () =>
                 {
-
                     var order = new Order
                     {
-                        UserID = req.UserID,
-                        VoucherID = req.VoucherID ?? 0,
+                        UserID = req.UserID > 0 ? req.UserID : null,
+                        VoucherID = req.VoucherID > 0 ? req.VoucherID : null,
                         OrderType = req.OrderType,
                         Address = req.Address,
                         Note = req.Note,
@@ -191,20 +208,24 @@ namespace BUS.Services
                     await _variantRepository.SaveChangesAsync();
                     await _orderDetailRepository.SaveChangesAsync();
                     await _orderRepository.SaveChangesAsync();
+
+                    orderId = order.OrderID;
                 });
 
-                return new CommonResponse<bool>
+                return new CommonResponse<int>
                 {
                     Success = true,
-                    Message = "Tạo đơn hàng thành công."
+                    Message = "Tạo đơn hàng thành công.",
+                    Data = orderId
                 };
             }
             catch (Exception ex)
             {
-                return new CommonResponse<bool>
+                return new CommonResponse<int>
                 {
                     Success = false,
-                    Message = $"Lỗi khi tạo đơn hàng: {ex.Message}"
+                    Message = $"Lỗi khi tạo đơn hàng: {ex.Message}",
+                    Data = 0
                 };
             }
         }

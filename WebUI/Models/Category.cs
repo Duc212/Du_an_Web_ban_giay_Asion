@@ -10,5 +10,5 @@ public class Category
 public class GetListBrand
 {
     public int brandID { get; set; }
-    public string name { get; set; }
+    public string name { get; set; } = string.Empty;
 }
