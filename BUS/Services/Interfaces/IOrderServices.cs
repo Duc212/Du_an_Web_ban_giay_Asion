@@ -1,5 +1,6 @@
 ﻿using DAL.DTOs.Orders.Req;
 using DAL.DTOs.Orders.Res;
+using DAL.DTOs.Payments.Req;
 using DAL.Entities;
 
 namespace BUS.Services.Interfaces
@@ -12,5 +13,6 @@ namespace BUS.Services.Interfaces
         Task<CommonResponse<GetOrderDetailRes>> GetOrderDetail(int OrderID);
         Task<CommonResponse<bool>> ConfirmOrderAsync(ConfirmOrderReq req);
         Task<CommonPagination<List<GetOrderRes>>> GetOrdersByUserId(int userId, int CurrentPage, int RecordPerPage);
+        Task<CommonResponse<bool>> UpdateStatusPayment(UpdatePaymentReq req);
     }
 }

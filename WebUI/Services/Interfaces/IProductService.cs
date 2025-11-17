@@ -11,7 +11,7 @@ namespace WebUI.Services.Interfaces
         /// <summary>
         /// Lấy danh sách tất cả sản phẩm với phân trang
         /// </summary>
-        Task<List<Product>> GetAllProductsAsync(int? categoryId = null, int currentPage = 1, int recordPerPage = 12);
+        Task<List<Product>> GetAllProductsAsync(ProductLandingFilterType? filterType = null, int? categoryId = null, int currentPage = 1, int recordPerPage = 12);
 
         /// <summary>
         /// Lấy sản phẩm theo ID
@@ -26,7 +26,7 @@ namespace WebUI.Services.Interfaces
         /// <summary>
         /// Lấy sản phẩm theo danh mục (deprecated - use GetAllProductsAsync with categoryId instead)
         /// </summary>
-        Task<List<Product>> GetProductsByCategoryAsync(int categoryId) => GetAllProductsAsync(categoryId);
+        Task<List<Product>> GetProductsByCategoryAsync(int categoryId) => GetAllProductsAsync(null, categoryId);
 
         /// <summary>
         /// Tìm kiếm sản phẩm

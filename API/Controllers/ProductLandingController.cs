@@ -1,6 +1,7 @@
 ﻿using BUS.Services.Interfaces;
 using DAL.DTOs.Products.Res;
 using DAL.Entities;
+using DAL.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,9 +20,9 @@ namespace API.Controllers
 
         [HttpGet]
         [Route("GetListProduct")]
-        public async Task<CommonPagination<GetProductRes>> GetListProduct(int categoryId = -1, int currentPage = 1, int recordPerPage = 12)
+        public async Task<CommonPagination<GetProductRes>> GetListProduct(ProductLandingFilterType? filterType = null, int categoryId = -1, int currentPage = 1, int recordPerPage = 12)
         {
-            var result = await _productService.GetProductLanding(categoryId, currentPage, recordPerPage);
+            var result = await _productService.GetProductLanding(categoryId, currentPage, recordPerPage, filterType);
             return result;
         }
         [HttpGet]
@@ -44,6 +45,6 @@ namespace API.Controllers
         {
             return await _productService.GetListBrand();
         }
-        
+
     }
 }

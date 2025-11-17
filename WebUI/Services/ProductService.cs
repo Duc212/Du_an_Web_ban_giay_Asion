@@ -42,7 +42,7 @@ namespace WebUI.Services
             return _apiBaseUrl;
         }
 
-        public async Task<List<Product>> GetAllProductsAsync(int? categoryId = null, int currentPage = 1, int recordPerPage = 12)
+        public async Task<List<Product>> GetAllProductsAsync(ProductLandingFilterType? filterType = null, int? categoryId = null, int currentPage = 1, int recordPerPage = 12)
         {
             try
             {
@@ -50,6 +50,12 @@ namespace WebUI.Services
                 Console.WriteLine($"[ProductService] API Base URL: {apiBaseUrl}");
                 
                 var url = $"{apiBaseUrl}/api/ProductLanding/GetListProduct?currentPage={currentPage}&recordPerPage={recordPerPage}";
+                
+                if (filterType.HasValue)
+                {
+                    url += $"&filterType={(int)filterType.Value}";
+                }
+                
                 if (categoryId.HasValue)
                 {
                     url += $"&categoryId={categoryId}";
@@ -153,7 +159,7 @@ namespace WebUI.Services
 
         public async Task<List<Product>> GetProductsByCategoryAsync(int categoryId)
         {
-            return await GetAllProductsAsync(categoryId);
+            return await GetAllProductsAsync(null, categoryId);
         }
 
         public async Task<List<Product>> SearchProductsAsync(string searchTerm)

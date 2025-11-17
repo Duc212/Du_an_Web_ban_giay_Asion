@@ -404,7 +404,7 @@
     {
         var amount = GetFinalTotalAmount();
         // Chuyển VND sang USD (chia cho tỷ giá ~24000)
-        var amountInUSD = (amount / 24000m).ToString("F2");
+        var amountInUSD = (amount / 25000m).ToString("F2");
         await JSRuntime.InvokeVoidAsync("eval", $@"
             if (window.paypal) {{
                 paypal.Buttons({{
@@ -538,10 +538,8 @@
         {
             "cod" => 1, // COD
             "vnpay" => 2, // VNPay
-            "momo" => 3, // MoMo
-            "banking" => 4, // Banking
-            "gpay" => 5, // Google Pay
-            "paypal" => 6, // PayPal
+            "gpay" => 3, // Google Pay
+            "paypal" => 4, // PayPal
             _ => null
         };
     }
@@ -563,14 +561,12 @@
         }
         else if (checkoutInfo.SelectedLocalItems != null && checkoutInfo.SelectedLocalItems.Any())
         {
-            // Với local items, cần tìm VariantID từ Product
-            // TODO: Cần lấy VariantID từ Product service hoặc từ cart item
-            // Tạm thời dùng ProductId làm VariantID (cần sửa lại)
+            // Lấy VariantID từ CartItem
             foreach (var item in checkoutInfo.SelectedLocalItems)
             {
                 orderDetails.Add(new OrderDetailRequest
                 {
-                    VariantID = item.Product.Id, // Tạm thời, cần lấy đúng VariantID
+                    VariantID = item.VariantID > 0 ? item.VariantID : item.Product.Id,
                     Quantity = item.Quantity
                 });
             }
@@ -665,6 +661,8 @@
             IsProcessing = false;
             await ScrollToTop();
             await ToastService.ShowSuccess("Đặt hàng thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.");
+            // Cập nhật trạng thái thanh toán (1 = đã thanh toán COD khi xác nhận - giả định)
+            try { await OrderService.UpdatePaymentStatusAsync(orderId.Value, WebUI.Models.PaymentStatus.Paid); } catch { }
             StateHasChanged();
         }
         catch (Exception ex)
@@ -817,6 +815,7 @@
         var paymentService = serviceProvider.GetService(typeof(IPaymentService)) as IPaymentService;
         var nav = serviceProvider.GetService(typeof(NavigationManager)) as NavigationManager;
         var jsRuntime = serviceProvider.GetService(typeof(IJSRuntime)) as IJSRuntime;
+        var orderService = serviceProvider.GetService(typeof(IOrderService)) as IOrderService;
 
         if (paymentService == null || nav == null || jsRuntime == null) return;
 
@@ -843,6 +842,8 @@
         {
             // Clear localStorage
             await jsRuntime.InvokeVoidAsync("eval", "localStorage.removeItem('paypal_orderId')");
+            // Cập nhật trạng thái thanh toán (1 = đã thanh toán)
+            try { if (storeOrderId > 0 && orderService != null) await orderService.UpdatePaymentStatusAsync(storeOrderId, WebUI.Models.PaymentStatus.Paid); } catch { }
             nav.NavigateTo($"/payment-success?transactionId={payPalOrderId}&orderId={storeOrderId}");
         }
     }
@@ -858,6 +859,7 @@
         }
         var nav = serviceProvider.GetService(typeof(NavigationManager)) as NavigationManager;
         var paymentService = serviceProvider.GetService(typeof(IPaymentService)) as IPaymentService;
+        var orderService = serviceProvider.GetService(typeof(IOrderService)) as IOrderService;
         if (nav == null || paymentService == null)
         {
             return;
@@ -893,7 +895,9 @@
         var gpayResult = await paymentServiceSafe.CreateGPayPaymentAsync(gpayRequest);
         if (gpayResult != null && gpayResult.Success && !string.IsNullOrEmpty(gpayResult.TransactionId))
         {
-            navSafe.NavigateTo($"/payment-success?transactionId={gpayResult.TransactionId}&amount={gpayRequest.Amount}");
+            // Cập nhật trạng thái thanh toán (1 = đã thanh toán)
+            try { if (orderId > 0 && orderService != null) await orderService.UpdatePaymentStatusAsync(orderId, WebUI.Models.PaymentStatus.Paid); } catch { }
+            navSafe.NavigateTo($"/payment-success?transactionId={gpayResult.TransactionId}&amount={gpayRequest.Amount}&orderId={orderId}");
         }
     }
 }

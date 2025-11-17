@@ -3,6 +3,7 @@ using BUS.Services;
 using BUS.Services.Interfaces;
 using DAL.DTOs.Orders.Req;
 using DAL.DTOs.Orders.Res;
+using DAL.DTOs.Payments.Req;
 using DAL.Entities;
 using Helper.Utils;
 using Microsoft.AspNetCore.Mvc;
@@ -52,6 +53,12 @@ namespace API.Controllers
         {
             var userId = HttpContextHelper.GetUserId();
             return await _orderServices.GetOrdersByUserId(userId, CurrentPage, RecordPerPage);
+        }
+        [HttpPost]
+        [Route("UpdateStatusPayment")]
+        public async Task<CommonResponse<bool>> UpdateStatusPayment(UpdatePaymentReq req)
+        {
+            return await _orderServices.UpdateStatusPayment(req);
         }
     }
 }

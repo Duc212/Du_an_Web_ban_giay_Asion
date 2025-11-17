@@ -143,11 +143,14 @@
         if (CurrentProduct != null)
         {
             // Add to cart - sẽ tự động chọn local hoặc API dựa vào trạng thái login
+            // VariantID sẽ được xử lý bởi backend API dựa trên ProductId + Size + Color
+            // Local cart (guest) sẽ dùng variantId = 0 cho đến khi sync với API sau khi login
             var response = await CartService.AddToCartAsync(
                 CurrentProduct, 
                 Quantity, 
                 SelectedSize, 
                 SelectedColor
+                // variantId = 0 (default) - API backend sẽ tìm đúng VariantID
             );
 
             if (response.Success)

@@ -259,28 +259,27 @@ else
             IsLoading = true;
             StateHasChanged();
 
-            // Load products from real API
-            var apiResponse = await ProductService.GetProductsWithPaginationAsync(1, 20);
-            var allProducts = apiResponse.Data;
-
-            // Filter products for different sections
-            TrendingProducts = allProducts
-                .Where(p => p.HasBadge || p.Rating >= 4.0f)
-                .OrderByDescending(p => p.Rating)
-                .ThenByDescending(p => p.ReviewCount)
-                .ToList();
+            TrendingProducts = await ProductService.GetAllProductsAsync(
+                ProductLandingFilterType.WeeklyTrend, 
+                null, 
+                1, 
+                20
+            );
             
-            FeaturedProducts = allProducts
-                .Where(p => p.ReviewCount > 50 || p.HasBadge)
-                .OrderByDescending(p => p.ReviewCount)
-                .ThenByDescending(p => p.Rating)
-                .ToList();
+            NewProducts = await ProductService.GetAllProductsAsync(
+                ProductLandingFilterType.NewProducts, 
+                null, 
+                1, 
+                20
+            );
             
-            NewProducts = allProducts
-                .Where(p => p.Badge == "NEW" || p.Badge == "HOT")
-                .OrderByDescending(p => p.Id)
-                .ThenByDescending(p => p.Rating)
-                .ToList();
+            // Bộ Sưu Tập Nổi Bật - FeaturedCollections (discount >= 20%)
+            FeaturedProducts = await ProductService.GetAllProductsAsync(
+                ProductLandingFilterType.FeaturedCollections, 
+                null, 
+                1, 
+                20
+            );
         }
         catch
         {

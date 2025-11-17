@@ -39,8 +39,7 @@ namespace DAL.Models
         /// <summary>
         /// Trạng thái: Pending, Completed, Failed, Refunded
         /// </summary>
-        [MaxLength(50)]
-        public string Status { get; set; } = "Pending";
+        public int Status { get; set; }
 
         /// <summary>
         /// Ghi chú về thanh toán này

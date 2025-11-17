@@ -10,6 +10,7 @@ namespace WebUI.Services
     public class CartItem
     {
         public Product Product { get; set; } = new();
+        public int VariantID { get; set; } = 0;
         public int Quantity { get; set; } = 1;
         public string? SelectedSize { get; set; }
         public string? SelectedColor { get; set; }
@@ -72,7 +73,7 @@ namespace WebUI.Services
 
         public decimal GetTotalPrice() => _items.Sum(item => item.TotalPrice);
 
-        public void AddItem(Product product, int quantity = 1, string? size = null, string? color = null)
+        public void AddItem(Product product, int quantity = 1, string? size = null, string? color = null, int variantId = 0)
         {
             var existingItem = _items.FirstOrDefault(item =>
                 item.Product.Id == product.Id &&
@@ -88,6 +89,7 @@ namespace WebUI.Services
                 _items.Add(new CartItem
                 {
                     Product = product,
+                    VariantID = variantId,
                     Quantity = quantity,
                     SelectedSize = size,
                     SelectedColor = color
@@ -169,7 +171,7 @@ namespace WebUI.Services
         /// - Nếu đã login: Call API
         /// - Nếu chưa login (guest): Dùng local storage
         /// </summary>
-        public async Task<AddToCartResponse> AddToCartAsync(Product product, int quantity = 1, string? size = null, string? color = null)
+        public async Task<AddToCartResponse> AddToCartAsync(Product product, int quantity = 1, string? size = null, string? color = null, int variantId = 0)
         {
             try
             {
@@ -177,11 +179,11 @@ namespace WebUI.Services
 
                 if (isLoggedIn)
                 {
-                    return await AddToCartViaApiAsync(product, quantity, size, color);
+                    return await AddToCartViaApiAsync(product, quantity, size, color, variantId);
                 }
                 else
                 {
-                    AddItemLocally(product, quantity, size, color);
+                    AddItemLocally(product, quantity, size, color, variantId);
                     return new AddToCartResponse
                     {
                         Success = true,
@@ -200,7 +202,7 @@ namespace WebUI.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"[CartService] Error in AddToCartAsync: {ex.Message}");
-                AddItemLocally(product, quantity, size, color);
+                AddItemLocally(product, quantity, size, color, variantId);
                 return new AddToCartResponse
                 {
                     Success = true,
@@ -220,7 +222,7 @@ namespace WebUI.Services
         /// <summary>
         /// Call API để thêm vào giỏ hàng (cho user đã login)
         /// </summary>
-        private async Task<AddToCartResponse> AddToCartViaApiAsync(Product product, int quantity, string? size, string? color, bool updateLocal = true)
+        private async Task<AddToCartResponse> AddToCartViaApiAsync(Product product, int quantity, string? size, string? color, int variantId = 0, bool updateLocal = true)
         {
             try
             {
@@ -267,7 +269,7 @@ namespace WebUI.Services
                         if (updateLocal)
                         {
                             // Mirror locally for UI consistency
-                            AddItemLocally(product, quantity, size, color);
+                            AddItemLocally(product, quantity, size, color, variantId);
                         }
                         OnCartChanged?.Invoke();
                         return new AddToCartResponse
@@ -283,9 +285,9 @@ namespace WebUI.Services
                                 FinalAmount = apiResponse.Data.TotalAmount
                             } : null
                         };
-                    }
+                    };
                 }
-                AddItemLocally(product, quantity, size, color);
+                AddItemLocally(product, quantity, size, color, variantId);
                 return new AddToCartResponse
                 {
                     Success = true,
@@ -303,7 +305,7 @@ namespace WebUI.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"[CartService] Exception in AddToCartViaApiAsync: {ex.Message}");
-                AddItemLocally(product, quantity, size, color);
+                AddItemLocally(product, quantity, size, color, variantId);
                 return new AddToCartResponse
                 {
                     Success = true,
@@ -323,9 +325,9 @@ namespace WebUI.Services
         /// <summary>
         /// Thêm item vào local cart (logic cũ)
         /// </summary>
-        private void AddItemLocally(Product product, int quantity, string? size, string? color)
+        private void AddItemLocally(Product product, int quantity, string? size, string? color, int variantId = 0)
         {
-            AddItem(product, quantity, size, color);
+            AddItem(product, quantity, size, color, variantId);
         }
 
         /// <summary>
@@ -363,7 +365,7 @@ namespace WebUI.Services
             foreach (var item in itemsSnapshot)
             {
                 // Send to API without duplicating local list
-                await AddToCartViaApiAsync(item.Product, item.Quantity, item.SelectedSize, item.SelectedColor, false);
+                await AddToCartViaApiAsync(item.Product, item.Quantity, item.SelectedSize, item.SelectedColor, item.VariantID, false);
             }
         }
 

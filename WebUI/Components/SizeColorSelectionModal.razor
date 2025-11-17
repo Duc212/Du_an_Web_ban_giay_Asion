@@ -292,6 +292,7 @@
     {
         if (Product != null && !string.IsNullOrEmpty(SelectedSize) && !string.IsNullOrEmpty(SelectedColor))
         {
+            // VariantID sẽ được backend API tự động tìm dựa trên ProductId + Size + Color
             var response = await CartService.AddToCartAsync(Product, Quantity, SelectedSize, SelectedColor);
             
             if (response?.Success == true)

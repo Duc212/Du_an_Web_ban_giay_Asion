@@ -137,6 +137,14 @@ namespace DAL
                 new Size { SizeID = 10, Value = "45" }
                  );
 
+            // Seed Payment methods
+            modelBuilder.Entity<Payment>().HasData(
+                new Payment { PaymentID = 1, PaymentMethod = "COD", PaymentStatus = "Active", PaymentDate = DateTime.UtcNow },
+                new Payment { PaymentID = 2, PaymentMethod = "VNPAY", PaymentStatus = "Active", PaymentDate = DateTime.UtcNow },
+                new Payment { PaymentID = 3, PaymentMethod = "GPAY", PaymentStatus = "Active", PaymentDate = DateTime.UtcNow },
+                new Payment { PaymentID = 4, PaymentMethod = "PAYPAL", PaymentStatus = "Active", PaymentDate = DateTime.UtcNow }
+            );
+
             // Seed Products với ảnh thật
             modelBuilder.Entity<Product>().HasData(
                // Nike Products

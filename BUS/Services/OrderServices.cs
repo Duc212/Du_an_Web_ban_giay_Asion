@@ -2,6 +2,7 @@
 using DAL;
 using DAL.DTOs.Orders.Req;
 using DAL.DTOs.Orders.Res;
+using DAL.DTOs.Payments.Req;
 using DAL.Entities;
 using DAL.Enums;
 using DAL.Models;
@@ -22,6 +23,8 @@ namespace BUS.Services
         private readonly IRepositoryAsync<Address> _addressRepository;
         private readonly IUnitOfWork<AppDbContext> _unitOfWork;
         private readonly IRepositoryAsync<Voucher> _voucherRepository;
+        private readonly IRepositoryAsync<Payment> _paymentRepository;
+        private readonly IRepositoryAsync<OrderPayment> _orderPaymentRepository;
         public OrderServices(
             IRepositoryAsync<Order> orderRepository,
             IRepositoryAsync<OrderDetail> orderDetailRepository,
@@ -30,7 +33,9 @@ namespace BUS.Services
             IUnitOfWork<AppDbContext> unitOfWork,
             IRepositoryAsync<User> userRepository,
             IRepositoryAsync<Address> addressRepository,
-            IRepositoryAsync<Voucher> voucherRepository)
+            IRepositoryAsync<Voucher> voucherRepository,
+            IRepositoryAsync<Payment> paymentRepository,
+            IRepositoryAsync<OrderPayment> orderPaymentRepository)
         {
             _orderRepository = orderRepository;
             _orderDetailRepository = orderDetailRepository;
@@ -40,6 +45,8 @@ namespace BUS.Services
             _userRepository = userRepository;
             _addressRepository = addressRepository;
             _voucherRepository = voucherRepository;
+            _paymentRepository = paymentRepository;
+            _orderPaymentRepository = orderPaymentRepository;
         }
         public async Task<CommonPagination<List<GetOrderRes>>> GetOrdersByUserId(int userId, int CurrentPage, int RecordPerPage)
         {
@@ -154,8 +161,7 @@ namespace BUS.Services
         {
             try
             {
-                int orderId = 0; // khai báo bên ngoài để lưu lại ID
-
+                int orderId = 0;
                 await _unitOfWork.ExecuteInTransactionAsync(async () =>
                 {
                     var order = new Order
@@ -205,9 +211,28 @@ namespace BUS.Services
                     order.TotalAmount = totalAmount;
                     await _orderRepository.UpdateAsync(order);
 
+                    if (req.PaymentID.HasValue && req.PaymentID.Value > 0)
+                    {
+                        var payment = await _paymentRepository.AsQueryable()
+                            .FirstOrDefaultAsync(p => p.PaymentID == req.PaymentID.Value);
+                        if (payment == null)
+                            throw new Exception($"PaymentID {req.PaymentID.Value} không tồn tại.");
+
+                        var orderPayment = new OrderPayment
+                        {
+                            OrderID = order.OrderID,
+                            PaymentID = payment.PaymentID,
+                            Amount = totalAmount,
+                            Status = (int)PaymentStatus.Unpaid,
+                            Note = null
+                        };
+                        await _orderPaymentRepository.AddAsync(orderPayment);
+                    }
+
                     await _variantRepository.SaveChangesAsync();
                     await _orderDetailRepository.SaveChangesAsync();
                     await _orderRepository.SaveChangesAsync();
+                    await _orderPaymentRepository.SaveChangesAsync();
 
                     orderId = order.OrderID;
                 });
@@ -304,7 +329,7 @@ namespace BUS.Services
                 // Lấy payment method từ OrderPayment nếu có
                 var paymentMethod = await (from op in _orderRepository.DbContext.Set<OrderPayment>()
                                            join p in _orderRepository.DbContext.Set<Payment>() on op.PaymentID equals p.PaymentID
-                                           where op.OrderID == OrderID && op.Status == "Completed"
+                                           where op.OrderID == OrderID
                                            select p.PaymentMethod)
                                            .FirstOrDefaultAsync();
 
@@ -466,5 +491,64 @@ namespace BUS.Services
             return $"ORD-{Guid.NewGuid().ToString("N")[..10].ToUpper()}";
         }
 
+        public async Task<CommonResponse<bool>> UpdateStatusPayment(UpdatePaymentReq req)
+        {
+            try
+            {
+                var order = await _orderRepository.AsQueryable()
+                    .FirstOrDefaultAsync(x => x.OrderID == req.OrderId);
+                if (order == null)
+                {
+                    return new CommonResponse<bool>
+                    {
+                        Success = false,
+                        Message = $"Không tìm thấy đơn hàng với ID = {req.OrderId}.",
+                        Data = false
+                    };
+                }
+
+                var orderPayment = await _orderPaymentRepository.AsQueryable()
+                    .FirstOrDefaultAsync(op => op.OrderID == req.OrderId);
+                if (orderPayment == null)
+                {
+                    return new CommonResponse<bool>
+                    {
+                        Success = false,
+                        Message = $"Không tìm thấy thông tin thanh toán cho đơn hàng với ID = {req.OrderId}.",
+                        Data = false
+                    };
+                }
+
+                if (!Enum.IsDefined(typeof(PaymentStatus), req.Status))
+                {
+                    return new CommonResponse<bool>
+                    {
+                        Success = false,
+                        Message = "Trạng thái thanh toán không hợp lệ.",
+                        Data = false
+                    };
+                }
+
+                orderPayment.Status = (int)req.Status;
+                await _orderPaymentRepository.UpdateAsync(orderPayment);
+                await _orderPaymentRepository.SaveChangesAsync();
+
+                return new CommonResponse<bool>
+                {
+                    Success = true,
+                    Message = "Cập nhật trạng thái thanh toán thành công.",
+                    Data = true
+                };
+            }
+            catch (Exception ex)
+            {
+                return new CommonResponse<bool>
+                {
+                    Success = false,
+                    Message = $"Lỗi khi cập nhật trạng thái thanh toán: {ex.Message}",
+                    Data = false
+                };
+            }
+        }
     }
 }

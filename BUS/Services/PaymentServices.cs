@@ -263,21 +263,7 @@ namespace BUS.Services
                         break;
                 }
 
-                // Lưu thông tin thanh toán vào database
-                var payment = new Payment
-                {
-                    Amount = vnpAmount,
-                    PaymentMethod = "VNPay",
-                    PaymentStatus = isSuccess ? "Completed" : "Failed",
-                    TransactionID = vnpTransactionNo,
-                    PaymentDate = DateTime.ParseExact(vnpPayDate, "yyyyMMddHHmmss", null)
-                };
-
-                await _paymentRepository.AddAsync(payment);
-                await _paymentRepository.SaveChangesAsync();
-
-                // TODO: Tạo liên kết OrderPayment giữa Order và Payment
-                // TODO: Cập nhật trạng thái đơn hàng nếu thanh toán thành công
+             
 
                 return new CommonResponse<VNPayReturnRes>
                 {

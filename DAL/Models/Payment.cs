@@ -22,13 +22,6 @@ namespace DAL.Models
         [MaxLength(50)]
         public string PaymentStatus { get; set; }
         
-        [Required]
-        public decimal Amount { get; set; }
-        
-        [MaxLength(100)]
-        public string? TransactionID { get; set; }
-        
-        // Navigation
         public ICollection<OrderPayment> OrderPayments { get; set; } = new List<OrderPayment>();
     }
 }

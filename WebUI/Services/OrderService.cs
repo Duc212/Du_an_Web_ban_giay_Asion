@@ -7,9 +7,10 @@ namespace WebUI.Services
 {
     public interface IOrderService
     {
-    Task<CommonResponse<int>> CreateOrderAsync(CreateOrderRequest request);
+        Task<CommonResponse<int>> CreateOrderAsync(CreateOrderRequest request);
         Task<Order?> GetOrderByIdAsync(string orderId);
         Task<List<Order>> GetOrderHistoryAsync();
+        Task<bool> UpdatePaymentStatusAsync(int orderId, PaymentStatus status);
     }
 
     public class OrderService : IOrderService
@@ -141,6 +142,44 @@ namespace WebUI.Services
             {
                 Console.WriteLine($"[OrderService] Exception in GetOrderHistoryAsync: {ex.Message}");
                 return new List<Order>();
+            }
+        }
+
+        /// <summary>
+        /// Cập nhật trạng thái thanh toán đơn hàng sau khi thanh toán thành công / thất bại.
+        /// POST /api/Orders/UpdateStatusPayment { orderId, status }
+        /// status: 1 = Paid (giả định), các giá trị khác tùy backend.
+        /// </summary>
+        public async Task<bool> UpdatePaymentStatusAsync(int orderId, PaymentStatus status)
+        {
+            try
+            {
+                if (orderId <= 0) return false;
+                var apiBaseUrl = await _configService.GetApiBaseUrlAsync();
+                // Backend expects status as int
+                var payload = new { orderId, status = (int)status };
+                var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{apiBaseUrl}/api/Orders/UpdateStatusPayment")
+                {
+                    Content = JsonContent.Create(payload)
+                };
+
+                if (_authService.IsAuthenticated && !string.IsNullOrEmpty(_authService.CurrentToken))
+                {
+                    httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                        "Bearer",
+                        _authService.CurrentToken
+                    );
+                }
+
+                var response = await _httpClient.SendAsync(httpRequest);
+                var body = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"[OrderService] UpdatePaymentStatus Response: {response.StatusCode} Body: {body}");
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[OrderService] Exception in UpdatePaymentStatusAsync: {ex.Message}");
+                return false;
             }
         }
     }

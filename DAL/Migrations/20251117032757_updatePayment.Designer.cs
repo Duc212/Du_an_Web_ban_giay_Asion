@@ -4,6 +4,7 @@ using DAL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251117032757_updatePayment")]
+    partial class updatePayment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -525,8 +528,10 @@ namespace DAL.Migrations
                     b.Property<int>("PaymentID")
                         .HasColumnType("int");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("OrderPaymentID");
 
@@ -566,28 +571,28 @@ namespace DAL.Migrations
                         new
                         {
                             PaymentID = 1,
-                            PaymentDate = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(1528),
+                            PaymentDate = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(2624),
                             PaymentMethod = "COD",
                             PaymentStatus = "Active"
                         },
                         new
                         {
                             PaymentID = 2,
-                            PaymentDate = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(1557),
+                            PaymentDate = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(2626),
                             PaymentMethod = "VNPAY",
                             PaymentStatus = "Active"
                         },
                         new
                         {
                             PaymentID = 3,
-                            PaymentDate = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(1558),
+                            PaymentDate = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(2627),
                             PaymentMethod = "GPAY",
                             PaymentStatus = "Active"
                         },
                         new
                         {
                             PaymentID = 4,
-                            PaymentDate = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(1559),
+                            PaymentDate = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(2628),
                             PaymentMethod = "PAYPAL",
                             PaymentStatus = "Active"
                         });
@@ -644,7 +649,7 @@ namespace DAL.Migrations
                             ProductID = 1,
                             BrandId = 1,
                             CategoryId = 1,
-                            CreatedAt = new DateTime(2025, 10, 18, 10, 41, 42, 809, DateTimeKind.Local).AddTicks(1579),
+                            CreatedAt = new DateTime(2025, 10, 18, 10, 27, 56, 735, DateTimeKind.Local).AddTicks(2647),
                             Description = "Giày thể thao Nike Air Max 270 với công nghệ đệm khí Max Air lớn nhất từ trước đến nay. Thiết kế hiện đại, phù hợp cho cả tập luyện và phong cách hàng ngày.",
                             GenderId = 3,
                             ImageUrl = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop",
@@ -655,7 +660,7 @@ namespace DAL.Migrations
                             ProductID = 2,
                             BrandId = 1,
                             CategoryId = 2,
-                            CreatedAt = new DateTime(2025, 10, 23, 10, 41, 42, 809, DateTimeKind.Local).AddTicks(1586),
+                            CreatedAt = new DateTime(2025, 10, 23, 10, 27, 56, 735, DateTimeKind.Local).AddTicks(2654),
                             Description = "Giày thể thao Nike Air Force 1 '07 - biểu tượng thời trang streetwear với thiết kế vượt thời gian và chất lượng bền bỉ.",
                             GenderId = 3,
                             ImageUrl = "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=500&h=500&fit=crop",
@@ -666,7 +671,7 @@ namespace DAL.Migrations
                             ProductID = 3,
                             BrandId = 1,
                             CategoryId = 1,
-                            CreatedAt = new DateTime(2025, 10, 28, 10, 41, 42, 809, DateTimeKind.Local).AddTicks(1588),
+                            CreatedAt = new DateTime(2025, 10, 28, 10, 27, 56, 735, DateTimeKind.Local).AddTicks(2656),
                             Description = "Giày chạy bộ Nike React Infinity Run được thiết kế để giảm chấn thương. Công nghệ React foam mang lại độ đàn hồi tuyệt vời.",
                             GenderId = 3,
                             ImageUrl = "https://images.unsplash.com/photo-1607522370275-f14206abe5d3?w=500&h=500&fit=crop",
@@ -677,7 +682,7 @@ namespace DAL.Migrations
                             ProductID = 4,
                             BrandId = 2,
                             CategoryId = 1,
-                            CreatedAt = new DateTime(2025, 10, 30, 10, 41, 42, 809, DateTimeKind.Local).AddTicks(1590),
+                            CreatedAt = new DateTime(2025, 10, 30, 10, 27, 56, 735, DateTimeKind.Local).AddTicks(2658),
                             Description = "Giày chạy bộ Adidas Ultraboost 22 với công nghệ Boost mang lại năng lượng trở lại mỗi bước chạy. Thiết kế Primeknit+ ôm chân tự nhiên.",
                             GenderId = 3,
                             ImageUrl = "https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=500&h=500&fit=crop",
@@ -688,7 +693,7 @@ namespace DAL.Migrations
                             ProductID = 5,
                             BrandId = 2,
                             CategoryId = 4,
-                            CreatedAt = new DateTime(2025, 11, 2, 10, 41, 42, 809, DateTimeKind.Local).AddTicks(1592),
+                            CreatedAt = new DateTime(2025, 11, 2, 10, 27, 56, 735, DateTimeKind.Local).AddTicks(2660),
                             Description = "Giày tennis Adidas Stan Smith - thiết kế tối giản, thanh lịch với màu trắng cổ điển. Phù hợp cho mọi phong cách thời trang.",
                             GenderId = 3,
                             ImageUrl = "https://images.unsplash.com/photo-1586525198428-225f6f12cff5?w=500&h=500&fit=crop",
@@ -699,7 +704,7 @@ namespace DAL.Migrations
                             ProductID = 6,
                             BrandId = 2,
                             CategoryId = 2,
-                            CreatedAt = new DateTime(2025, 11, 5, 10, 41, 42, 809, DateTimeKind.Local).AddTicks(1594),
+                            CreatedAt = new DateTime(2025, 11, 5, 10, 27, 56, 735, DateTimeKind.Local).AddTicks(2661),
                             Description = "Giày thể thao Adidas NMD R1 với thiết kế futuristic. Kết hợp công nghệ Boost với phong cách streetwear hiện đại.",
                             GenderId = 3,
                             ImageUrl = "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=500&h=500&fit=crop",
@@ -710,7 +715,7 @@ namespace DAL.Migrations
                             ProductID = 7,
                             BrandId = 3,
                             CategoryId = 2,
-                            CreatedAt = new DateTime(2025, 11, 7, 10, 41, 42, 809, DateTimeKind.Local).AddTicks(1596),
+                            CreatedAt = new DateTime(2025, 11, 7, 10, 27, 56, 735, DateTimeKind.Local).AddTicks(2663),
                             Description = "Giày thể thao classic Converse Chuck Taylor All Star. Thiết kế vượt thời gian, phù hợp với mọi phong cách và độ tuổi.",
                             GenderId = 3,
                             ImageUrl = "https://images.unsplash.com/photo-1597045566677-8cf032ed6634?w=500&h=500&fit=crop",
@@ -721,7 +726,7 @@ namespace DAL.Migrations
                             ProductID = 8,
                             BrandId = 3,
                             CategoryId = 2,
-                            CreatedAt = new DateTime(2025, 11, 9, 10, 41, 42, 809, DateTimeKind.Local).AddTicks(1597),
+                            CreatedAt = new DateTime(2025, 11, 9, 10, 27, 56, 735, DateTimeKind.Local).AddTicks(2665),
                             Description = "Giày Converse Run Star Hike với đế platform độc đáo. Kết hợp phong cách Chuck Taylor cổ điển với xu hướng chunky hiện đại.",
                             GenderId = 2,
                             ImageUrl = "https://images.unsplash.com/photo-1603808033192-082d6919d3e1?w=500&h=500&fit=crop",
@@ -732,7 +737,7 @@ namespace DAL.Migrations
                             ProductID = 9,
                             BrandId = 4,
                             CategoryId = 1,
-                            CreatedAt = new DateTime(2025, 11, 11, 10, 41, 42, 809, DateTimeKind.Local).AddTicks(1599),
+                            CreatedAt = new DateTime(2025, 11, 11, 10, 27, 56, 735, DateTimeKind.Local).AddTicks(2667),
                             Description = "Giày chạy bộ New Balance 1080v12 với công nghệ Fresh Foam X mang lại cảm giác êm ái và đàn hồi tuyệt vời cho những chuyến chạy dài.",
                             GenderId = 3,
                             ImageUrl = "https://images.unsplash.com/photo-1539185441755-769473a23570?w=500&h=500&fit=crop",
@@ -743,7 +748,7 @@ namespace DAL.Migrations
                             ProductID = 10,
                             BrandId = 4,
                             CategoryId = 2,
-                            CreatedAt = new DateTime(2025, 11, 13, 10, 41, 42, 809, DateTimeKind.Local).AddTicks(1601),
+                            CreatedAt = new DateTime(2025, 11, 13, 10, 27, 56, 735, DateTimeKind.Local).AddTicks(2669),
                             Description = "Giày New Balance 327 lấy cảm hứng từ thiết kế vintage 70s với twist hiện đại. Phong cách retro-modern độc đáo.",
                             GenderId = 3,
                             ImageUrl = "https://images.unsplash.com/photo-1605348532760-6753d2c43329?w=500&h=500&fit=crop",
@@ -754,7 +759,7 @@ namespace DAL.Migrations
                             ProductID = 11,
                             BrandId = 5,
                             CategoryId = 5,
-                            CreatedAt = new DateTime(2025, 11, 14, 10, 41, 42, 809, DateTimeKind.Local).AddTicks(1602),
+                            CreatedAt = new DateTime(2025, 11, 14, 10, 27, 56, 735, DateTimeKind.Local).AddTicks(2671),
                             Description = "Giày Vans Old Skool với thiết kế side stripe đặc trưng. Phù hợp cho skateboarding và phong cách casual hàng ngày.",
                             GenderId = 3,
                             ImageUrl = "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=500&h=500&fit=crop",
@@ -765,7 +770,7 @@ namespace DAL.Migrations
                             ProductID = 12,
                             BrandId = 5,
                             CategoryId = 5,
-                            CreatedAt = new DateTime(2025, 11, 15, 10, 41, 42, 809, DateTimeKind.Local).AddTicks(1604),
+                            CreatedAt = new DateTime(2025, 11, 15, 10, 27, 56, 735, DateTimeKind.Local).AddTicks(2673),
                             Description = "Giày Vans Sk8-Hi cổ cao với thiết kế ankle support. Phù hợp cho skateboarding và phong cách streetwear năng động.",
                             GenderId = 3,
                             ImageUrl = "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=500&h=500&fit=crop",
@@ -776,7 +781,7 @@ namespace DAL.Migrations
                             ProductID = 13,
                             BrandId = 6,
                             CategoryId = 1,
-                            CreatedAt = new DateTime(2025, 11, 16, 10, 41, 42, 809, DateTimeKind.Local).AddTicks(1607),
+                            CreatedAt = new DateTime(2025, 11, 16, 10, 27, 56, 735, DateTimeKind.Local).AddTicks(2678),
                             Description = "Giày chạy bộ Asics Gel-Kayano 29 dành cho những vận động viên cần độ ổn định cao. Công nghệ FlyteFoam và Gel giảm chấn tối ưu.",
                             GenderId = 3,
                             ImageUrl = "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=500&h=500&fit=crop",
@@ -787,7 +792,7 @@ namespace DAL.Migrations
                             ProductID = 14,
                             BrandId = 6,
                             CategoryId = 1,
-                            CreatedAt = new DateTime(2025, 11, 17, 10, 41, 42, 809, DateTimeKind.Local).AddTicks(1609),
+                            CreatedAt = new DateTime(2025, 11, 17, 10, 27, 56, 735, DateTimeKind.Local).AddTicks(2680),
                             Description = "Giày chạy bộ Asics Gel-Nimbus 25 với công nghệ đệm tiên tiến nhất. Mang lại trải nghiệm chạy êm ái và thoải mái tối đa.",
                             GenderId = 3,
                             ImageUrl = "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=500&fit=crop",
@@ -798,7 +803,7 @@ namespace DAL.Migrations
                             ProductID = 15,
                             BrandId = 7,
                             CategoryId = 2,
-                            CreatedAt = new DateTime(2025, 11, 16, 22, 41, 42, 809, DateTimeKind.Local).AddTicks(1611),
+                            CreatedAt = new DateTime(2025, 11, 16, 22, 27, 56, 735, DateTimeKind.Local).AddTicks(2682),
                             Description = "Giày thể thao Puma RS-X với thiết kế chunky sneaker xu hướng. Kết hợp phong cách retro và công nghệ hiện đại.",
                             GenderId = 3,
                             ImageUrl = "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=500&h=500&fit=crop",
@@ -809,7 +814,7 @@ namespace DAL.Migrations
                             ProductID = 16,
                             BrandId = 7,
                             CategoryId = 2,
-                            CreatedAt = new DateTime(2025, 11, 17, 4, 41, 42, 809, DateTimeKind.Local).AddTicks(1612),
+                            CreatedAt = new DateTime(2025, 11, 17, 4, 27, 56, 735, DateTimeKind.Local).AddTicks(2684),
                             Description = "Giày Puma Suede Classic - biểu tượng thời trang từ những năm 1960s. Chất liệu da lộn cao cấp với thiết kế vượt thời gian.",
                             GenderId = 3,
                             ImageUrl = "https://images.unsplash.com/photo-1552346154-21d32810aba3?w=500&h=500&fit=crop",
@@ -820,7 +825,7 @@ namespace DAL.Migrations
                             ProductID = 17,
                             BrandId = 8,
                             CategoryId = 3,
-                            CreatedAt = new DateTime(2025, 11, 17, 7, 41, 42, 809, DateTimeKind.Local).AddTicks(1614),
+                            CreatedAt = new DateTime(2025, 11, 17, 7, 27, 56, 735, DateTimeKind.Local).AddTicks(2691),
                             Description = "Giày bóng rổ Jordan Air 1 Mid - huyền thoại basketball với thiết kế iconic. Chất lượng premium cho cả sân bóng và đường phố.",
                             GenderId = 3,
                             ImageUrl = "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=500&h=500&fit=crop",
@@ -831,7 +836,7 @@ namespace DAL.Migrations
                             ProductID = 18,
                             BrandId = 8,
                             CategoryId = 3,
-                            CreatedAt = new DateTime(2025, 11, 17, 9, 41, 42, 809, DateTimeKind.Local).AddTicks(1616),
+                            CreatedAt = new DateTime(2025, 11, 17, 9, 27, 56, 735, DateTimeKind.Local).AddTicks(2693),
                             Description = "Giày bóng rổ Jordan Air 4 Retro - một trong những mẫu Jordan iconic nhất mọi thời đại với thiết kế wing và mesh panels đặc trưng.",
                             GenderId = 3,
                             ImageUrl = "https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=500&h=500&fit=crop",
@@ -842,7 +847,7 @@ namespace DAL.Migrations
                             ProductID = 19,
                             BrandId = 9,
                             CategoryId = 4,
-                            CreatedAt = new DateTime(2025, 11, 17, 10, 11, 42, 809, DateTimeKind.Local).AddTicks(1617),
+                            CreatedAt = new DateTime(2025, 11, 17, 9, 57, 56, 735, DateTimeKind.Local).AddTicks(2695),
                             Description = "Giày tennis cổ điển Reebok Club C 85 với thiết kế tối giản, thanh lịch. Phù hợp cho nhiều hoạt động thể thao và thời trang.",
                             GenderId = 3,
                             ImageUrl = "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=500&h=500&fit=crop",
@@ -853,7 +858,7 @@ namespace DAL.Migrations
                             ProductID = 20,
                             BrandId = 1,
                             CategoryId = 2,
-                            CreatedAt = new DateTime(2025, 11, 17, 10, 26, 42, 809, DateTimeKind.Local).AddTicks(1619),
+                            CreatedAt = new DateTime(2025, 11, 17, 10, 12, 56, 735, DateTimeKind.Local).AddTicks(2697),
                             Description = "Giày Nike Dunk Low Retro với colorway Panda cổ điển. Thiết kế basketball vintage trở thành biểu tượng streetwear.",
                             GenderId = 3,
                             ImageUrl = "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=500&h=500&fit=crop",
@@ -914,7 +919,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 1,
                             ColorID = 1,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2636),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3339),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop",
@@ -926,7 +931,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 2,
                             ColorID = 1,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2640),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3342),
                             DisplayOrder = 2,
                             ImageType = "Side",
                             ImageUrl = "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=500&h=500&fit=crop",
@@ -938,7 +943,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 3,
                             ColorID = 1,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2642),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3344),
                             DisplayOrder = 3,
                             ImageType = "Detail",
                             ImageUrl = "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=500&h=500&fit=crop",
@@ -950,7 +955,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 4,
                             ColorID = 2,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2643),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3345),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=500&h=500&fit=crop",
@@ -962,7 +967,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 5,
                             ColorID = 2,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2644),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3346),
                             DisplayOrder = 2,
                             ImageType = "Side",
                             ImageUrl = "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=500&h=500&fit=crop",
@@ -974,7 +979,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 6,
                             ColorID = 2,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2645),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3347),
                             DisplayOrder = 3,
                             ImageType = "Detail",
                             ImageUrl = "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=500&fit=crop",
@@ -986,7 +991,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 7,
                             ColorID = 3,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2646),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3349),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=500&h=500&fit=crop",
@@ -998,7 +1003,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 8,
                             ColorID = 3,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2648),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3350),
                             DisplayOrder = 2,
                             ImageType = "Side",
                             ImageUrl = "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=500&h=500&fit=crop",
@@ -1010,7 +1015,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 9,
                             ColorID = 2,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2655),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3355),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=500&h=500&fit=crop",
@@ -1022,7 +1027,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 10,
                             ColorID = 2,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2656),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3357),
                             DisplayOrder = 2,
                             ImageType = "Side",
                             ImageUrl = "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=500&h=500&fit=crop",
@@ -1034,7 +1039,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 11,
                             ColorID = 2,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2657),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3358),
                             DisplayOrder = 3,
                             ImageType = "Detail",
                             ImageUrl = "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=500&fit=crop",
@@ -1046,7 +1051,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 12,
                             ColorID = 2,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2658),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3359),
                             DisplayOrder = 4,
                             ImageType = "Back",
                             ImageUrl = "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=500&h=500&fit=crop",
@@ -1058,7 +1063,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 13,
                             ColorID = 1,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2659),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3361),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop",
@@ -1070,7 +1075,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 14,
                             ColorID = 1,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2660),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3362),
                             DisplayOrder = 2,
                             ImageType = "Side",
                             ImageUrl = "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=500&h=500&fit=crop",
@@ -1082,7 +1087,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 15,
                             ColorID = 10,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2662),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3364),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=500&h=500&fit=crop",
@@ -1094,7 +1099,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 16,
                             ColorID = 10,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2663),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3365),
                             DisplayOrder = 2,
                             ImageType = "Side",
                             ImageUrl = "https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=500&h=500&fit=crop",
@@ -1106,7 +1111,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 17,
                             ColorID = 4,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2665),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3367),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1607522370275-f14206abe5d3?w=500&h=500&fit=crop",
@@ -1118,7 +1123,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 18,
                             ColorID = 4,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2666),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3369),
                             DisplayOrder = 2,
                             ImageType = "Side",
                             ImageUrl = "https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=500&h=500&fit=crop",
@@ -1130,7 +1135,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 19,
                             ColorID = 4,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2668),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3370),
                             DisplayOrder = 3,
                             ImageType = "Detail",
                             ImageUrl = "https://images.unsplash.com/photo-1520256862855-398228c41684?w=500&h=500&fit=crop",
@@ -1142,7 +1147,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 20,
                             ColorID = 1,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2669),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3371),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop",
@@ -1154,7 +1159,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 21,
                             ColorID = 1,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2670),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3372),
                             DisplayOrder = 2,
                             ImageType = "Side",
                             ImageUrl = "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=500&h=500&fit=crop",
@@ -1166,7 +1171,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 22,
                             ColorID = 5,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2671),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3373),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=500&h=500&fit=crop",
@@ -1178,7 +1183,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 23,
                             ColorID = 2,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2673),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3382),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=500&h=500&fit=crop",
@@ -1190,7 +1195,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 24,
                             ColorID = 2,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2675),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3384),
                             DisplayOrder = 2,
                             ImageType = "Side",
                             ImageUrl = "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=500&h=500&fit=crop",
@@ -1202,7 +1207,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 25,
                             ColorID = 1,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2676),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3385),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop",
@@ -1214,7 +1219,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 26,
                             ColorID = 4,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2677),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3386),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=500&h=500&fit=crop",
@@ -1226,7 +1231,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 27,
                             ColorID = 2,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2678),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3388),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1586525198428-225f6f12cff5?w=500&h=500&fit=crop",
@@ -1238,7 +1243,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 28,
                             ColorID = 2,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2680),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3390),
                             DisplayOrder = 2,
                             ImageType = "Side",
                             ImageUrl = "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=500&h=500&fit=crop",
@@ -1250,7 +1255,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 29,
                             ColorID = 5,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2681),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3392),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=500&h=500&fit=crop",
@@ -1262,7 +1267,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 30,
                             ColorID = 1,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2682),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3393),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop",
@@ -1274,7 +1279,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 31,
                             ColorID = 1,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2683),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3395),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1597045566677-8cf032ed6634?w=500&h=500&fit=crop",
@@ -1286,7 +1291,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 32,
                             ColorID = 1,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2684),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3396),
                             DisplayOrder = 2,
                             ImageType = "Side",
                             ImageUrl = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop",
@@ -1298,7 +1303,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 33,
                             ColorID = 2,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2685),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3397),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1603808033192-082d6919d3e1?w=500&h=500&fit=crop",
@@ -1310,7 +1315,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 34,
                             ColorID = 2,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2687),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3398),
                             DisplayOrder = 2,
                             ImageType = "Side",
                             ImageUrl = "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=500&h=500&fit=crop",
@@ -1322,7 +1327,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 35,
                             ColorID = 3,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2688),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3400),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=500&h=500&fit=crop",
@@ -1334,7 +1339,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 36,
                             ColorID = 4,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2689),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3401),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=500&h=500&fit=crop",
@@ -1346,7 +1351,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 37,
                             ColorID = 1,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2691),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3403),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=500&h=500&fit=crop",
@@ -1358,7 +1363,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 38,
                             ColorID = 1,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2692),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3404),
                             DisplayOrder = 2,
                             ImageType = "Side",
                             ImageUrl = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop",
@@ -1370,7 +1375,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 39,
                             ColorID = 2,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2693),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3405),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=500&h=500&fit=crop",
@@ -1382,7 +1387,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 40,
                             ColorID = 2,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2695),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3407),
                             DisplayOrder = 2,
                             ImageType = "Side",
                             ImageUrl = "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=500&h=500&fit=crop",
@@ -1394,7 +1399,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 41,
                             ColorID = 3,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2696),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3408),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=500&h=500&fit=crop",
@@ -1406,7 +1411,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 42,
                             ColorID = 1,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2697),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3410),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=500&h=500&fit=crop",
@@ -1418,7 +1423,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 43,
                             ColorID = 1,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2699),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3411),
                             DisplayOrder = 2,
                             ImageType = "Side",
                             ImageUrl = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop",
@@ -1430,7 +1435,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 44,
                             ColorID = 1,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2700),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3412),
                             DisplayOrder = 3,
                             ImageType = "Detail",
                             ImageUrl = "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=500&h=500&fit=crop",
@@ -1442,7 +1447,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 45,
                             ColorID = 2,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2701),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3413),
                             DisplayOrder = 1,
                             ImageType = "Main",
                             ImageUrl = "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=500&h=500&fit=crop",
@@ -1454,7 +1459,7 @@ namespace DAL.Migrations
                         {
                             ImageID = 46,
                             ColorID = 2,
-                            CreatedAt = new DateTime(2025, 11, 17, 3, 41, 42, 809, DateTimeKind.Utc).AddTicks(2702),
+                            CreatedAt = new DateTime(2025, 11, 17, 3, 27, 56, 735, DateTimeKind.Utc).AddTicks(3414),
                             DisplayOrder = 2,
                             ImageType = "Side",
                             ImageUrl = "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=500&h=500&fit=crop",
@@ -1515,7 +1520,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 31
+                            StockQuantity = 20
                         },
                         new
                         {
@@ -1526,7 +1531,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 81
+                            StockQuantity = 93
                         },
                         new
                         {
@@ -1537,7 +1542,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 24
+                            StockQuantity = 52
                         },
                         new
                         {
@@ -1548,7 +1553,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 38
+                            StockQuantity = 94
                         },
                         new
                         {
@@ -1559,7 +1564,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 95
+                            StockQuantity = 53
                         },
                         new
                         {
@@ -1570,7 +1575,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 10
+                            StockQuantity = 62
                         },
                         new
                         {
@@ -1581,7 +1586,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 31
+                            StockQuantity = 71
                         },
                         new
                         {
@@ -1592,7 +1597,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 41
+                            StockQuantity = 44
                         },
                         new
                         {
@@ -1603,7 +1608,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 17
+                            StockQuantity = 32
                         },
                         new
                         {
@@ -1614,7 +1619,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 79
+                            StockQuantity = 50
                         },
                         new
                         {
@@ -1625,7 +1630,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 38
+                            StockQuantity = 78
                         },
                         new
                         {
@@ -1636,7 +1641,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 48
+                            StockQuantity = 20
                         },
                         new
                         {
@@ -1647,7 +1652,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 84
+                            StockQuantity = 88
                         },
                         new
                         {
@@ -1658,7 +1663,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 64
+                            StockQuantity = 99
                         },
                         new
                         {
@@ -1669,7 +1674,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 23
+                            StockQuantity = 45
                         },
                         new
                         {
@@ -1680,7 +1685,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 73
+                            StockQuantity = 27
                         },
                         new
                         {
@@ -1691,7 +1696,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 56
+                            StockQuantity = 84
                         },
                         new
                         {
@@ -1702,7 +1707,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 92
+                            StockQuantity = 66
                         },
                         new
                         {
@@ -1713,7 +1718,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 57
+                            StockQuantity = 32
                         },
                         new
                         {
@@ -1724,7 +1729,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 19
+                            StockQuantity = 65
                         },
                         new
                         {
@@ -1735,7 +1740,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 94
+                            StockQuantity = 95
                         },
                         new
                         {
@@ -1746,7 +1751,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 47
+                            StockQuantity = 33
                         },
                         new
                         {
@@ -1757,7 +1762,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 76
+                            StockQuantity = 32
                         },
                         new
                         {
@@ -1768,7 +1773,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 18
+                            StockQuantity = 53
                         },
                         new
                         {
@@ -1779,7 +1784,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 12
+                            StockQuantity = 31
                         },
                         new
                         {
@@ -1790,7 +1795,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 54
+                            StockQuantity = 87
                         },
                         new
                         {
@@ -1801,7 +1806,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 58
+                            StockQuantity = 52
                         },
                         new
                         {
@@ -1812,7 +1817,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 36
+                            StockQuantity = 38
                         },
                         new
                         {
@@ -1823,7 +1828,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 16
+                            StockQuantity = 70
                         },
                         new
                         {
@@ -1834,7 +1839,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 84
+                            StockQuantity = 14
                         },
                         new
                         {
@@ -1845,7 +1850,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 79
+                            StockQuantity = 60
                         },
                         new
                         {
@@ -1856,7 +1861,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 50
+                            StockQuantity = 98
                         },
                         new
                         {
@@ -1867,7 +1872,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 44
+                            StockQuantity = 18
                         },
                         new
                         {
@@ -1878,7 +1883,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 68
+                            StockQuantity = 91
                         },
                         new
                         {
@@ -1889,7 +1894,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 18
+                            StockQuantity = 32
                         },
                         new
                         {
@@ -1911,7 +1916,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 71
+                            StockQuantity = 54
                         },
                         new
                         {
@@ -1922,7 +1927,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 24
+                            StockQuantity = 95
                         },
                         new
                         {
@@ -1933,7 +1938,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 15
+                            StockQuantity = 33
                         },
                         new
                         {
@@ -1944,7 +1949,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 47
+                            StockQuantity = 99
                         },
                         new
                         {
@@ -1955,7 +1960,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 21
+                            StockQuantity = 35
                         },
                         new
                         {
@@ -1966,7 +1971,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 94
+                            StockQuantity = 35
                         },
                         new
                         {
@@ -1977,7 +1982,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 54
+                            StockQuantity = 73
                         },
                         new
                         {
@@ -1988,7 +1993,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 41
+                            StockQuantity = 28
                         },
                         new
                         {
@@ -1999,7 +2004,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 63
+                            StockQuantity = 59
                         },
                         new
                         {
@@ -2010,7 +2015,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 59
+                            StockQuantity = 38
                         },
                         new
                         {
@@ -2021,7 +2026,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 84
+                            StockQuantity = 41
                         },
                         new
                         {
@@ -2032,7 +2037,7 @@ namespace DAL.Migrations
                             SellingPrice = 2490000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 83
+                            StockQuantity = 20
                         },
                         new
                         {
@@ -2043,7 +2048,7 @@ namespace DAL.Migrations
                             SellingPrice = 3690000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 39
+                            StockQuantity = 99
                         },
                         new
                         {
@@ -2054,7 +2059,7 @@ namespace DAL.Migrations
                             SellingPrice = 3690000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 60
+                            StockQuantity = 63
                         },
                         new
                         {
@@ -2065,7 +2070,7 @@ namespace DAL.Migrations
                             SellingPrice = 3690000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 56
+                            StockQuantity = 64
                         },
                         new
                         {
@@ -2076,7 +2081,7 @@ namespace DAL.Migrations
                             SellingPrice = 3690000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 68
+                            StockQuantity = 44
                         },
                         new
                         {
@@ -2087,7 +2092,7 @@ namespace DAL.Migrations
                             SellingPrice = 3690000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 16
+                            StockQuantity = 91
                         },
                         new
                         {
@@ -2098,7 +2103,7 @@ namespace DAL.Migrations
                             SellingPrice = 3690000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 22
+                            StockQuantity = 25
                         },
                         new
                         {
@@ -2109,7 +2114,7 @@ namespace DAL.Migrations
                             SellingPrice = 3690000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 59
+                            StockQuantity = 11
                         },
                         new
                         {
@@ -2120,7 +2125,7 @@ namespace DAL.Migrations
                             SellingPrice = 3690000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 50
+                            StockQuantity = 91
                         },
                         new
                         {
@@ -2131,7 +2136,7 @@ namespace DAL.Migrations
                             SellingPrice = 3690000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 62
+                            StockQuantity = 14
                         },
                         new
                         {
@@ -2142,7 +2147,7 @@ namespace DAL.Migrations
                             SellingPrice = 3690000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 68
+                            StockQuantity = 56
                         },
                         new
                         {
@@ -2153,7 +2158,7 @@ namespace DAL.Migrations
                             SellingPrice = 3690000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 11
+                            StockQuantity = 89
                         },
                         new
                         {
@@ -2164,7 +2169,7 @@ namespace DAL.Migrations
                             SellingPrice = 3690000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 14
+                            StockQuantity = 45
                         },
                         new
                         {
@@ -2175,7 +2180,7 @@ namespace DAL.Migrations
                             SellingPrice = 3690000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 25
+                            StockQuantity = 18
                         },
                         new
                         {
@@ -2186,7 +2191,7 @@ namespace DAL.Migrations
                             SellingPrice = 3690000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 53
+                            StockQuantity = 67
                         },
                         new
                         {
@@ -2197,7 +2202,7 @@ namespace DAL.Migrations
                             SellingPrice = 3690000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 46
+                            StockQuantity = 73
                         },
                         new
                         {
@@ -2208,7 +2213,7 @@ namespace DAL.Migrations
                             SellingPrice = 3690000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 77
+                            StockQuantity = 31
                         },
                         new
                         {
@@ -2219,7 +2224,7 @@ namespace DAL.Migrations
                             SellingPrice = 3690000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 11
+                            StockQuantity = 45
                         },
                         new
                         {
@@ -2230,7 +2235,7 @@ namespace DAL.Migrations
                             SellingPrice = 3690000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 40
+                            StockQuantity = 81
                         },
                         new
                         {
@@ -2241,7 +2246,7 @@ namespace DAL.Migrations
                             SellingPrice = 3690000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 85
+                            StockQuantity = 43
                         },
                         new
                         {
@@ -2252,7 +2257,7 @@ namespace DAL.Migrations
                             SellingPrice = 3690000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 45
+                            StockQuantity = 78
                         },
                         new
                         {
@@ -2263,7 +2268,7 @@ namespace DAL.Migrations
                             SellingPrice = 3690000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 46
+                            StockQuantity = 22
                         },
                         new
                         {
@@ -2274,7 +2279,7 @@ namespace DAL.Migrations
                             SellingPrice = 3450000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 62
+                            StockQuantity = 31
                         },
                         new
                         {
@@ -2285,7 +2290,7 @@ namespace DAL.Migrations
                             SellingPrice = 3450000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 77
+                            StockQuantity = 39
                         },
                         new
                         {
@@ -2296,7 +2301,7 @@ namespace DAL.Migrations
                             SellingPrice = 3450000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 14
+                            StockQuantity = 42
                         },
                         new
                         {
@@ -2307,7 +2312,7 @@ namespace DAL.Migrations
                             SellingPrice = 3450000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 14
+                            StockQuantity = 73
                         },
                         new
                         {
@@ -2318,7 +2323,7 @@ namespace DAL.Migrations
                             SellingPrice = 3450000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 36
+                            StockQuantity = 87
                         },
                         new
                         {
@@ -2329,7 +2334,7 @@ namespace DAL.Migrations
                             SellingPrice = 3450000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 10
+                            StockQuantity = 54
                         },
                         new
                         {
@@ -2340,7 +2345,7 @@ namespace DAL.Migrations
                             SellingPrice = 3450000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 54
+                            StockQuantity = 33
                         },
                         new
                         {
@@ -2351,7 +2356,7 @@ namespace DAL.Migrations
                             SellingPrice = 3450000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 39
+                            StockQuantity = 34
                         },
                         new
                         {
@@ -2362,7 +2367,7 @@ namespace DAL.Migrations
                             SellingPrice = 3450000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 85
+                            StockQuantity = 40
                         },
                         new
                         {
@@ -2373,7 +2378,7 @@ namespace DAL.Migrations
                             SellingPrice = 3450000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 17
+                            StockQuantity = 74
                         },
                         new
                         {
@@ -2384,7 +2389,7 @@ namespace DAL.Migrations
                             SellingPrice = 3450000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 75
+                            StockQuantity = 40
                         },
                         new
                         {
@@ -2395,7 +2400,7 @@ namespace DAL.Migrations
                             SellingPrice = 3450000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 15
+                            StockQuantity = 85
                         },
                         new
                         {
@@ -2406,7 +2411,7 @@ namespace DAL.Migrations
                             SellingPrice = 3450000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 91
+                            StockQuantity = 21
                         },
                         new
                         {
@@ -2417,7 +2422,7 @@ namespace DAL.Migrations
                             SellingPrice = 3450000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 17
+                            StockQuantity = 47
                         },
                         new
                         {
@@ -2428,7 +2433,7 @@ namespace DAL.Migrations
                             SellingPrice = 3450000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 97
+                            StockQuantity = 92
                         },
                         new
                         {
@@ -2439,7 +2444,7 @@ namespace DAL.Migrations
                             SellingPrice = 3450000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 86
+                            StockQuantity = 32
                         },
                         new
                         {
@@ -2450,7 +2455,7 @@ namespace DAL.Migrations
                             SellingPrice = 3450000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 40
+                            StockQuantity = 76
                         },
                         new
                         {
@@ -2461,7 +2466,7 @@ namespace DAL.Migrations
                             SellingPrice = 3450000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 89
+                            StockQuantity = 20
                         },
                         new
                         {
@@ -2472,7 +2477,7 @@ namespace DAL.Migrations
                             SellingPrice = 3450000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 62
+                            StockQuantity = 90
                         },
                         new
                         {
@@ -2483,7 +2488,7 @@ namespace DAL.Migrations
                             SellingPrice = 3450000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 66
+                            StockQuantity = 64
                         },
                         new
                         {
@@ -2494,7 +2499,7 @@ namespace DAL.Migrations
                             SellingPrice = 3450000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 44
+                            StockQuantity = 38
                         },
                         new
                         {
@@ -2505,7 +2510,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 85
+                            StockQuantity = 71
                         },
                         new
                         {
@@ -2516,7 +2521,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 16
+                            StockQuantity = 71
                         },
                         new
                         {
@@ -2527,7 +2532,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 36
+                            StockQuantity = 92
                         },
                         new
                         {
@@ -2538,7 +2543,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 19
+                            StockQuantity = 31
                         },
                         new
                         {
@@ -2549,7 +2554,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 98
+                            StockQuantity = 74
                         },
                         new
                         {
@@ -2560,7 +2565,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 31
+                            StockQuantity = 59
                         },
                         new
                         {
@@ -2571,7 +2576,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 79
+                            StockQuantity = 89
                         },
                         new
                         {
@@ -2582,7 +2587,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 76
+                            StockQuantity = 17
                         },
                         new
                         {
@@ -2593,7 +2598,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 47
+                            StockQuantity = 59
                         },
                         new
                         {
@@ -2604,7 +2609,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 15
+                            StockQuantity = 96
                         },
                         new
                         {
@@ -2615,7 +2620,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 77
+                            StockQuantity = 46
                         },
                         new
                         {
@@ -2626,7 +2631,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 70
+                            StockQuantity = 90
                         },
                         new
                         {
@@ -2637,7 +2642,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 58
+                            StockQuantity = 49
                         },
                         new
                         {
@@ -2648,7 +2653,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 99
+                            StockQuantity = 26
                         },
                         new
                         {
@@ -2659,7 +2664,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 60
+                            StockQuantity = 45
                         },
                         new
                         {
@@ -2670,7 +2675,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 15
+                            StockQuantity = 11
                         },
                         new
                         {
@@ -2681,7 +2686,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 14
+                            StockQuantity = 87
                         },
                         new
                         {
@@ -2692,7 +2697,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 97
+                            StockQuantity = 26
                         },
                         new
                         {
@@ -2703,7 +2708,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 60
+                            StockQuantity = 64
                         },
                         new
                         {
@@ -2714,7 +2719,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 61
+                            StockQuantity = 48
                         },
                         new
                         {
@@ -2725,7 +2730,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 55
+                            StockQuantity = 26
                         },
                         new
                         {
@@ -2736,7 +2741,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 40
+                            StockQuantity = 39
                         },
                         new
                         {
@@ -2747,7 +2752,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 58
+                            StockQuantity = 74
                         },
                         new
                         {
@@ -2758,7 +2763,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 38
+                            StockQuantity = 23
                         },
                         new
                         {
@@ -2769,7 +2774,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 54
+                            StockQuantity = 83
                         },
                         new
                         {
@@ -2780,7 +2785,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 16
+                            StockQuantity = 71
                         },
                         new
                         {
@@ -2791,7 +2796,7 @@ namespace DAL.Migrations
                             SellingPrice = 2190000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 22
+                            StockQuantity = 32
                         },
                         new
                         {
@@ -2802,7 +2807,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 67
+                            StockQuantity = 90
                         },
                         new
                         {
@@ -2813,7 +2818,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 83
+                            StockQuantity = 72
                         },
                         new
                         {
@@ -2824,7 +2829,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 97
+                            StockQuantity = 32
                         },
                         new
                         {
@@ -2835,7 +2840,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 74
+                            StockQuantity = 91
                         },
                         new
                         {
@@ -2846,7 +2851,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 41
+                            StockQuantity = 78
                         },
                         new
                         {
@@ -2857,7 +2862,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 97
+                            StockQuantity = 98
                         },
                         new
                         {
@@ -2868,7 +2873,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 51
+                            StockQuantity = 70
                         },
                         new
                         {
@@ -2879,7 +2884,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 89
+                            StockQuantity = 12
                         },
                         new
                         {
@@ -2890,7 +2895,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 32
+                            StockQuantity = 42
                         },
                         new
                         {
@@ -2901,7 +2906,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 72
+                            StockQuantity = 42
                         },
                         new
                         {
@@ -2912,7 +2917,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 87
+                            StockQuantity = 63
                         },
                         new
                         {
@@ -2923,7 +2928,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 73
+                            StockQuantity = 91
                         },
                         new
                         {
@@ -2934,7 +2939,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 40
+                            StockQuantity = 39
                         },
                         new
                         {
@@ -2945,7 +2950,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 88
+                            StockQuantity = 90
                         },
                         new
                         {
@@ -2956,7 +2961,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 89
+                            StockQuantity = 76
                         },
                         new
                         {
@@ -2967,7 +2972,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 57
+                            StockQuantity = 41
                         },
                         new
                         {
@@ -2978,7 +2983,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 86
+                            StockQuantity = 43
                         },
                         new
                         {
@@ -2989,7 +2994,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 70
+                            StockQuantity = 30
                         },
                         new
                         {
@@ -3000,7 +3005,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 11
+                            StockQuantity = 69
                         },
                         new
                         {
@@ -3011,7 +3016,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 35
+                            StockQuantity = 87
                         },
                         new
                         {
@@ -3022,7 +3027,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 34
+                            StockQuantity = 35
                         },
                         new
                         {
@@ -3033,7 +3038,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 31
+                            StockQuantity = 93
                         },
                         new
                         {
@@ -3044,7 +3049,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 91
+                            StockQuantity = 18
                         },
                         new
                         {
@@ -3055,7 +3060,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 96
+                            StockQuantity = 38
                         },
                         new
                         {
@@ -3066,7 +3071,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 89
+                            StockQuantity = 49
                         },
                         new
                         {
@@ -3077,7 +3082,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 67
+                            StockQuantity = 45
                         },
                         new
                         {
@@ -3088,7 +3093,7 @@ namespace DAL.Migrations
                             SellingPrice = 3190000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 63
+                            StockQuantity = 21
                         },
                         new
                         {
@@ -3099,7 +3104,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 60
+                            StockQuantity = 40
                         },
                         new
                         {
@@ -3110,7 +3115,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 18
+                            StockQuantity = 28
                         },
                         new
                         {
@@ -3121,7 +3126,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 26
+                            StockQuantity = 95
                         },
                         new
                         {
@@ -3132,7 +3137,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 90
+                            StockQuantity = 83
                         },
                         new
                         {
@@ -3143,7 +3148,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 67
+                            StockQuantity = 90
                         },
                         new
                         {
@@ -3154,7 +3159,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 58
+                            StockQuantity = 62
                         },
                         new
                         {
@@ -3165,7 +3170,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 78
+                            StockQuantity = 12
                         },
                         new
                         {
@@ -3176,7 +3181,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 48
+                            StockQuantity = 21
                         },
                         new
                         {
@@ -3187,7 +3192,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 33
+                            StockQuantity = 47
                         },
                         new
                         {
@@ -3198,7 +3203,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 58
+                            StockQuantity = 36
                         },
                         new
                         {
@@ -3209,7 +3214,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 77
+                            StockQuantity = 78
                         },
                         new
                         {
@@ -3220,7 +3225,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 29
+                            StockQuantity = 72
                         },
                         new
                         {
@@ -3231,7 +3236,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 30
+                            StockQuantity = 90
                         },
                         new
                         {
@@ -3242,7 +3247,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 61
+                            StockQuantity = 29
                         },
                         new
                         {
@@ -3253,7 +3258,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 79
+                            StockQuantity = 74
                         },
                         new
                         {
@@ -3264,7 +3269,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 44
+                            StockQuantity = 24
                         },
                         new
                         {
@@ -3275,7 +3280,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 81
+                            StockQuantity = 28
                         },
                         new
                         {
@@ -3286,7 +3291,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 53
+                            StockQuantity = 10
                         },
                         new
                         {
@@ -3297,7 +3302,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 81
+                            StockQuantity = 13
                         },
                         new
                         {
@@ -3308,7 +3313,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 95
+                            StockQuantity = 28
                         },
                         new
                         {
@@ -3319,7 +3324,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 29
+                            StockQuantity = 21
                         },
                         new
                         {
@@ -3330,7 +3335,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 92
+                            StockQuantity = 16
                         },
                         new
                         {
@@ -3341,7 +3346,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 97
+                            StockQuantity = 54
                         },
                         new
                         {
@@ -3352,7 +3357,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 44
+                            StockQuantity = 66
                         },
                         new
                         {
@@ -3363,7 +3368,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 16
+                            StockQuantity = 56
                         },
                         new
                         {
@@ -3374,7 +3379,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 99
+                            StockQuantity = 10
                         },
                         new
                         {
@@ -3385,7 +3390,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 32
+                            StockQuantity = 98
                         },
                         new
                         {
@@ -3396,7 +3401,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 64
+                            StockQuantity = 37
                         },
                         new
                         {
@@ -3407,7 +3412,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 84
+                            StockQuantity = 24
                         },
                         new
                         {
@@ -3418,7 +3423,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 15
+                            StockQuantity = 58
                         },
                         new
                         {
@@ -3429,7 +3434,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 76
+                            StockQuantity = 68
                         },
                         new
                         {
@@ -3440,7 +3445,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 20
+                            StockQuantity = 53
                         },
                         new
                         {
@@ -3451,7 +3456,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 66
+                            StockQuantity = 88
                         },
                         new
                         {
@@ -3462,7 +3467,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 72
+                            StockQuantity = 10
                         },
                         new
                         {
@@ -3473,7 +3478,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 60
+                            StockQuantity = 52
                         },
                         new
                         {
@@ -3484,7 +3489,7 @@ namespace DAL.Migrations
                             SellingPrice = 1590000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 62
+                            StockQuantity = 54
                         },
                         new
                         {
@@ -3495,7 +3500,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 89
+                            StockQuantity = 94
                         },
                         new
                         {
@@ -3506,7 +3511,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 60
+                            StockQuantity = 59
                         },
                         new
                         {
@@ -3517,7 +3522,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 19
+                            StockQuantity = 37
                         },
                         new
                         {
@@ -3528,7 +3533,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 40
+                            StockQuantity = 48
                         },
                         new
                         {
@@ -3539,7 +3544,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 53
+                            StockQuantity = 61
                         },
                         new
                         {
@@ -3550,7 +3555,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 83
+                            StockQuantity = 97
                         },
                         new
                         {
@@ -3561,7 +3566,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 17
+                            StockQuantity = 99
                         },
                         new
                         {
@@ -3572,7 +3577,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 11
+                            StockQuantity = 62
                         },
                         new
                         {
@@ -3583,7 +3588,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 77
+                            StockQuantity = 25
                         },
                         new
                         {
@@ -3594,7 +3599,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 29
+                            StockQuantity = 65
                         },
                         new
                         {
@@ -3605,7 +3610,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 25
+                            StockQuantity = 50
                         },
                         new
                         {
@@ -3616,7 +3621,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 12
+                            StockQuantity = 47
                         },
                         new
                         {
@@ -3627,7 +3632,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 89
+                            StockQuantity = 17
                         },
                         new
                         {
@@ -3638,7 +3643,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 44
+                            StockQuantity = 60
                         },
                         new
                         {
@@ -3649,7 +3654,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 82
+                            StockQuantity = 81
                         },
                         new
                         {
@@ -3660,7 +3665,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 72
+                            StockQuantity = 59
                         },
                         new
                         {
@@ -3671,7 +3676,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 75
+                            StockQuantity = 87
                         },
                         new
                         {
@@ -3682,7 +3687,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 32
+                            StockQuantity = 26
                         },
                         new
                         {
@@ -3693,7 +3698,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 33
+                            StockQuantity = 74
                         },
                         new
                         {
@@ -3704,7 +3709,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 31
+                            StockQuantity = 10
                         },
                         new
                         {
@@ -3715,7 +3720,7 @@ namespace DAL.Migrations
                             SellingPrice = 2890000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 53
+                            StockQuantity = 75
                         },
                         new
                         {
@@ -3726,7 +3731,7 @@ namespace DAL.Migrations
                             SellingPrice = 2990000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 96
+                            StockQuantity = 19
                         },
                         new
                         {
@@ -3737,7 +3742,7 @@ namespace DAL.Migrations
                             SellingPrice = 2990000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 61
+                            StockQuantity = 83
                         },
                         new
                         {
@@ -3748,7 +3753,7 @@ namespace DAL.Migrations
                             SellingPrice = 2990000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 94
+                            StockQuantity = 22
                         },
                         new
                         {
@@ -3759,7 +3764,7 @@ namespace DAL.Migrations
                             SellingPrice = 2990000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 21
+                            StockQuantity = 27
                         },
                         new
                         {
@@ -3770,7 +3775,7 @@ namespace DAL.Migrations
                             SellingPrice = 2990000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 25
+                            StockQuantity = 76
                         },
                         new
                         {
@@ -3781,7 +3786,7 @@ namespace DAL.Migrations
                             SellingPrice = 2990000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 16
+                            StockQuantity = 35
                         },
                         new
                         {
@@ -3792,7 +3797,7 @@ namespace DAL.Migrations
                             SellingPrice = 2990000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 30
+                            StockQuantity = 44
                         },
                         new
                         {
@@ -3803,7 +3808,7 @@ namespace DAL.Migrations
                             SellingPrice = 2990000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 67
+                            StockQuantity = 35
                         },
                         new
                         {
@@ -3814,7 +3819,7 @@ namespace DAL.Migrations
                             SellingPrice = 2990000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 17
+                            StockQuantity = 83
                         },
                         new
                         {
@@ -3825,7 +3830,7 @@ namespace DAL.Migrations
                             SellingPrice = 2990000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 67
+                            StockQuantity = 17
                         },
                         new
                         {
@@ -3836,7 +3841,7 @@ namespace DAL.Migrations
                             SellingPrice = 2990000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 70
+                            StockQuantity = 36
                         },
                         new
                         {
@@ -3847,7 +3852,7 @@ namespace DAL.Migrations
                             SellingPrice = 2990000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 95
+                            StockQuantity = 28
                         },
                         new
                         {
@@ -3858,7 +3863,7 @@ namespace DAL.Migrations
                             SellingPrice = 2990000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 80
+                            StockQuantity = 43
                         },
                         new
                         {
@@ -3869,7 +3874,7 @@ namespace DAL.Migrations
                             SellingPrice = 2990000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 71
+                            StockQuantity = 49
                         },
                         new
                         {
@@ -3880,7 +3885,7 @@ namespace DAL.Migrations
                             SellingPrice = 2990000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 89
+                            StockQuantity = 67
                         },
                         new
                         {
@@ -3891,7 +3896,7 @@ namespace DAL.Migrations
                             SellingPrice = 2990000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 27
+                            StockQuantity = 97
                         },
                         new
                         {
@@ -3902,7 +3907,7 @@ namespace DAL.Migrations
                             SellingPrice = 2990000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 67
+                            StockQuantity = 72
                         },
                         new
                         {
@@ -3913,7 +3918,7 @@ namespace DAL.Migrations
                             SellingPrice = 2990000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 83
+                            StockQuantity = 37
                         },
                         new
                         {
@@ -3924,7 +3929,7 @@ namespace DAL.Migrations
                             SellingPrice = 2990000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 80
+                            StockQuantity = 60
                         },
                         new
                         {
@@ -3935,7 +3940,7 @@ namespace DAL.Migrations
                             SellingPrice = 2990000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 32
+                            StockQuantity = 38
                         },
                         new
                         {
@@ -3946,7 +3951,7 @@ namespace DAL.Migrations
                             SellingPrice = 2990000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 36
+                            StockQuantity = 97
                         },
                         new
                         {
@@ -3957,7 +3962,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 13
+                            StockQuantity = 20
                         },
                         new
                         {
@@ -3968,7 +3973,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 94
+                            StockQuantity = 51
                         },
                         new
                         {
@@ -3979,7 +3984,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 66
+                            StockQuantity = 37
                         },
                         new
                         {
@@ -3990,7 +3995,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 81
+                            StockQuantity = 37
                         },
                         new
                         {
@@ -4001,7 +4006,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 56
+                            StockQuantity = 83
                         },
                         new
                         {
@@ -4012,7 +4017,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 87
+                            StockQuantity = 71
                         },
                         new
                         {
@@ -4023,7 +4028,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 11
+                            StockQuantity = 29
                         },
                         new
                         {
@@ -4034,7 +4039,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 95
+                            StockQuantity = 40
                         },
                         new
                         {
@@ -4045,7 +4050,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 97
+                            StockQuantity = 58
                         },
                         new
                         {
@@ -4056,7 +4061,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 87
+                            StockQuantity = 59
                         },
                         new
                         {
@@ -4067,7 +4072,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 87
+                            StockQuantity = 95
                         },
                         new
                         {
@@ -4078,7 +4083,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 65
+                            StockQuantity = 44
                         },
                         new
                         {
@@ -4089,7 +4094,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 23
+                            StockQuantity = 72
                         },
                         new
                         {
@@ -4100,7 +4105,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 25
+                            StockQuantity = 76
                         },
                         new
                         {
@@ -4111,7 +4116,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 64
+                            StockQuantity = 56
                         },
                         new
                         {
@@ -4122,7 +4127,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 30
+                            StockQuantity = 91
                         },
                         new
                         {
@@ -4133,7 +4138,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 78
+                            StockQuantity = 26
                         },
                         new
                         {
@@ -4144,7 +4149,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 74
+                            StockQuantity = 53
                         },
                         new
                         {
@@ -4155,7 +4160,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 17
+                            StockQuantity = 48
                         },
                         new
                         {
@@ -4166,7 +4171,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 71
+                            StockQuantity = 50
                         },
                         new
                         {
@@ -4177,7 +4182,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 30
+                            StockQuantity = 74
                         },
                         new
                         {
@@ -4188,7 +4193,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 34
+                            StockQuantity = 63
                         },
                         new
                         {
@@ -4199,7 +4204,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 41
+                            StockQuantity = 20
                         },
                         new
                         {
@@ -4210,7 +4215,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 70
+                            StockQuantity = 31
                         },
                         new
                         {
@@ -4221,7 +4226,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 28
+                            StockQuantity = 94
                         },
                         new
                         {
@@ -4232,7 +4237,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 90
+                            StockQuantity = 70
                         },
                         new
                         {
@@ -4243,7 +4248,7 @@ namespace DAL.Migrations
                             SellingPrice = 2290000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 48
+                            StockQuantity = 52
                         },
                         new
                         {
@@ -4254,7 +4259,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 83
+                            StockQuantity = 40
                         },
                         new
                         {
@@ -4265,7 +4270,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 88
+                            StockQuantity = 24
                         },
                         new
                         {
@@ -4276,7 +4281,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 49
+                            StockQuantity = 71
                         },
                         new
                         {
@@ -4287,7 +4292,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 16
+                            StockQuantity = 55
                         },
                         new
                         {
@@ -4298,7 +4303,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 33
+                            StockQuantity = 61
                         },
                         new
                         {
@@ -4309,7 +4314,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 11
+                            StockQuantity = 65
                         },
                         new
                         {
@@ -4320,7 +4325,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 98
+                            StockQuantity = 67
                         },
                         new
                         {
@@ -4331,7 +4336,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 88
+                            StockQuantity = 13
                         },
                         new
                         {
@@ -4342,7 +4347,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 88
+                            StockQuantity = 59
                         },
                         new
                         {
@@ -4353,7 +4358,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 71
+                            StockQuantity = 37
                         },
                         new
                         {
@@ -4364,7 +4369,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 19
+                            StockQuantity = 63
                         },
                         new
                         {
@@ -4375,7 +4380,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 61
+                            StockQuantity = 57
                         },
                         new
                         {
@@ -4386,7 +4391,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 70
+                            StockQuantity = 10
                         },
                         new
                         {
@@ -4397,7 +4402,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 89
+                            StockQuantity = 26
                         },
                         new
                         {
@@ -4408,7 +4413,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 65
+                            StockQuantity = 77
                         },
                         new
                         {
@@ -4419,7 +4424,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 59
+                            StockQuantity = 39
                         },
                         new
                         {
@@ -4430,7 +4435,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 94
+                            StockQuantity = 36
                         },
                         new
                         {
@@ -4441,7 +4446,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 61
+                            StockQuantity = 88
                         },
                         new
                         {
@@ -4452,7 +4457,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 44
+                            StockQuantity = 11
                         },
                         new
                         {
@@ -4463,7 +4468,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 27
+                            StockQuantity = 95
                         },
                         new
                         {
@@ -4474,7 +4479,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 75
+                            StockQuantity = 79
                         },
                         new
                         {
@@ -4485,7 +4490,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 95
+                            StockQuantity = 66
                         },
                         new
                         {
@@ -4496,7 +4501,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 89
+                            StockQuantity = 70
                         },
                         new
                         {
@@ -4507,7 +4512,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 40
+                            StockQuantity = 19
                         },
                         new
                         {
@@ -4518,7 +4523,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 49
+                            StockQuantity = 18
                         },
                         new
                         {
@@ -4529,7 +4534,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 82
+                            StockQuantity = 53
                         },
                         new
                         {
@@ -4540,7 +4545,7 @@ namespace DAL.Migrations
                             SellingPrice = 1690000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 82
+                            StockQuantity = 56
                         },
                         new
                         {
@@ -4551,7 +4556,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 49
+                            StockQuantity = 69
                         },
                         new
                         {
@@ -4562,7 +4567,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 43
+                            StockQuantity = 57
                         },
                         new
                         {
@@ -4573,7 +4578,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 19
+                            StockQuantity = 16
                         },
                         new
                         {
@@ -4584,7 +4589,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 76
+                            StockQuantity = 83
                         },
                         new
                         {
@@ -4595,7 +4600,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 79
+                            StockQuantity = 97
                         },
                         new
                         {
@@ -4606,7 +4611,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 11
+                            StockQuantity = 94
                         },
                         new
                         {
@@ -4617,7 +4622,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 62
+                            StockQuantity = 37
                         },
                         new
                         {
@@ -4628,7 +4633,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 36
+                            StockQuantity = 45
                         },
                         new
                         {
@@ -4639,7 +4644,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 40
+                            StockQuantity = 22
                         },
                         new
                         {
@@ -4650,7 +4655,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 80
+                            StockQuantity = 36
                         },
                         new
                         {
@@ -4661,7 +4666,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 38
+                            StockQuantity = 64
                         },
                         new
                         {
@@ -4672,7 +4677,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 12
+                            StockQuantity = 24
                         },
                         new
                         {
@@ -4683,7 +4688,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 71
+                            StockQuantity = 58
                         },
                         new
                         {
@@ -4694,7 +4699,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 75
+                            StockQuantity = 82
                         },
                         new
                         {
@@ -4705,7 +4710,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 52
+                            StockQuantity = 11
                         },
                         new
                         {
@@ -4716,7 +4721,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 35
+                            StockQuantity = 54
                         },
                         new
                         {
@@ -4727,7 +4732,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 77
+                            StockQuantity = 65
                         },
                         new
                         {
@@ -4738,7 +4743,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 96
+                            StockQuantity = 88
                         },
                         new
                         {
@@ -4749,7 +4754,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 33
+                            StockQuantity = 87
                         },
                         new
                         {
@@ -4760,7 +4765,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 96
+                            StockQuantity = 55
                         },
                         new
                         {
@@ -4771,7 +4776,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 34
+                            StockQuantity = 37
                         },
                         new
                         {
@@ -4782,7 +4787,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 45
+                            StockQuantity = 19
                         },
                         new
                         {
@@ -4793,7 +4798,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 39
+                            StockQuantity = 45
                         },
                         new
                         {
@@ -4804,7 +4809,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 82
+                            StockQuantity = 84
                         },
                         new
                         {
@@ -4815,7 +4820,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 44
+                            StockQuantity = 61
                         },
                         new
                         {
@@ -4826,7 +4831,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 77
+                            StockQuantity = 64
                         },
                         new
                         {
@@ -4837,7 +4842,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 87
+                            StockQuantity = 83
                         },
                         new
                         {
@@ -4848,7 +4853,7 @@ namespace DAL.Migrations
                             SellingPrice = 3890000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 80
+                            StockQuantity = 46
                         },
                         new
                         {
@@ -4859,7 +4864,7 @@ namespace DAL.Migrations
                             SellingPrice = 3890000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 88
+                            StockQuantity = 96
                         },
                         new
                         {
@@ -4870,7 +4875,7 @@ namespace DAL.Migrations
                             SellingPrice = 3890000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 17
+                            StockQuantity = 28
                         },
                         new
                         {
@@ -4881,7 +4886,7 @@ namespace DAL.Migrations
                             SellingPrice = 3890000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 57
+                            StockQuantity = 59
                         },
                         new
                         {
@@ -4892,7 +4897,7 @@ namespace DAL.Migrations
                             SellingPrice = 3890000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 15
+                            StockQuantity = 91
                         },
                         new
                         {
@@ -4903,7 +4908,7 @@ namespace DAL.Migrations
                             SellingPrice = 3890000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 19
+                            StockQuantity = 50
                         },
                         new
                         {
@@ -4914,7 +4919,7 @@ namespace DAL.Migrations
                             SellingPrice = 3890000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 56
+                            StockQuantity = 52
                         },
                         new
                         {
@@ -4925,7 +4930,7 @@ namespace DAL.Migrations
                             SellingPrice = 3890000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 17
+                            StockQuantity = 74
                         },
                         new
                         {
@@ -4936,7 +4941,7 @@ namespace DAL.Migrations
                             SellingPrice = 3890000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 12
+                            StockQuantity = 40
                         },
                         new
                         {
@@ -4947,7 +4952,7 @@ namespace DAL.Migrations
                             SellingPrice = 3890000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 73
+                            StockQuantity = 52
                         },
                         new
                         {
@@ -4958,7 +4963,7 @@ namespace DAL.Migrations
                             SellingPrice = 3890000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 87
+                            StockQuantity = 16
                         },
                         new
                         {
@@ -4969,7 +4974,7 @@ namespace DAL.Migrations
                             SellingPrice = 3890000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 48
+                            StockQuantity = 61
                         },
                         new
                         {
@@ -4980,7 +4985,7 @@ namespace DAL.Migrations
                             SellingPrice = 3890000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 67
+                            StockQuantity = 84
                         },
                         new
                         {
@@ -4991,7 +4996,7 @@ namespace DAL.Migrations
                             SellingPrice = 3890000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 59
+                            StockQuantity = 42
                         },
                         new
                         {
@@ -5002,7 +5007,7 @@ namespace DAL.Migrations
                             SellingPrice = 3890000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 93
+                            StockQuantity = 25
                         },
                         new
                         {
@@ -5013,7 +5018,7 @@ namespace DAL.Migrations
                             SellingPrice = 3890000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 60
+                            StockQuantity = 41
                         },
                         new
                         {
@@ -5024,7 +5029,7 @@ namespace DAL.Migrations
                             SellingPrice = 3890000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 35
+                            StockQuantity = 21
                         },
                         new
                         {
@@ -5035,7 +5040,7 @@ namespace DAL.Migrations
                             SellingPrice = 3890000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 35
+                            StockQuantity = 63
                         },
                         new
                         {
@@ -5046,7 +5051,7 @@ namespace DAL.Migrations
                             SellingPrice = 3890000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 14
+                            StockQuantity = 57
                         },
                         new
                         {
@@ -5057,7 +5062,7 @@ namespace DAL.Migrations
                             SellingPrice = 3890000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 17
+                            StockQuantity = 56
                         },
                         new
                         {
@@ -5068,7 +5073,7 @@ namespace DAL.Migrations
                             SellingPrice = 3890000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 81
+                            StockQuantity = 19
                         },
                         new
                         {
@@ -5079,7 +5084,7 @@ namespace DAL.Migrations
                             SellingPrice = 4190000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 51
+                            StockQuantity = 62
                         },
                         new
                         {
@@ -5090,7 +5095,7 @@ namespace DAL.Migrations
                             SellingPrice = 4190000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 21
+                            StockQuantity = 75
                         },
                         new
                         {
@@ -5101,7 +5106,7 @@ namespace DAL.Migrations
                             SellingPrice = 4190000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 49
+                            StockQuantity = 27
                         },
                         new
                         {
@@ -5112,7 +5117,7 @@ namespace DAL.Migrations
                             SellingPrice = 4190000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 95
+                            StockQuantity = 38
                         },
                         new
                         {
@@ -5123,7 +5128,7 @@ namespace DAL.Migrations
                             SellingPrice = 4190000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 44
+                            StockQuantity = 32
                         },
                         new
                         {
@@ -5134,7 +5139,7 @@ namespace DAL.Migrations
                             SellingPrice = 4190000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 36
+                            StockQuantity = 98
                         },
                         new
                         {
@@ -5145,7 +5150,7 @@ namespace DAL.Migrations
                             SellingPrice = 4190000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 67
+                            StockQuantity = 93
                         },
                         new
                         {
@@ -5156,7 +5161,7 @@ namespace DAL.Migrations
                             SellingPrice = 4190000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 16
+                            StockQuantity = 44
                         },
                         new
                         {
@@ -5167,7 +5172,7 @@ namespace DAL.Migrations
                             SellingPrice = 4190000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 63
+                            StockQuantity = 47
                         },
                         new
                         {
@@ -5178,7 +5183,7 @@ namespace DAL.Migrations
                             SellingPrice = 4190000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 35
+                            StockQuantity = 47
                         },
                         new
                         {
@@ -5189,7 +5194,7 @@ namespace DAL.Migrations
                             SellingPrice = 4190000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 29
+                            StockQuantity = 53
                         },
                         new
                         {
@@ -5200,7 +5205,7 @@ namespace DAL.Migrations
                             SellingPrice = 4190000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 11
+                            StockQuantity = 46
                         },
                         new
                         {
@@ -5211,7 +5216,7 @@ namespace DAL.Migrations
                             SellingPrice = 4190000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 21
+                            StockQuantity = 66
                         },
                         new
                         {
@@ -5222,7 +5227,7 @@ namespace DAL.Migrations
                             SellingPrice = 4190000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 46
+                            StockQuantity = 21
                         },
                         new
                         {
@@ -5233,7 +5238,7 @@ namespace DAL.Migrations
                             SellingPrice = 4190000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 39
+                            StockQuantity = 91
                         },
                         new
                         {
@@ -5244,7 +5249,7 @@ namespace DAL.Migrations
                             SellingPrice = 4190000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 82
+                            StockQuantity = 59
                         },
                         new
                         {
@@ -5255,7 +5260,7 @@ namespace DAL.Migrations
                             SellingPrice = 4190000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 33
+                            StockQuantity = 50
                         },
                         new
                         {
@@ -5266,7 +5271,7 @@ namespace DAL.Migrations
                             SellingPrice = 4190000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 27
+                            StockQuantity = 83
                         },
                         new
                         {
@@ -5277,7 +5282,7 @@ namespace DAL.Migrations
                             SellingPrice = 4190000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 49
+                            StockQuantity = 37
                         },
                         new
                         {
@@ -5288,7 +5293,7 @@ namespace DAL.Migrations
                             SellingPrice = 4190000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 26
+                            StockQuantity = 22
                         },
                         new
                         {
@@ -5299,7 +5304,7 @@ namespace DAL.Migrations
                             SellingPrice = 4190000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 82
+                            StockQuantity = 65
                         },
                         new
                         {
@@ -5310,7 +5315,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 27
+                            StockQuantity = 16
                         },
                         new
                         {
@@ -5321,7 +5326,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 81
+                            StockQuantity = 67
                         },
                         new
                         {
@@ -5332,7 +5337,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 82
+                            StockQuantity = 18
                         },
                         new
                         {
@@ -5343,7 +5348,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 21
+                            StockQuantity = 29
                         },
                         new
                         {
@@ -5354,7 +5359,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 94
+                            StockQuantity = 22
                         },
                         new
                         {
@@ -5365,7 +5370,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 70
+                            StockQuantity = 96
                         },
                         new
                         {
@@ -5376,7 +5381,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 99
+                            StockQuantity = 73
                         },
                         new
                         {
@@ -5387,7 +5392,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 33
+                            StockQuantity = 88
                         },
                         new
                         {
@@ -5398,7 +5403,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 13
+                            StockQuantity = 79
                         },
                         new
                         {
@@ -5409,7 +5414,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 64
+                            StockQuantity = 54
                         },
                         new
                         {
@@ -5420,7 +5425,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 39
+                            StockQuantity = 30
                         },
                         new
                         {
@@ -5431,7 +5436,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 93
+                            StockQuantity = 84
                         },
                         new
                         {
@@ -5442,7 +5447,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 17
+                            StockQuantity = 12
                         },
                         new
                         {
@@ -5453,7 +5458,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 53
+                            StockQuantity = 29
                         },
                         new
                         {
@@ -5464,7 +5469,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 60
+                            StockQuantity = 97
                         },
                         new
                         {
@@ -5475,7 +5480,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 58
+                            StockQuantity = 30
                         },
                         new
                         {
@@ -5486,7 +5491,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 49
+                            StockQuantity = 45
                         },
                         new
                         {
@@ -5497,7 +5502,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 67
+                            StockQuantity = 59
                         },
                         new
                         {
@@ -5508,7 +5513,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 55
+                            StockQuantity = 50
                         },
                         new
                         {
@@ -5519,7 +5524,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 86
+                            StockQuantity = 23
                         },
                         new
                         {
@@ -5530,7 +5535,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 31
+                            StockQuantity = 46
                         },
                         new
                         {
@@ -5541,7 +5546,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 88
+                            StockQuantity = 46
                         },
                         new
                         {
@@ -5552,7 +5557,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 61
+                            StockQuantity = 90
                         },
                         new
                         {
@@ -5563,7 +5568,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 17
+                            StockQuantity = 94
                         },
                         new
                         {
@@ -5574,7 +5579,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 94
+                            StockQuantity = 28
                         },
                         new
                         {
@@ -5585,7 +5590,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 11
+                            StockQuantity = 91
                         },
                         new
                         {
@@ -5596,7 +5601,7 @@ namespace DAL.Migrations
                             SellingPrice = 2590000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 88
+                            StockQuantity = 55
                         },
                         new
                         {
@@ -5607,7 +5612,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 11
+                            StockQuantity = 62
                         },
                         new
                         {
@@ -5618,7 +5623,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 53
+                            StockQuantity = 23
                         },
                         new
                         {
@@ -5629,7 +5634,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 79
+                            StockQuantity = 43
                         },
                         new
                         {
@@ -5640,7 +5645,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 19
+                            StockQuantity = 11
                         },
                         new
                         {
@@ -5651,7 +5656,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 64
+                            StockQuantity = 61
                         },
                         new
                         {
@@ -5662,7 +5667,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 47
+                            StockQuantity = 53
                         },
                         new
                         {
@@ -5673,7 +5678,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 58
+                            StockQuantity = 38
                         },
                         new
                         {
@@ -5684,7 +5689,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 76
+                            StockQuantity = 52
                         },
                         new
                         {
@@ -5695,7 +5700,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 81
+                            StockQuantity = 48
                         },
                         new
                         {
@@ -5706,7 +5711,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 14
+                            StockQuantity = 73
                         },
                         new
                         {
@@ -5717,7 +5722,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 27
+                            StockQuantity = 83
                         },
                         new
                         {
@@ -5728,7 +5733,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 38
+                            StockQuantity = 21
                         },
                         new
                         {
@@ -5739,7 +5744,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 44
+                            StockQuantity = 51
                         },
                         new
                         {
@@ -5750,7 +5755,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 66
+                            StockQuantity = 63
                         },
                         new
                         {
@@ -5761,7 +5766,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 66
+                            StockQuantity = 61
                         },
                         new
                         {
@@ -5772,7 +5777,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 53
+                            StockQuantity = 63
                         },
                         new
                         {
@@ -5783,7 +5788,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 94
+                            StockQuantity = 73
                         },
                         new
                         {
@@ -5794,7 +5799,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 75
+                            StockQuantity = 69
                         },
                         new
                         {
@@ -5805,7 +5810,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 21
+                            StockQuantity = 13
                         },
                         new
                         {
@@ -5816,7 +5821,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 37
+                            StockQuantity = 75
                         },
                         new
                         {
@@ -5827,7 +5832,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 67
+                            StockQuantity = 44
                         },
                         new
                         {
@@ -5838,7 +5843,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 71
+                            StockQuantity = 85
                         },
                         new
                         {
@@ -5849,7 +5854,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 54
+                            StockQuantity = 95
                         },
                         new
                         {
@@ -5860,7 +5865,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 39
+                            StockQuantity = 36
                         },
                         new
                         {
@@ -5871,7 +5876,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 22
+                            StockQuantity = 49
                         },
                         new
                         {
@@ -5882,7 +5887,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 90
+                            StockQuantity = 52
                         },
                         new
                         {
@@ -5893,7 +5898,7 @@ namespace DAL.Migrations
                             SellingPrice = 1790000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 17
+                            StockQuantity = 15
                         },
                         new
                         {
@@ -5904,7 +5909,7 @@ namespace DAL.Migrations
                             SellingPrice = 3290000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 72
+                            StockQuantity = 37
                         },
                         new
                         {
@@ -5915,7 +5920,7 @@ namespace DAL.Migrations
                             SellingPrice = 3290000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 52
+                            StockQuantity = 61
                         },
                         new
                         {
@@ -5926,7 +5931,7 @@ namespace DAL.Migrations
                             SellingPrice = 3290000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 36
+                            StockQuantity = 64
                         },
                         new
                         {
@@ -5937,7 +5942,7 @@ namespace DAL.Migrations
                             SellingPrice = 3290000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 62
+                            StockQuantity = 37
                         },
                         new
                         {
@@ -5948,7 +5953,7 @@ namespace DAL.Migrations
                             SellingPrice = 3290000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 61
+                            StockQuantity = 48
                         },
                         new
                         {
@@ -5959,7 +5964,7 @@ namespace DAL.Migrations
                             SellingPrice = 3290000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 12
+                            StockQuantity = 83
                         },
                         new
                         {
@@ -5970,7 +5975,7 @@ namespace DAL.Migrations
                             SellingPrice = 3290000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 66
+                            StockQuantity = 36
                         },
                         new
                         {
@@ -5981,7 +5986,7 @@ namespace DAL.Migrations
                             SellingPrice = 3290000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 28
+                            StockQuantity = 31
                         },
                         new
                         {
@@ -5992,7 +5997,7 @@ namespace DAL.Migrations
                             SellingPrice = 3290000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 83
+                            StockQuantity = 70
                         },
                         new
                         {
@@ -6003,7 +6008,7 @@ namespace DAL.Migrations
                             SellingPrice = 3290000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 18
+                            StockQuantity = 75
                         },
                         new
                         {
@@ -6014,7 +6019,7 @@ namespace DAL.Migrations
                             SellingPrice = 3290000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 14
+                            StockQuantity = 20
                         },
                         new
                         {
@@ -6025,7 +6030,7 @@ namespace DAL.Migrations
                             SellingPrice = 3290000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 10
+                            StockQuantity = 24
                         },
                         new
                         {
@@ -6036,7 +6041,7 @@ namespace DAL.Migrations
                             SellingPrice = 3290000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 86
+                            StockQuantity = 93
                         },
                         new
                         {
@@ -6047,7 +6052,7 @@ namespace DAL.Migrations
                             SellingPrice = 3290000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 39
+                            StockQuantity = 15
                         },
                         new
                         {
@@ -6069,7 +6074,7 @@ namespace DAL.Migrations
                             SellingPrice = 3290000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 54
+                            StockQuantity = 14
                         },
                         new
                         {
@@ -6080,7 +6085,7 @@ namespace DAL.Migrations
                             SellingPrice = 3290000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 82
+                            StockQuantity = 49
                         },
                         new
                         {
@@ -6091,7 +6096,7 @@ namespace DAL.Migrations
                             SellingPrice = 3290000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 31
+                            StockQuantity = 21
                         },
                         new
                         {
@@ -6102,7 +6107,7 @@ namespace DAL.Migrations
                             SellingPrice = 3290000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 49
+                            StockQuantity = 56
                         },
                         new
                         {
@@ -6113,7 +6118,7 @@ namespace DAL.Migrations
                             SellingPrice = 3290000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 57
+                            StockQuantity = 60
                         },
                         new
                         {
@@ -6124,7 +6129,7 @@ namespace DAL.Migrations
                             SellingPrice = 3290000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 57
+                            StockQuantity = 70
                         },
                         new
                         {
@@ -6135,7 +6140,7 @@ namespace DAL.Migrations
                             SellingPrice = 4890000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 17
+                            StockQuantity = 20
                         },
                         new
                         {
@@ -6146,7 +6151,7 @@ namespace DAL.Migrations
                             SellingPrice = 4890000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 54
+                            StockQuantity = 44
                         },
                         new
                         {
@@ -6157,7 +6162,7 @@ namespace DAL.Migrations
                             SellingPrice = 4890000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 18
+                            StockQuantity = 97
                         },
                         new
                         {
@@ -6168,7 +6173,7 @@ namespace DAL.Migrations
                             SellingPrice = 4890000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 90
+                            StockQuantity = 98
                         },
                         new
                         {
@@ -6179,7 +6184,7 @@ namespace DAL.Migrations
                             SellingPrice = 4890000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 66
+                            StockQuantity = 16
                         },
                         new
                         {
@@ -6190,7 +6195,7 @@ namespace DAL.Migrations
                             SellingPrice = 4890000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 48
+                            StockQuantity = 59
                         },
                         new
                         {
@@ -6201,7 +6206,7 @@ namespace DAL.Migrations
                             SellingPrice = 4890000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 76
+                            StockQuantity = 46
                         },
                         new
                         {
@@ -6212,7 +6217,7 @@ namespace DAL.Migrations
                             SellingPrice = 4890000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 93
+                            StockQuantity = 63
                         },
                         new
                         {
@@ -6223,7 +6228,7 @@ namespace DAL.Migrations
                             SellingPrice = 4890000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 33
+                            StockQuantity = 22
                         },
                         new
                         {
@@ -6234,7 +6239,7 @@ namespace DAL.Migrations
                             SellingPrice = 4890000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 40
+                            StockQuantity = 46
                         },
                         new
                         {
@@ -6245,7 +6250,7 @@ namespace DAL.Migrations
                             SellingPrice = 4890000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 70
+                            StockQuantity = 27
                         },
                         new
                         {
@@ -6256,7 +6261,7 @@ namespace DAL.Migrations
                             SellingPrice = 4890000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 67
+                            StockQuantity = 24
                         },
                         new
                         {
@@ -6267,7 +6272,7 @@ namespace DAL.Migrations
                             SellingPrice = 4890000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 28
+                            StockQuantity = 37
                         },
                         new
                         {
@@ -6278,7 +6283,7 @@ namespace DAL.Migrations
                             SellingPrice = 4890000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 15
+                            StockQuantity = 70
                         },
                         new
                         {
@@ -6289,7 +6294,7 @@ namespace DAL.Migrations
                             SellingPrice = 4890000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 57
+                            StockQuantity = 33
                         },
                         new
                         {
@@ -6300,7 +6305,7 @@ namespace DAL.Migrations
                             SellingPrice = 4890000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 80
+                            StockQuantity = 51
                         },
                         new
                         {
@@ -6311,7 +6316,7 @@ namespace DAL.Migrations
                             SellingPrice = 4890000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 86
+                            StockQuantity = 46
                         },
                         new
                         {
@@ -6322,7 +6327,7 @@ namespace DAL.Migrations
                             SellingPrice = 4890000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 75
+                            StockQuantity = 55
                         },
                         new
                         {
@@ -6333,7 +6338,7 @@ namespace DAL.Migrations
                             SellingPrice = 4890000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 75
+                            StockQuantity = 92
                         },
                         new
                         {
@@ -6344,7 +6349,7 @@ namespace DAL.Migrations
                             SellingPrice = 4890000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 37
+                            StockQuantity = 26
                         },
                         new
                         {
@@ -6355,7 +6360,7 @@ namespace DAL.Migrations
                             SellingPrice = 4890000m,
                             SizeID = 10,
                             Status = "Active",
-                            StockQuantity = 94
+                            StockQuantity = 40
                         },
                         new
                         {
@@ -6366,7 +6371,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 14
+                            StockQuantity = 29
                         },
                         new
                         {
@@ -6377,7 +6382,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 96
+                            StockQuantity = 86
                         },
                         new
                         {
@@ -6388,7 +6393,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 56
+                            StockQuantity = 49
                         },
                         new
                         {
@@ -6399,7 +6404,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 34
+                            StockQuantity = 99
                         },
                         new
                         {
@@ -6410,7 +6415,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 32
+                            StockQuantity = 44
                         },
                         new
                         {
@@ -6421,7 +6426,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 35
+                            StockQuantity = 94
                         },
                         new
                         {
@@ -6432,7 +6437,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 45
+                            StockQuantity = 35
                         },
                         new
                         {
@@ -6443,7 +6448,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 84
+                            StockQuantity = 15
                         },
                         new
                         {
@@ -6454,7 +6459,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 65
+                            StockQuantity = 84
                         },
                         new
                         {
@@ -6465,7 +6470,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 84
+                            StockQuantity = 74
                         },
                         new
                         {
@@ -6476,7 +6481,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 86
+                            StockQuantity = 21
                         },
                         new
                         {
@@ -6487,7 +6492,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 95
+                            StockQuantity = 70
                         },
                         new
                         {
@@ -6498,7 +6503,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 48
+                            StockQuantity = 17
                         },
                         new
                         {
@@ -6509,7 +6514,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 57
+                            StockQuantity = 74
                         },
                         new
                         {
@@ -6520,7 +6525,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 76
+                            StockQuantity = 42
                         },
                         new
                         {
@@ -6531,7 +6536,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 26
+                            StockQuantity = 99
                         },
                         new
                         {
@@ -6542,7 +6547,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 41
+                            StockQuantity = 50
                         },
                         new
                         {
@@ -6553,7 +6558,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 19
+                            StockQuantity = 68
                         },
                         new
                         {
@@ -6564,7 +6569,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 22
+                            StockQuantity = 63
                         },
                         new
                         {
@@ -6575,7 +6580,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 67
+                            StockQuantity = 11
                         },
                         new
                         {
@@ -6586,7 +6591,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 63
+                            StockQuantity = 55
                         },
                         new
                         {
@@ -6597,7 +6602,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 39
+                            StockQuantity = 47
                         },
                         new
                         {
@@ -6608,7 +6613,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 67
+                            StockQuantity = 32
                         },
                         new
                         {
@@ -6619,7 +6624,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 97
+                            StockQuantity = 30
                         },
                         new
                         {
@@ -6630,7 +6635,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 86
+                            StockQuantity = 20
                         },
                         new
                         {
@@ -6641,7 +6646,7 @@ namespace DAL.Migrations
                             SellingPrice = 1990000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 22
+                            StockQuantity = 94
                         },
                         new
                         {
@@ -6663,7 +6668,7 @@ namespace DAL.Migrations
                             SellingPrice = 2390000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 27
+                            StockQuantity = 72
                         },
                         new
                         {
@@ -6674,7 +6679,7 @@ namespace DAL.Migrations
                             SellingPrice = 2390000m,
                             SizeID = 1,
                             Status = "Active",
-                            StockQuantity = 18
+                            StockQuantity = 56
                         },
                         new
                         {
@@ -6685,7 +6690,7 @@ namespace DAL.Migrations
                             SellingPrice = 2390000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 48
+                            StockQuantity = 56
                         },
                         new
                         {
@@ -6696,7 +6701,7 @@ namespace DAL.Migrations
                             SellingPrice = 2390000m,
                             SizeID = 2,
                             Status = "Active",
-                            StockQuantity = 51
+                            StockQuantity = 52
                         },
                         new
                         {
@@ -6707,7 +6712,7 @@ namespace DAL.Migrations
                             SellingPrice = 2390000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 71
+                            StockQuantity = 17
                         },
                         new
                         {
@@ -6718,7 +6723,7 @@ namespace DAL.Migrations
                             SellingPrice = 2390000m,
                             SizeID = 3,
                             Status = "Active",
-                            StockQuantity = 73
+                            StockQuantity = 14
                         },
                         new
                         {
@@ -6729,7 +6734,7 @@ namespace DAL.Migrations
                             SellingPrice = 2390000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 19
+                            StockQuantity = 89
                         },
                         new
                         {
@@ -6740,7 +6745,7 @@ namespace DAL.Migrations
                             SellingPrice = 2390000m,
                             SizeID = 4,
                             Status = "Active",
-                            StockQuantity = 38
+                            StockQuantity = 27
                         },
                         new
                         {
@@ -6751,7 +6756,7 @@ namespace DAL.Migrations
                             SellingPrice = 2390000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 31
+                            StockQuantity = 19
                         },
                         new
                         {
@@ -6762,7 +6767,7 @@ namespace DAL.Migrations
                             SellingPrice = 2390000m,
                             SizeID = 5,
                             Status = "Active",
-                            StockQuantity = 63
+                            StockQuantity = 95
                         },
                         new
                         {
@@ -6773,7 +6778,7 @@ namespace DAL.Migrations
                             SellingPrice = 2390000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 82
+                            StockQuantity = 70
                         },
                         new
                         {
@@ -6784,7 +6789,7 @@ namespace DAL.Migrations
                             SellingPrice = 2390000m,
                             SizeID = 6,
                             Status = "Active",
-                            StockQuantity = 24
+                            StockQuantity = 67
                         },
                         new
                         {
@@ -6795,7 +6800,7 @@ namespace DAL.Migrations
                             SellingPrice = 2390000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 30
+                            StockQuantity = 56
                         },
                         new
                         {
@@ -6806,7 +6811,7 @@ namespace DAL.Migrations
                             SellingPrice = 2390000m,
                             SizeID = 7,
                             Status = "Active",
-                            StockQuantity = 83
+                            StockQuantity = 97
                         },
                         new
                         {
@@ -6817,7 +6822,7 @@ namespace DAL.Migrations
                             SellingPrice = 2390000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 82
+                            StockQuantity = 43
                         },
                         new
                         {
@@ -6828,7 +6833,7 @@ namespace DAL.Migrations
                             SellingPrice = 2390000m,
                             SizeID = 8,
                             Status = "Active",
-                            StockQuantity = 20
+                            StockQuantity = 68
                         },
                         new
                         {
@@ -6839,7 +6844,7 @@ namespace DAL.Migrations
                             SellingPrice = 2390000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 27
+                            StockQuantity = 16
                         },
                         new
                         {
@@ -6850,7 +6855,7 @@ namespace DAL.Migrations
                             SellingPrice = 2390000m,
                             SizeID = 9,
                             Status = "Active",
-                            StockQuantity = 62
+                            StockQuantity = 25
                         });
                 });
 
@@ -7069,11 +7074,11 @@ namespace DAL.Migrations
                         new
                         {
                             UserID = 1,
-                            CreatedAt = new DateTime(2025, 11, 17, 10, 41, 42, 809, DateTimeKind.Local).AddTicks(1243),
+                            CreatedAt = new DateTime(2025, 11, 17, 10, 27, 56, 735, DateTimeKind.Local).AddTicks(2368),
                             DateOfBirth = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "admin@gmail.com",
                             FullName = "Admin",
-                            Password = "_KRzrBFOej4mXC4OzArxOaz0eiWMsghOd-J5PPsB3Sw",
+                            Password = "w2yW9D0zAYfhN2I7v_8ToPADN0gcJnxeKAzMCjTrejo",
                             Phone = "0123456789",
                             Status = 0,
                             Username = "Admin123"
@@ -7081,11 +7086,11 @@ namespace DAL.Migrations
                         new
                         {
                             UserID = 2,
-                            CreatedAt = new DateTime(2025, 11, 17, 10, 41, 42, 809, DateTimeKind.Local).AddTicks(1328),
+                            CreatedAt = new DateTime(2025, 11, 17, 10, 27, 56, 735, DateTimeKind.Local).AddTicks(2421),
                             DateOfBirth = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "user1@gmail.com",
                             FullName = "Staff01",
-                            Password = "gzpi4VvYXSWBJxfWtRSWORtbCVLfvizTvpDP4kzZ2Bw",
+                            Password = "eywBKxquXooiabI43MFvoNs0Shd2OAJEO951cO7Ogqc",
                             Phone = "0987654321",
                             Status = 0,
                             Username = "user1"
