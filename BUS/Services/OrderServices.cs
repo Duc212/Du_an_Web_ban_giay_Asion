@@ -89,27 +89,53 @@ namespace BUS.Services
                 .Where(c => colorIds.Contains(c.ColorID))
                 .ToListAsync();
 
-            // LEFT JOIN user
             var userIds = ordersPage.Select(o => o.UserID).Distinct().ToList();
             var users = await _userRepository.AsQueryable()
                 .Where(u => userIds.Contains(u.UserID))
                 .ToListAsync();
 
-            // LEFT JOIN voucher
             var voucherIds = ordersPage.Where(o => o.VoucherID.HasValue).Select(o => o.VoucherID.Value).Distinct().ToList();
             var vouchers = voucherIds.Count >0
                 ? await _voucherRepository.AsQueryable().Where(v => voucherIds.Contains(v.VoucherID)).ToListAsync()
                 : new List<Voucher>();
 
-            // LEFT JOIN address
             var addresses = await _addressRepository.AsQueryable()
                 .Where(a => userIds.Contains(a.UserID))
                 .ToListAsync();
+
+            var orderPayments = await _orderPaymentRepository.AsQueryable()
+                .Where(op => orderIds.Contains(op.OrderID))
+                .ToListAsync();
+
+            var paymentIds = orderPayments.Select(op => op.PaymentID).Distinct().ToList();
+            var payments = await _paymentRepository.AsQueryable()
+                .Where(p => paymentIds.Contains(p.PaymentID))
+                .ToListAsync();
+
+            var shipmentIds = ordersPage.Where(o => o.ShipmentID.HasValue).Select(o => o.ShipmentID.Value).Distinct().ToList();
+            var shipments = shipmentIds.Count > 0
+                ? await _shipmentRepository.AsQueryable().Where(s => shipmentIds.Contains(s.ShipmentID)).ToListAsync()
+                : new List<Shipment>();
 
             var data = ordersPage.Select(o => {
                 var user = users.FirstOrDefault(u => u.UserID == o.UserID);
                 var address = addresses.FirstOrDefault(a => a.UserID == o.UserID);
                 var voucher = o.VoucherID.HasValue ? vouchers.FirstOrDefault(v => v.VoucherID == o.VoucherID.Value) : null;
+                var orderPayment = orderPayments.FirstOrDefault(op => op.OrderID == o.OrderID);
+                var payment = orderPayment != null ? payments.FirstOrDefault(p => p.PaymentID == orderPayment.PaymentID) : null;
+                var shipment = o.ShipmentID.HasValue ? shipments.FirstOrDefault(s => s.ShipmentID == o.ShipmentID.Value) : null;
+
+                var orderItems = orderDetails.Where(od => od.OrderID == o.OrderID).ToList();
+                decimal subTotal = orderItems.Sum(od => {
+                    var variant = variants.FirstOrDefault(v => v.VariantID == od.VariantID);
+                    return (variant?.SellingPrice ?? 0) * od.Quantity;
+                });
+
+                decimal shippingFee = 30000;
+                decimal discount = voucher?.DiscountValue ?? 0;
+
+                int paymentMethodInt = payment != null ? GetPaymentMethodInt(payment.PaymentMethod) : (int)PaymentMethodEnums.COD;
+
                 return new GetOrderRes
                 {
                     OrderId = o.OrderID.ToString(),
@@ -118,16 +144,20 @@ namespace BUS.Services
                     ReceiverName = user?.FullName ?? string.Empty,
                     ReceiverPhone = user?.Phone ?? string.Empty,
                     ReceiverEmail = user?.Email ?? string.Empty,
-                    ShippingAddress = address?.AddressDetail ?? o.Address ?? string.Empty,
-                    Status = o.Status.ToString(),
-                    PaymentMethod = string.Empty,
-                    PaymentStatus = string.Empty,
-                    SubTotal =0,
-                    ShippingFee =0,
-                    Discount = voucher?.DiscountValue ??0,
+                    ShippingAddress = address?.Street ?? o.Address ?? string.Empty,
+                    Ward = address?.Ward,
+                    District = address?.District,
+                    City = address?.City,
+                    Status = o.Status,
+                    PaymentMethod = paymentMethodInt,
+                    PaymentStatus = orderPayment?.Status ?? 0,
+                    SubTotal = subTotal,
+                    ShippingFee = shippingFee,
+                    Discount = discount,
                     TotalAmount = o.TotalAmount,
                     CreatedAt = o.OrderDate,
-                    Items = orderDetails.Where(od => od.OrderID == o.OrderID).Select(od => {
+                    Note = o.Note,
+                    Items = orderItems.Select(od => {
                         var variant = variants.FirstOrDefault(v => v.VariantID == od.VariantID);
                         var product = products.FirstOrDefault(p => p.ProductID == variant?.ProductID);
                         var brand = brands.FirstOrDefault(b => b.BrandID == product?.BrandId);
@@ -136,11 +166,11 @@ namespace BUS.Services
                         return new GetOrderItemRes
                         {
                             OrderItemId = od.OrderDetailID.ToString(),
-                            ProductId = product?.ProductID ??0,
+                            ProductId = product?.ProductID ?? 0,
                             ProductName = product?.Name ?? string.Empty,
                             Brand = brand?.Name ?? string.Empty,
                             Quantity = od.Quantity,
-                            Price = variant?.SellingPrice ??0,
+                            Price = variant?.SellingPrice ?? 0,
                             SelectedSize = size?.Value ?? string.Empty,
                             SelectedColor = color?.Name ?? string.Empty,
                             ImageUrl = product?.ImageUrl ?? string.Empty
@@ -152,9 +182,64 @@ namespace BUS.Services
             return new CommonPagination<List<GetOrderRes>>
             {
                 Success = true,
-                Message = "Lấy danh sách đơn hàng thành công.",
+                Message = "Lấy danh sách đơn hàng thành công.",
                 Data = new List<List<GetOrderRes>> { data },
                 TotalRecord = await _orderRepository.AsQueryable().CountAsync(o => o.UserID == userId)
+            };
+        }
+
+        // Helper methods để convert enum sang string
+        private string GetOrderStatusString(int status)
+        {
+            return status switch
+            {
+                0 => "pending",
+                1 => "confirmed",
+                2 => "processing",
+                3 => "shipping",
+                4 => "delivered",
+                5 => "cancelled",
+                6 => "returned",
+                _ => "pending"
+            };
+        }
+
+        private string GetPaymentMethodString(string paymentMethod)
+        {
+            return paymentMethod.ToLower() switch
+            {
+                "cod" => "cod",
+                "vnpay" => "vnpay",
+                "gpay" => "wallet",
+                "paypal" => "card",
+                _ => "cod"
+            };
+        }
+
+        private string GetPaymentStatusString(int status)
+        {
+            return status switch
+            {
+                0 => "pending",
+                1 => "paid",
+                2 => "refunded",
+                3 => "failed",
+                _ => "pending"
+            };
+        }
+
+        private int GetPaymentMethodInt(string paymentMethod)
+        {
+            if (string.IsNullOrEmpty(paymentMethod))
+                return (int)PaymentMethodEnums.COD;
+
+            return paymentMethod.ToUpper() switch
+            {
+                "COD" => (int)PaymentMethodEnums.COD,
+                "VNPAY" => (int)PaymentMethodEnums.VNPAY,
+                "GPAY" => (int)PaymentMethodEnums.GPAY,
+                "PAYPAL" => (int)PaymentMethodEnums.PAYPAL,
+                _ => (int)PaymentMethodEnums.COD
             };
         }
         public async Task<CommonResponse<int>> CreateOrder(CreateOrderReq req)
@@ -188,10 +273,10 @@ namespace BUS.Services
                             .FirstOrDefaultAsync(v => v.VariantID == item.VariantID);
 
                         if (variant == null)
-                            throw new Exception($"VariantID {item.VariantID} không tồn tại.");
+                            throw new Exception($"VariantID {item.VariantID} không t?n t?i.");
 
                         if (variant.StockQuantity < item.Quantity)
-                            throw new Exception($"Sản phẩm {variant.VariantID} không đủ hàng.");
+                            throw new Exception($"S?n ph?m {variant.VariantID} không d? hàng.");
 
                         variant.StockQuantity -= item.Quantity;
                         await _variantRepository.UpdateAsync(variant);
@@ -216,7 +301,7 @@ namespace BUS.Services
                         var payment = await _paymentRepository.AsQueryable()
                             .FirstOrDefaultAsync(p => p.PaymentID == req.PaymentID.Value);
                         if (payment == null)
-                            throw new Exception($"PaymentID {req.PaymentID.Value} không tồn tại.");
+                            throw new Exception($"PaymentID {req.PaymentID.Value} không t?n t?i.");
 
                         var orderPayment = new OrderPayment
                         {
@@ -240,7 +325,7 @@ namespace BUS.Services
                 return new CommonResponse<int>
                 {
                     Success = true,
-                    Message = "Tạo đơn hàng thành công.",
+                    Message = "T?o don hàng thành công.",
                     Data = orderId
                 };
             }
@@ -249,7 +334,7 @@ namespace BUS.Services
                 return new CommonResponse<int>
                 {
                     Success = false,
-                    Message = $"Lỗi khi tạo đơn hàng: {ex.Message}",
+                    Message = $"L?i khi t?o don hàng: {ex.Message}",
                     Data = 0
                 };
             }
@@ -299,7 +384,7 @@ namespace BUS.Services
             return new CommonPagination<GetListOrderRes>
             {
                 Success = true,
-                Message = "Lấy danh sách đơn hàng thành công.",
+                Message = "L?y danh sách don hàng thành công.",
                 Data = data,
                 TotalRecord = totalRecords
             };
@@ -326,7 +411,7 @@ namespace BUS.Services
 
                 var first = data.First();
                 
-                // Lấy payment method từ OrderPayment nếu có
+                // L?y payment method t? OrderPayment n?u có
                 var paymentMethod = await (from op in _orderRepository.DbContext.Set<OrderPayment>()
                                            join p in _orderRepository.DbContext.Set<Payment>() on op.PaymentID equals p.PaymentID
                                            where op.OrderID == OrderID
@@ -340,7 +425,7 @@ namespace BUS.Services
                     UserName = first.u.Username,
                     FullName = first.u.FullName,
                     PhoneNumber = first.u.Phone,
-                    PaymentMethod = paymentMethod ?? "Chưa thanh toán",
+                    PaymentMethod = paymentMethod ?? "Chua thanh toán",
                     ShippingProvider = first.shipment?.ShippingProvider,
                     TrackingNumber = first.shipment?.TrackingNumber,
                     ShippedDate = first.shipment?.ShippedDate,
@@ -385,7 +470,7 @@ namespace BUS.Services
                     return new CommonResponse<bool>
                     {
                         Success = false,
-                        Message = $"Không tìm thấy đơn hàng có ID = {req.OrderID}."
+                        Message = $"Không tìm th?y don hàng có ID = {req.OrderID}."
                     };
                 }
 
@@ -394,7 +479,7 @@ namespace BUS.Services
                     return new CommonResponse<bool>
                     {
                         Success = false,
-                        Message = "Trạng thái đơn hàng không hợp lệ."
+                        Message = "Tr?ng thái don hàng không h?p l?."
                     };
                 }
 
@@ -403,7 +488,7 @@ namespace BUS.Services
                     return new CommonResponse<bool>
                     {
                         Success = false,
-                        Message = $"Không thể thay đổi trạng thái đơn hàng đã {order.Status}."
+                        Message = $"Không th? thay d?i tr?ng thái don hàng dã {order.Status}."
                     };
                 }
                 order.Status = (int)req.Status;
@@ -414,7 +499,7 @@ namespace BUS.Services
                 return new CommonResponse<bool>
                 {
                     Success = true,
-                    Message = $"Cập nhật trạng thái đơn hàng #{req.OrderID} thành công: {req.Status}."
+                    Message = $"C?p nh?t tr?ng thái don hàng #{req.OrderID} thành công: {req.Status}."
                 };
             }
             catch (Exception ex)
@@ -422,7 +507,7 @@ namespace BUS.Services
                 return new CommonResponse<bool>
                 {
                     Success = false,
-                    Message = $"Lỗi khi cập nhật trạng thái đơn hàng: {ex.Message}"
+                    Message = $"L?i khi c?p nh?t tr?ng thái don hàng: {ex.Message}"
                 };
             }
         }
@@ -502,7 +587,7 @@ namespace BUS.Services
                     return new CommonResponse<bool>
                     {
                         Success = false,
-                        Message = $"Không tìm thấy đơn hàng với ID = {req.OrderId}.",
+                        Message = $"Không tìm th?y don hàng v?i ID = {req.OrderId}.",
                         Data = false
                     };
                 }
@@ -514,7 +599,7 @@ namespace BUS.Services
                     return new CommonResponse<bool>
                     {
                         Success = false,
-                        Message = $"Không tìm thấy thông tin thanh toán cho đơn hàng với ID = {req.OrderId}.",
+                        Message = $"Không tìm th?y thông tin thanh toán cho don hàng v?i ID = {req.OrderId}.",
                         Data = false
                     };
                 }
@@ -524,7 +609,7 @@ namespace BUS.Services
                     return new CommonResponse<bool>
                     {
                         Success = false,
-                        Message = "Trạng thái thanh toán không hợp lệ.",
+                        Message = "Tr?ng thái thanh toán không h?p l?.",
                         Data = false
                     };
                 }
@@ -536,7 +621,7 @@ namespace BUS.Services
                 return new CommonResponse<bool>
                 {
                     Success = true,
-                    Message = "Cập nhật trạng thái thanh toán thành công.",
+                    Message = "C?p nh?t tr?ng thái thanh toán thành công.",
                     Data = true
                 };
             }
@@ -545,7 +630,7 @@ namespace BUS.Services
                 return new CommonResponse<bool>
                 {
                     Success = false,
-                    Message = $"Lỗi khi cập nhật trạng thái thanh toán: {ex.Message}",
+                    Message = $"L?i khi c?p nh?t tr?ng thái thanh toán: {ex.Message}",
                     Data = false
                 };
             }

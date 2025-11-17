@@ -1,5 +1,8 @@
 @page "/orders"
 @using System.Linq
+@inject Services.OrderService OrderService
+@inject Services.Interfaces.IAuthService AuthService
+@inject NavigationManager NavigationManager
 
 <div class="container-fluid py-4">
     <div class="row mb-4">
@@ -65,7 +68,16 @@
 
     <!-- Orders List -->
     <div class="row">
-        @if (FilteredOrders.Any())
+        @if (isLoading)
+        {
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Đang tải...</span>
+                </div>
+                <p class="mt-2 text-muted">Đang tải đơn hàng...</p>
+            </div>
+        }
+        else if (FilteredOrders.Any())
         {
             @foreach (var order in FilteredOrders)
             {
@@ -179,7 +191,7 @@
                                                         @onclick="() => ViewOrderDetail(order.OrderId)">
                                                     <i class="bi bi-eye me-1"></i>Chi tiết
                                                 </button>
-                                                @if (order.Status == "pending")
+                                                @if (order.Status == 0)
                                                 {
                                                     <button class="btn btn-success btn-sm" 
                                                             @onclick="() => ConfirmOrder(order.OrderId)">
@@ -190,7 +202,7 @@
                                                         <i class="bi bi-x-circle me-1"></i>Hủy đơn
                                                     </button>
                                                 }
-                                                @if (order.Status == "shipping")
+                                                @if (order.Status == 2)
                                                 {
                                                     <button class="btn btn-success btn-sm" 
                                                             @onclick="() => CompleteOrder(order.OrderId)">
@@ -223,14 +235,18 @@
     private string activeTab = "all";
     private string searchText = "";
     private string sortBy = "newest";
+    private bool isLoading = false;
+    private int currentPage = 1;
+    private int recordPerPage = 10;
+    private int totalRecords = 0;
 
-    private List<Order> allOrders = new();
-    private List<Order> pendingOrders => allOrders.Where(o => o.Status == "pending").ToList();
-    private List<Order> shippingOrders => allOrders.Where(o => o.Status == "shipping").ToList();
-    private List<Order> deliveredOrders => allOrders.Where(o => o.Status == "delivered").ToList();
-    private List<Order> cancelledOrders => allOrders.Where(o => o.Status == "cancelled").ToList();
+    private List<GetOrderRes> allOrders = new();
+    private List<GetOrderRes> pendingOrders => allOrders.Where(o => o.Status == 0).ToList();
+    private List<GetOrderRes> shippingOrders => allOrders.Where(o => o.Status == 2).ToList();
+    private List<GetOrderRes> deliveredOrders => allOrders.Where(o => o.Status == 3).ToList();
+    private List<GetOrderRes> cancelledOrders => allOrders.Where(o => o.Status == 4).ToList();
 
-    private List<Order> FilteredOrders
+    private List<GetOrderRes> FilteredOrders
     {
         get
         {
@@ -266,10 +282,40 @@
         }
     }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        // Load sample data
-        LoadSampleOrders();
+        await AuthService.InitializeAsync();
+        await LoadOrdersAsync();
+    }
+
+    private async Task LoadOrdersAsync()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var result = await OrderService.GetListOrderByUserAsync(currentPage, recordPerPage);
+            
+            if (result.Success && result.Data != null)
+            {
+                allOrders = result.Data;
+                totalRecords = result.TotalRecord;
+            }
+            else
+            {
+                allOrders = new List<GetOrderRes>();
+            }
+        }
+        catch (Exception)
+        {
+            allOrders = new List<GetOrderRes>();
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
     }
 
     private void SetActiveTab(string tab)
@@ -277,241 +323,88 @@
         activeTab = tab;
     }
 
-    private MarkupString GetStatusBadge(string status)
+    private string GetStatusText(int status)
     {
         return status switch
         {
-            "pending" => new MarkupString("<span class='badge bg-warning text-dark'><i class='bi bi-clock me-1'></i>Chờ xử lý</span>"),
-            "confirmed" => new MarkupString("<span class='badge bg-primary'><i class='bi bi-check-circle me-1'></i>Đã xác nhận</span>"),
-            "shipping" => new MarkupString("<span class='badge bg-info'><i class='bi bi-truck me-1'></i>Đang giao</span>"),
-            "delivered" => new MarkupString("<span class='badge bg-success'><i class='bi bi-box-seam me-1'></i>Đã giao</span>"),
-            "cancelled" => new MarkupString("<span class='badge bg-danger'><i class='bi bi-x-circle me-1'></i>Đã hủy</span>"),
+            0 => "pending",
+            1 => "confirmed",
+            2 => "shipping",
+            3 => "delivered",
+            4 => "cancelled",
+            _ => "unknown"
+        };
+    }
+
+    private MarkupString GetStatusBadge(int status)
+    {
+        return status switch
+        {
+            0 => new MarkupString("<span class='badge bg-warning text-dark'><i class='bi bi-clock me-1'></i>Chờ xử lý</span>"),
+            1 => new MarkupString("<span class='badge bg-primary'><i class='bi bi-check-circle me-1'></i>Đã xác nhận</span>"),
+            2 => new MarkupString("<span class='badge bg-info'><i class='bi bi-truck me-1'></i>Đang giao</span>"),
+            3 => new MarkupString("<span class='badge bg-success'><i class='bi bi-box-seam me-1'></i>Đã giao</span>"),
+            4 => new MarkupString("<span class='badge bg-danger'><i class='bi bi-x-circle me-1'></i>Đã hủy</span>"),
             _ => new MarkupString("<span class='badge bg-secondary'>Không xác định</span>")
         };
     }
 
-    private MarkupString GetPaymentStatusBadge(string status)
+    private MarkupString GetPaymentStatusBadge(int status)
     {
         return status switch
         {
-            "paid" => new MarkupString("<span class='badge bg-success'>Đã thanh toán</span>"),
-            "pending" => new MarkupString("<span class='badge bg-warning text-dark'>Chờ thanh toán</span>"),
-            "failed" => new MarkupString("<span class='badge bg-danger'>Thất bại</span>"),
+            1 => new MarkupString("<span class='badge bg-success'>Đã thanh toán</span>"),
+            0 => new MarkupString("<span class='badge bg-warning text-dark'>Chờ thanh toán</span>"),
+            3 => new MarkupString("<span class='badge bg-danger'>Thất bại</span>"),
+            2 => new MarkupString("<span class='badge bg-info'>Đã hoàn tiền</span>"),
             _ => new MarkupString("<span class='badge bg-secondary'>Chưa thanh toán</span>")
         };
     }
 
-    private string GetPaymentMethodText(string method)
+    private string GetPaymentMethodText(int method)
     {
         return method switch
         {
-            "cod" => "Thanh toán khi nhận hàng",
-            "card" => "Thanh toán thẻ",
-            "wallet" => "Ví điện tử",
-            "transfer" => "Chuyển khoản",
+            1 => "Thanh toán khi nhận hàng (COD)",
+            2 => "VNPay",
+            3 => "PayPal",
+            4 => "Google Pay",
             _ => "Không xác định"
         };
     }
 
     private void ViewOrderDetail(string orderId)
     {
-        // Navigate to order detail page
+        NavigationManager.NavigateTo($"/order-detail/{orderId}");
     }
 
-    private void ConfirmOrder(string orderId)
+    private async Task ConfirmOrder(string orderId)
     {
         var order = allOrders.FirstOrDefault(o => o.OrderId == orderId);
         if (order != null)
         {
-            order.Status = "confirmed";
-            order.UpdatedAt = DateTime.Now;
+            order.Status = 1; // confirmed
+            StateHasChanged();
         }
     }
 
-    private void CancelOrder(string orderId)
+    private async Task CancelOrder(string orderId)
     {
         var order = allOrders.FirstOrDefault(o => o.OrderId == orderId);
         if (order != null)
         {
-            order.Status = "cancelled";
-            order.UpdatedAt = DateTime.Now;
+            order.Status = 4; // cancelled
+            StateHasChanged();
         }
     }
 
-    private void CompleteOrder(string orderId)
+    private async Task CompleteOrder(string orderId)
     {
         var order = allOrders.FirstOrDefault(o => o.OrderId == orderId);
         if (order != null)
         {
-            order.Status = "delivered";
-            order.UpdatedAt = DateTime.Now;
+            order.Status = 3; // delivered
+            StateHasChanged();
         }
-    }
-
-    private void LoadSampleOrders()
-    {
-        allOrders = new List<Order>
-        {
-            new Order
-            {
-                OrderId = "1",
-                OrderNumber = "ORD-2024-001",
-                UserId = "user1",
-                ReceiverName = "Nguyễn Văn A",
-                ReceiverPhone = "0901234567",
-                ReceiverEmail = "nguyenvana@email.com",
-                ShippingAddress = "123 Đường ABC",
-                Ward = "Phường 1",
-                District = "Quận 1",
-                City = "TP. Hồ Chí Minh",
-                Status = "pending",
-                PaymentMethod = "cod",
-                PaymentStatus = "pending",
-                SubTotal = 1500000,
-                ShippingFee = 30000,
-                Discount = 0,
-                TotalAmount = 1530000,
-                CreatedAt = DateTime.Now.AddHours(-2),
-                Items = new List<OrderItem>
-                {
-                    new OrderItem
-                    {
-                        OrderItemId = "1",
-                        ProductId = 1,
-                        ProductName = "Áo thun nam basic",
-                        Brand = "Brand A",
-                        Quantity = 2,
-                        Price = 250000,
-                        SelectedSize = "L",
-                        SelectedColor = "Đen",
-                        ImageUrl = "https://placehold.co/200x200/4F46E5/FFF?text=Shirt"
-                    },
-                    new OrderItem
-                    {
-                        OrderItemId = "2",
-                        ProductId = 2,
-                        ProductName = "Quần jean nam slim fit",
-                        Brand = "Brand B",
-                        Quantity = 1,
-                        Price = 1000000,
-                        SelectedSize = "32",
-                        SelectedColor = "Xanh đậm",
-                        ImageUrl = "https://placehold.co/200x200/10B981/FFF?text=Jean"
-                    }
-                } 
-            },
-            new Order
-            {
-                OrderId = "2",
-                OrderNumber = "ORD-2024-002",
-                UserId = "user2",
-                ReceiverName = "Trần Thị B",
-                ReceiverPhone = "0912345678",
-                ReceiverEmail = "tranthib@email.com",
-                ShippingAddress = "456 Đường XYZ",
-                Ward = "Phường 2",
-                District = "Quận 3",
-                City = "TP. Hồ Chí Minh",
-                Status = "shipping",
-                PaymentMethod = "card",
-                PaymentStatus = "paid",
-                SubTotal = 2500000,
-                ShippingFee = 50000,
-                Discount = 250000,
-                TotalAmount = 2300000,
-                CreatedAt = DateTime.Now.AddDays(-1),
-                Note = "Giao hàng buổi chiều sau 2h",
-                Items = new List<OrderItem>
-                {
-                    new OrderItem
-                    {
-                        OrderItemId = "3",
-                        ProductId = 3,
-                        ProductName = "Váy maxi nữ",
-                        Brand = "Brand C",
-                        Quantity = 1,
-                        Price = 2500000,
-                        SelectedSize = "M",
-                        SelectedColor = "Đỏ",
-                        ImageUrl = "https://placehold.co/200x200/EF4444/FFF?text=Dress"
-                    }
-                }
-            },
-            new Order
-            {
-                OrderId = "3",
-                OrderNumber = "ORD-2024-003",
-                UserId = "user3",
-                ReceiverName = "Lê Văn C",
-                ReceiverPhone = "0923456789",
-                ReceiverEmail = "levanc@email.com",
-                ShippingAddress = "789 Đường DEF",
-                Ward = "Phường 3",
-                District = "Quận 5",
-                City = "TP. Hồ Chí Minh",
-                Status = "delivered",
-                PaymentMethod = "wallet",
-                PaymentStatus = "paid",
-                SubTotal = 800000,
-                ShippingFee = 25000,
-                Discount = 80000,
-                TotalAmount = 745000,
-                CreatedAt = DateTime.Now.AddDays(-3),
-                Items = new List<OrderItem>
-                {
-                    new OrderItem
-                    {
-                        OrderItemId = "4",
-                        ProductId = 4,
-                        ProductName = "Giày sneaker nam",
-                        Brand = "Brand D",
-                        Quantity = 1,
-                        Price = 800000,
-                        SelectedSize = "42",
-                        SelectedColor = "Trắng",
-                        ImageUrl = "https://placehold.co/200x200/F59E0B/FFF?text=Shoes"
-                    }
-                }
-            },
-            new Order
-            {
-                OrderId = "4",
-                OrderNumber = "ORD-2024-004",
-                UserId = "user4",
-                ReceiverName = "Phạm Thị D",
-                ReceiverPhone = "0934567890",
-                ReceiverEmail = "phamthid@email.com",
-                ShippingAddress = "321 Đường GHI",
-                Ward = "Phường 4",
-                District = "Quận 7",
-                City = "TP. Hồ Chí Minh",
-                Status = "cancelled",
-                PaymentMethod = "cod",
-                PaymentStatus = "pending",
-                SubTotal = 1200000,
-                ShippingFee = 30000,
-                Discount = 0,
-                TotalAmount = 1230000,
-                CreatedAt = DateTime.Now.AddDays(-5),
-                Note = "Khách hàng hủy đơn do đổi ý",
-                Items = new List<OrderItem>
-                {
-                    new OrderItem
-                    {
-                        OrderItemId = "5",
-                        ProductId = 5,
-                        ProductName = "Túi xách nữ",
-                        Brand = "Brand E",
-                        Quantity = 1,
-                        Price = 1200000,
-                        SelectedColor = "Nâu",
-                        ImageUrl = "https://placehold.co/200x200/8B5CF6/FFF?text=Bag"
-                    }
-                }
-            }
-        };
     }
 }
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">

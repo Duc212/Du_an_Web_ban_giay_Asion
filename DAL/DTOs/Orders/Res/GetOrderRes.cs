@@ -9,14 +9,18 @@
         public string ReceiverPhone { get; set; }
         public string ReceiverEmail { get; set; }
         public string ShippingAddress { get; set; }
-        public string Status { get; set; }
-        public string PaymentMethod { get; set; }
-        public string PaymentStatus { get; set; }
+        public string? Ward { get; set; }
+        public string? District { get; set; }
+        public string? City { get; set; }
+        public int Status { get; set; }
+        public int PaymentMethod { get; set; }
+        public int PaymentStatus { get; set; }
         public decimal SubTotal { get; set; }
         public decimal ShippingFee { get; set; }
         public decimal Discount { get; set; }
         public decimal TotalAmount { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string? Note { get; set; }
         public List<GetOrderItemRes> Items { get; set; }
     }
 }

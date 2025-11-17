@@ -1,7 +1,10 @@
-﻿using BUS.Services.Interfaces;
+﻿using API.Extensions;
+using BUS.Services.Interfaces;
+using DAL.DTOs.Products.Req;
 using DAL.DTOs.Products.Res;
 using DAL.Entities;
 using DAL.Enums;
+using Helper.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -46,5 +49,38 @@ namespace API.Controllers
             return await _productService.GetListBrand();
         }
 
+        [HttpPost("AddFavoriteProduct")]
+        [BAuthorize]
+        public async Task<CommonResponse<bool>> AddFavoriteProduct([FromBody] AddFavoriteProductReq req)
+        {
+            var userId = HttpContextHelper.GetUserId();
+            var result = await _productService.AddFavoriteProduct(userId, req.ProductId);
+            return result;
+        }
+
+        [HttpPost("RemoveFavoriteProduct")]
+        [BAuthorize]
+        public async Task<CommonResponse<bool>> RemoveFavoriteProduct([FromBody] RemoveFavoriteProductReq req)
+        {
+            var userId = HttpContextHelper.GetUserId();
+            var result = await _productService.RemoveFavoriteProduct(userId, req.ProductId);
+            return result;
+        }
+
+        [HttpGet("GetFavoriteProducts")]
+        [BAuthorize]
+        public async Task<CommonResponse<List<GetProductRes>>> GetFavoriteProducts()
+        {
+            var userId = HttpContextHelper.GetUserId();
+            var result = await _productService.GetFavoriteProducts(userId);
+            return result;
+        }
+
+        [HttpGet("GetProductById")]
+        public async Task<CommonResponse<GetProductRes>> GetProductById(int productId)
+        {
+            var result = await _productService.GetProductById(productId);
+            return result;
+        }
     }
 }

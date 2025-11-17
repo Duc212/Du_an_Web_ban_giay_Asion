@@ -1,0 +1,193 @@
+@page "/wishlist"
+@inject Services.Interfaces.IProductService ProductService
+@inject Services.Interfaces.IAuthService AuthService
+@inject Services.IToastService ToastService
+@inject NavigationManager Navigation
+
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold">
+                <i class="bi bi-heart-fill text-danger me-2"></i>Sản phẩm yêu thích
+            </h2>
+            <p class="text-muted">Danh sách các sản phẩm bạn đã lưu</p>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Đang tải...</span>
+            </div>
+        </div>
+    }
+    else if (!favoriteProducts.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-heart" style="font-size: 4rem; color: #ddd;"></i>
+            <h4 class="mt-3">Chưa có sản phẩm yêu thích</h4>
+            <p class="text-muted">Hãy thêm sản phẩm bạn thích vào danh sách này</p>
+            <a href="/shop" class="btn btn-primary mt-3">Khám phá sản phẩm</a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var product in favoriteProducts)
+            {
+                <div class="col-md-3">
+                    <div class="product-card">
+                        <div class="product-image-wrapper">
+                            <img src="@product.ImageUrl" alt="@product.Name" class="product-image" />
+                            <button class="btn-remove-favorite" @onclick="() => RemoveFavorite(product.Id)">
+                                <i class="bi bi-heart-fill"></i>
+                            </button>
+                        </div>
+                        <div class="product-info">
+                            <h5 class="product-name">@product.Name</h5>
+                            <p class="product-brand">@product.Brand</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="product-price">@product.PriceFormatted</span>
+                                <a href="/product/@product.Id" class="btn btn-sm btn-outline-primary">Xem chi tiết</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<Product> favoriteProducts = new();
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthService.InitializeAsync();
+        
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        await LoadFavorites();
+    }
+
+    private async Task LoadFavorites()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var result = await ProductService.GetFavoriteProductsAsync();
+            
+            if (result.Success && result.Data != null)
+            {
+                favoriteProducts = result.Data;
+            }
+        }
+        catch (Exception)
+        {
+            favoriteProducts = new List<Product>();
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RemoveFavorite(int productId)
+    {
+        var result = await ProductService.RemoveFavoriteProductAsync(productId);
+        
+        if (result.Success)
+        {
+            favoriteProducts.RemoveAll(p => p.Id == productId);
+            await ToastService.ShowSuccess("Đã xóa khỏi danh sách yêu thích");
+            StateHasChanged();
+        }
+        else
+        {
+            await ToastService.ShowError("Không thể xóa sản phẩm");
+        }
+    }
+}
+
+<style>
+    .product-card {
+        border: 1px solid #eee;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+
+    .product-image-wrapper {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .product-image {
+        width: 100%;
+        height: 280px;
+        object-fit: cover;
+    }
+
+    .btn-remove-favorite {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #dc3545;
+        font-size: 1.2rem;
+        transition: all 0.3s;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .btn-remove-favorite:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+
+    .product-info {
+        padding: 1rem;
+    }
+
+    .product-name {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .product-brand {
+        color: #666;
+        font-size: 0.875rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .product-price {
+        color: #dc3545;
+        font-size: 1.125rem;
+        font-weight: 700;
+    }
+</style>

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Net.Http.Json;
 using WebUI.Models;
 using WebUI.Services.Interfaces;
 using WebUI.Constants;
@@ -12,12 +13,14 @@ namespace WebUI.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ConfigurationService _configService;
+        private readonly IAuthService _authService;
         private string? _apiBaseUrl;
 
-        public ProductService(HttpClient httpClient, ConfigurationService configService)
+        public ProductService(HttpClient httpClient, ConfigurationService configService, IAuthService authService)
         {
             _httpClient = httpClient;
             _configService = configService;
+            _authService = authService;
             InitializeApiBaseUrl();
         }
 
@@ -87,10 +90,28 @@ namespace WebUI.Services
         {
             try
             {
-                // Tạm thời sử dụng GetAllProducts và filter theo id
-                // Sau này có thể thay bằng API riêng để get product by id
-                var products = await GetAllProductsAsync();
-                return products.FirstOrDefault(p => p.Id == id) ?? new Product();
+                var apiBaseUrl = await GetApiBaseUrl();
+                var url = $"{apiBaseUrl}{ApiEndpoints.GetProductById}?productId={id}";
+                
+                Console.WriteLine($"[ProductService] Calling GetProductById API: {url}");
+                var response = await _httpClient.GetAsync(url);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonSerializer.Deserialize<CommonResponse<Product>>(json, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                    
+                    if (apiResponse?.Success == true && apiResponse.Data != null)
+                    {
+                        return apiResponse.Data;
+                    }
+                }
+                
+                Console.WriteLine($"[ProductService] Failed to get product by id: {id}");
+                return new Product();
             }
             catch (Exception ex)
             {
@@ -379,6 +400,132 @@ namespace WebUI.Services
                     Success = false, 
                     Message = "Error occurred while fetching categories" 
                 };
+            }
+        }
+
+        public async Task<CommonResponse<bool>> AddFavoriteProductAsync(int productId)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated)
+                {
+                    return new CommonResponse<bool>
+                    {
+                        Success = false,
+                        Message = "User not authenticated"
+                    };
+                }
+
+                var apiBaseUrl = await GetApiBaseUrl();
+                var url = $"{apiBaseUrl}/api/ProductLanding/AddFavoriteProduct";
+                var payload = new AddFavoriteProductReq { ProductId = productId };
+                
+                var httpRequest = new HttpRequestMessage(HttpMethod.Post, url)
+                {
+                    Content = JsonContent.Create(payload)
+                };
+
+                httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                    "Bearer",
+                    _authService.CurrentToken!
+                );
+
+                var response = await _httpClient.SendAsync(httpRequest);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<CommonResponse<bool>>();
+                    return result ?? new CommonResponse<bool> { Success = false };
+                }
+
+                return new CommonResponse<bool> { Success = false, Message = "Failed to add favorite" };
+            }
+            catch (Exception)
+            {
+                return new CommonResponse<bool> { Success = false, Message = "Error adding favorite" };
+            }
+        }
+
+        public async Task<CommonResponse<bool>> RemoveFavoriteProductAsync(int productId)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated)
+                {
+                    return new CommonResponse<bool>
+                    {
+                        Success = false,
+                        Message = "User not authenticated"
+                    };
+                }
+
+                var apiBaseUrl = await GetApiBaseUrl();
+                var url = $"{apiBaseUrl}/api/ProductLanding/RemoveFavoriteProduct";
+                var payload = new RemoveFavoriteProductReq { ProductId = productId };
+                
+                var httpRequest = new HttpRequestMessage(HttpMethod.Post, url)
+                {
+                    Content = JsonContent.Create(payload)
+                };
+
+                httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                    "Bearer",
+                    _authService.CurrentToken!
+                );
+
+                var response = await _httpClient.SendAsync(httpRequest);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<CommonResponse<bool>>();
+                    return result ?? new CommonResponse<bool> { Success = false };
+                }
+
+                return new CommonResponse<bool> { Success = false, Message = "Failed to remove favorite" };
+            }
+            catch (Exception)
+            {
+                return new CommonResponse<bool> { Success = false, Message = "Error removing favorite" };
+            }
+        }
+
+        public async Task<CommonResponse<List<Product>>> GetFavoriteProductsAsync()
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated)
+                {
+                    return new CommonResponse<List<Product>>
+                    {
+                        Success = false,
+                        Message = "User not authenticated",
+                        Data = new List<Product>()
+                    };
+                }
+
+                var apiBaseUrl = await GetApiBaseUrl();
+                var url = $"{apiBaseUrl}/api/ProductLanding/GetFavoriteProducts";
+                
+                var httpRequest = new HttpRequestMessage(HttpMethod.Get, url);
+
+                httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                    "Bearer",
+                    _authService.CurrentToken!
+                );
+
+                var response = await _httpClient.SendAsync(httpRequest);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<CommonResponse<List<Product>>>();
+                    return result ?? new CommonResponse<List<Product>> { Success = false, Data = new List<Product>() };
+                }
+
+                return new CommonResponse<List<Product>> { Success = false, Message = "Failed to get favorites", Data = new List<Product>() };
+            }
+            catch (Exception)
+            {
+                return new CommonResponse<List<Product>> { Success = false, Message = "Error getting favorites", Data = new List<Product>() };
             }
         }
     }

@@ -31,6 +31,7 @@ public partial class Program
         builder.Services.AddScoped<IProductService, ProductService>();
         builder.Services.AddScoped<OrderService>();
         builder.Services.AddScoped<IPaymentService, PaymentService>();
+        builder.Services.AddScoped<RecentlyViewedService>();
 
         // Register Google Auth Service
         builder.Services.AddScoped<GoogleAuthService>();

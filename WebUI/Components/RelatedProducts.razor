@@ -1,7 +1,9 @@
 @using WebUI.Models
+@using WebUI.Services
 @using WebUI.Services.Interfaces
 @inject NavigationManager Navigation
 @inject IProductService ProductService
+@inject RecentlyViewedService RecentlyViewedService
 
 <!-- Related Products Component -->
 <div class="related-products">
@@ -168,12 +170,11 @@
 
     private async Task GenerateRecentlyViewed()
     {
-        // In a real app, this would come from user's browsing history
-        var allProducts = await ProductService.GetAllProductsAsync();
-        RecentlyViewedProducts = allProducts.Where(p => p != CurrentProduct)
-                                           .OrderBy(x => Guid.NewGuid())
-                                           .Take(6)
-                                           .ToList();
+        // Get recently viewed products from service (excluding current product)
+        var recentlyViewed = await RecentlyViewedService.GetRecentlyViewedAsync();
+        RecentlyViewedProducts = recentlyViewed.Where(p => p.Id != CurrentProduct.Id)
+                                               .Take(6)
+                                               .ToList();
     }
 
     private string GetBrandFromVendor(string vendor)
@@ -255,15 +256,8 @@
 
     private async Task OnProductClick(Product product)
     {
-        // Add to recently viewed
-        if (!RecentlyViewedProducts.Contains(product))
-        {
-            RecentlyViewedProducts.Insert(0, product);
-            if (RecentlyViewedProducts.Count > 6)
-            {
-                RecentlyViewedProducts.RemoveAt(6);
-            }
-        }
+        // Add to recently viewed service
+        await RecentlyViewedService.AddProductAsync(product);
 
         // Navigate to product detail page
         Navigation.NavigateTo($"/product/{product.Id}");

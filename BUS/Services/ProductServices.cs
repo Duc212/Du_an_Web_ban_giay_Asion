@@ -18,6 +18,7 @@ namespace BUS.Services
         private readonly IRepositoryAsync<Size> _sizeRepository;
         private readonly IRepositoryAsync<Category> _categoryRepository;
         private readonly IRepositoryAsync<ProductImage> _productImageRepository;
+        private readonly IRepositoryAsync<FavoriteProduct> _favoriteProductRepository;
 
         public ProductServices(
             IRepositoryAsync<Product> productRepository,
@@ -27,7 +28,8 @@ namespace BUS.Services
             IRepositoryAsync<Brand> brandRepository,
             IRepositoryAsync<Size> sizeRepository,
             IRepositoryAsync<Category> categoryRepository,
-            IRepositoryAsync<ProductImage> productImageRepository)
+            IRepositoryAsync<ProductImage> productImageRepository,
+            IRepositoryAsync<FavoriteProduct> favoriteProductRepository)
         {
             _productRepository = productRepository;
             _colorRepository = colorRepository;
@@ -37,6 +39,7 @@ namespace BUS.Services
             _sizeRepository = sizeRepository;
             _categoryRepository = categoryRepository;
             _productImageRepository = productImageRepository;
+            _favoriteProductRepository = favoriteProductRepository;
         }
 
         #region Public Methods
@@ -340,6 +343,42 @@ namespace BUS.Services
             };
         }
 
+        public async Task<CommonResponse<GetProductRes>> GetProductById(int productId)
+        {
+            var product = await _productRepository.AsNoTrackingQueryable()
+                .FirstOrDefaultAsync(p => p.ProductID == productId);
+            if (product == null)
+            {
+                return new CommonResponse<GetProductRes>
+                {
+                    Success = false,
+                    Message = "Không tìm thấy sản phẩm.",
+                    Data = null
+                };
+            }
+            var brand = await _brandRepository.AsNoTrackingQueryable()
+                .FirstOrDefaultAsync(b => b.BrandID == product.BrandId);
+            var variants = await _productVariantRepository.AsNoTrackingQueryable()
+                .Where(v => v.ProductID == productId)
+                .Include(v => v.Size)
+                .Include(v => v.Color)
+                .ToListAsync();
+            var images = await _productImageRepository.AsNoTrackingQueryable()
+                .Where(img => img.ProductID == productId && img.IsActive)
+                .Include(img => img.Color)
+                .OrderBy(img => img.DisplayOrder)
+                .ToListAsync();
+            var variantGroups = variants.GroupBy(v => v.ProductID).ToDictionary(g => g.Key, g => g.ToList());
+            var imageGroups = images.GroupBy(img => img.ProductID).ToDictionary(g => g.Key, g => g.ToList());
+            var productRes = MapToGetProductRes(product, brand, variantGroups, imageGroups);
+            return new CommonResponse<GetProductRes>
+            {
+                Success = true,
+                Message = "Lấy thông tin sản phẩm thành công.",
+                Data = productRes
+            };
+        }
+
         #endregion
 
         #region Private Helpers
@@ -481,6 +520,93 @@ namespace BUS.Services
         private bool IsBestSeller(int productId)
         {
             return new Random().Next(2) == 0;
+        }
+
+        public async Task<CommonResponse<bool>> AddFavoriteProduct(int userId, int productId)
+        {
+            var existed = await _favoriteProductRepository.AsQueryable()
+                .AnyAsync(x => x.UserId == userId && x.ProductId == productId);
+            if (existed)
+            {
+                return new CommonResponse<bool>
+                {
+                    Success = false,
+                    Message = "Sản phẩm đã có trong danh sách yêu thích.",
+                    Data = false
+                };
+            }
+            var favorite = new FavoriteProduct
+            {
+                UserId = userId,
+                ProductId = productId,
+                CreatedDate = DateTime.Now
+            };
+            await _favoriteProductRepository.AddAsync(favorite);
+            await _favoriteProductRepository.SaveChangesAsync();
+            return new CommonResponse<bool>
+            {
+                Success = true,
+                Message = "Thêm sản phẩm yêu thích thành công.",
+                Data = true
+            };
+        }
+
+        public async Task<CommonResponse<bool>> RemoveFavoriteProduct(int userId, int productId)
+        {
+            var favorite = await _favoriteProductRepository.AsQueryable()
+                .FirstOrDefaultAsync(x => x.UserId == userId && x.ProductId == productId);
+            if (favorite == null)
+            {
+                return new CommonResponse<bool>
+                {
+                    Success = false,
+                    Message = "Không tìm thấy sản phẩm yêu thích để xóa.",
+                    Data = false
+                };
+            }
+            await _favoriteProductRepository.RemoveAsync(favorite);
+            await _favoriteProductRepository.SaveChangesAsync();
+            return new CommonResponse<bool>
+            {
+                Success = true,
+                Message = "Xóa sản phẩm yêu thích thành công.",
+                Data = true
+            };
+        }
+
+        public async Task<CommonResponse<List<GetProductRes>>> GetFavoriteProducts(int userId)
+        {
+            var favoriteProductIds = await _favoriteProductRepository.AsQueryable()
+                .Where(x => x.UserId == userId)
+                .Select(x => x.ProductId)
+                .ToListAsync();
+            var products = await _productRepository.AsNoTrackingQueryable()
+                .Where(p => favoriteProductIds.Contains(p.ProductID))
+                .ToListAsync();
+            var brands = await _brandRepository.AsNoTrackingQueryable().ToListAsync();
+            var variants = await _productVariantRepository.AsNoTrackingQueryable()
+                .Where(v => favoriteProductIds.Contains(v.ProductID))
+                .Include(v => v.Size)
+                .Include(v => v.Color)
+                .ToListAsync();
+            var images = await _productImageRepository.AsNoTrackingQueryable()
+                .Where(img => favoriteProductIds.Contains(img.ProductID) && img.IsActive)
+                .Include(img => img.Color)
+                .OrderBy(img => img.DisplayOrder)
+                .ToListAsync();
+            var variantGroups = variants.GroupBy(v => v.ProductID).ToDictionary(g => g.Key, g => g.ToList());
+            var imageGroups = images.GroupBy(img => img.ProductID).ToDictionary(g => g.Key, g => g.ToList());
+            var productList = products.Select(p =>
+            {
+                var brand = brands.FirstOrDefault(b => b.BrandID == p.BrandId);
+                return MapToGetProductRes(p, brand, variantGroups, imageGroups);
+            }).ToList();
+            return new CommonResponse<List<GetProductRes>>
+            {
+                Success = true,
+                Message = "Lấy danh sách sản phẩm yêu thích thành công.",
+                Data = productList
+            };
         }
 
         #endregion

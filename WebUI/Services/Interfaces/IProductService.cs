@@ -66,5 +66,9 @@ namespace WebUI.Services.Interfaces
         Task<CommonResponse<List<Category>>> GetCategoriesAsync();
         Task<CommonPagination<Product>> GetProductShopAsync(int? categoryId, string? keyword, int? sortType, int? sortPrice, int currentPage, int recordPerPage);
         Task<CommonResponse<List<GetListBrand>>> GetListBrandAsync();
+        
+        Task<CommonResponse<bool>> AddFavoriteProductAsync(int productId);
+        Task<CommonResponse<bool>> RemoveFavoriteProductAsync(int productId);
+        Task<CommonResponse<List<Product>>> GetFavoriteProductsAsync();
     }
 }

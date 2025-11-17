@@ -149,6 +149,31 @@
     background: rgba(15, 23, 42, 0.45);
 }
 
+.action-btn--ghost.is-favorite {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.action-btn--ghost.is-favorite i {
+    animation: heartBeat 0.3s ease;
+}
+
+@keyframes heartBeat {
+    0%, 100% {
+        transform: scale(1);
+    }
+    25% {
+        transform: scale(1.2);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.action-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .card-content {
     padding: 18px;
     display: flex;

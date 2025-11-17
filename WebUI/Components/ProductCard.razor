@@ -1,9 +1,12 @@
 @using WebUI.Models
 @using WebUI.Services
+@using WebUI.Services.Interfaces
 @inject NavigationManager Navigation
 @inject CartService CartService
 @inject IJSRuntime JSRuntime
 @inject IToastService ToastService
+@inject IAuthService AuthService
+@inject IProductService ProductService
 
 <!-- Product Card Component -->
 <div class="product-card" @onclick="OnProductClick">
@@ -37,11 +40,12 @@
                     @onclick:stopPropagation="true">
                 <i class="fas fa-shopping-cart"></i>
             </button>
-            <button class="action-btn action-btn--ghost"
-                    title="Yêu thích"
+            <button class="action-btn action-btn--ghost @(isFavorite ? "is-favorite" : "")"
+                    title="@(isFavorite ? "Bỏ yêu thích" : "Yêu thích")"
                     @onclick="OnWishlistClick"
-                    @onclick:stopPropagation="true">
-                <i class="far fa-heart"></i>
+                    @onclick:stopPropagation="true"
+                    disabled="@isTogglingFavorite">
+                <i class="@(isFavorite ? "fas" : "far") fa-heart"></i>
             </button>
         </div>
     </div>
@@ -87,6 +91,8 @@
     [Parameter] public EventCallback<Product> OnQuickView { get; set; }
 
     private bool ShowModal = false;
+    private bool isFavorite = false;
+    private bool isTogglingFavorite = false;
 
     private async Task OnProductClick()
     {
@@ -129,6 +135,51 @@
 
     private async Task OnWishlistClick()
     {
-        await ToastService.ShowSuccess($"Đã thêm {Product.Name} vào yêu thích!");
+        // Check if user is logged in
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        isTogglingFavorite = true;
+        StateHasChanged();
+
+        try
+        {
+            if (isFavorite)
+            {
+                // Remove from favorites
+                var result = await ProductService.RemoveFavoriteProductAsync(Product.Id);
+                if (result.Success)
+                {
+                    isFavorite = false;
+                    await ToastService.ShowSuccess("Đã bỏ yêu thích");
+                }
+                else
+                {
+                    await ToastService.ShowError("Không thể bỏ yêu thích");
+                }
+            }
+            else
+            {
+                // Add to favorites
+                var result = await ProductService.AddFavoriteProductAsync(Product.Id);
+                if (result.Success)
+                {
+                    isFavorite = true;
+                    await ToastService.ShowSuccess($"Đã thêm {Product.Name} vào yêu thích!");
+                }
+                else
+                {
+                    await ToastService.ShowError("Không thể thêm vào yêu thích");
+                }
+            }
+        }
+        finally
+        {
+            isTogglingFavorite = false;
+            StateHasChanged();
+        }
     }
 }

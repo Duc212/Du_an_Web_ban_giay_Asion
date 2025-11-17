@@ -21,6 +21,7 @@ namespace WebUI.Constants
         public const string ProductList = "/api/ProductLanding/GetListProduct";
         public const string ProductShop = "/api/ProductLanding/GetProductShop";
         public const string GetLisBrand = "/api/ProductLanding/GetLisBrand";
+        public const string GetProductById = "/api/ProductLanding/GetProductById";
 
 
         // Cart endpoints

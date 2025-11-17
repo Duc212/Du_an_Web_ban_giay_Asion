@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using WebUI.Models;
 using WebUI.Services.Interfaces;
 
@@ -11,6 +12,7 @@ namespace WebUI.Services
         Task<Order?> GetOrderByIdAsync(string orderId);
         Task<List<Order>> GetOrderHistoryAsync();
         Task<bool> UpdatePaymentStatusAsync(int orderId, PaymentStatus status);
+        Task<CommonPagination<GetOrderRes>> GetListOrderByUserAsync(int currentPage, int recordPerPage);
     }
 
     public class OrderService : IOrderService
@@ -181,6 +183,93 @@ namespace WebUI.Services
                 Console.WriteLine($"[OrderService] Exception in UpdatePaymentStatusAsync: {ex.Message}");
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Lấy danh sách đơn hàng của user với phân trang
+        /// GET /api/Orders/GetListOrderByUser?CurrentPage=1&RecordPerPage=10
+        /// Backend trả về nested List<List<GetOrderRes>>, cần flatten
+        /// </summary>
+        public async Task<CommonPagination<GetOrderRes>> GetListOrderByUserAsync(int currentPage, int recordPerPage)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated)
+                {
+                    return new CommonPagination<GetOrderRes>
+                    {
+                        Success = false,
+                        Message = "User not authenticated",
+                        Data = new List<GetOrderRes>()
+                    };
+                }
+
+                var apiBaseUrl = await _configService.GetApiBaseUrlAsync();
+                var url = $"{apiBaseUrl}/api/Orders/GetListOrderByUser?CurrentPage={currentPage}&RecordPerPage={recordPerPage}";
+                var httpRequest = new HttpRequestMessage(HttpMethod.Get, url);
+
+                httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                    "Bearer",
+                    _authService.CurrentToken!
+                );
+
+                var response = await _httpClient.SendAsync(httpRequest);
+                var body = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Backend trả về List<List<GetOrderRes>> trong data field
+                    var nestedResult = JsonSerializer.Deserialize<NestedOrderResponse>(body, 
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                    );
+
+                    if (nestedResult?.Success == true && nestedResult.Data != null)
+                    {
+                        // Flatten nested list
+                        var flattenedOrders = nestedResult.Data.SelectMany(list => list).ToList();
+
+                        return new CommonPagination<GetOrderRes>
+                        {
+                            Success = true,
+                            Message = nestedResult.Message,
+                            Data = flattenedOrders,
+                            TotalRecord = nestedResult.TotalRecord
+                        };
+                    }
+                }
+
+                return new CommonPagination<GetOrderRes>
+                {
+                    Success = false,
+                    Message = $"API returned {response.StatusCode}",
+                    Data = new List<GetOrderRes>()
+                };
+            }
+            catch (Exception)
+            {
+                return new CommonPagination<GetOrderRes>
+                {
+                    Success = false,
+                    Message = "Error loading orders",
+                    Data = new List<GetOrderRes>()
+                };
+            }
+        }
+
+        // Helper class để deserialize nested response structure
+        private class NestedOrderResponse
+        {
+            [JsonPropertyName("success")]
+            public bool Success { get; set; }
+            
+            [JsonPropertyName("message")]
+            public string Message { get; set; } = string.Empty;
+            
+            [JsonPropertyName("data")]
+            public List<List<GetOrderRes>> Data { get; set; } = new();
+            
+            [JsonPropertyName("totalRecord")]
+            public int TotalRecord { get; set; }
         }
     }
 }

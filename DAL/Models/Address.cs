@@ -18,6 +18,8 @@ namespace DAL.Models
         [MaxLength(100),Unicode(true)]
         public string City { get; set; }
         [MaxLength(100),Unicode(true)]
+        public string? District { get; set; }
+        [MaxLength(100),Unicode(true)]
         public string Ward { get; set; }
         [MaxLength(100),Unicode(true)]
         public string Street { get; set; }

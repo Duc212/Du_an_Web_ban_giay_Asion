@@ -7,6 +7,7 @@
 @inject CartService CartService
 @inject IProductService ProductService
 @inject IToastService ToastService
+@inject RecentlyViewedService RecentlyViewedService
 
 <PageTitle>@(CurrentProduct?.Name ?? "Product") - Asion</PageTitle>
 
@@ -64,12 +65,31 @@
             </div>
         </div>
 
+        <!-- Recently Viewed Products -->
+        @if (RecentlyViewedProducts.Any())
+        {
+            <div class="recently-viewed-section">
+                <div class="container">
+                    <div class="section-header">
+                        <h2 class="section-title">Đã xem gần đây</h2>
+                        <p class="section-subtitle">Các sản phẩm bạn đã xem</p>
+                    </div>
+                    <div class="products-grid">
+                        @foreach (var product in RecentlyViewedProducts.Take(6))
+                        {
+                            <ProductCard Product="product" />
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
         <!-- Mobile Sticky Actions -->
         <div class="mobile-sticky-actions">
             <div class="mobile-actions-content">
                 <div class="mobile-price">
-                    <span class="current-price">@CurrentProduct.Price</span>
-                    @if (!string.IsNullOrEmpty(CurrentProduct.OldPriceFormatted))
+                    <span class="current-price">@(CurrentProduct?.PriceFormatted ?? "")</span>
+                    @if (!string.IsNullOrEmpty(CurrentProduct?.OldPriceFormatted))
                     {
                         <span class="old-price">@CurrentProduct.OldPriceFormatted</span>
                     }
@@ -107,6 +127,7 @@
     
     private Product? CurrentProduct { get; set; }
     private List<Product> RelatedProductsList { get; set; } = new();
+    private List<Product> RecentlyViewedProducts { get; set; } = new();
     private int Quantity { get; set; } = 1;
     private string SelectedSize { get; set; } = "";
     private string SelectedColor { get; set; } = "";
@@ -119,7 +140,19 @@
     private async Task LoadProduct()
     {
         CurrentProduct = await ProductService.GetProductByIdAsync(ProductId);
-        RelatedProductsList = await ProductService.GetRelatedProductsAsync(CurrentProduct?.Id ?? 0, 6);
+        
+        if (CurrentProduct != null && CurrentProduct.Id > 0)
+        {
+            // Save to recently viewed
+            await RecentlyViewedService.AddProductAsync(CurrentProduct);
+            
+            // Load related products
+            RelatedProductsList = await ProductService.GetRelatedProductsAsync(CurrentProduct.Id, 6);
+            
+            // Load recently viewed (excluding current product)
+            var recentlyViewed = await RecentlyViewedService.GetRecentlyViewedAsync();
+            RecentlyViewedProducts = recentlyViewed.Where(p => p.Id != ProductId).ToList();
+        }
     }
 
     private void OnQuantityChanged(int newQuantity)
@@ -143,14 +176,11 @@
         if (CurrentProduct != null)
         {
             // Add to cart - sẽ tự động chọn local hoặc API dựa vào trạng thái login
-            // VariantID sẽ được xử lý bởi backend API dựa trên ProductId + Size + Color
-            // Local cart (guest) sẽ dùng variantId = 0 cho đến khi sync với API sau khi login
             var response = await CartService.AddToCartAsync(
                 CurrentProduct, 
                 Quantity, 
                 SelectedSize, 
                 SelectedColor
-                // variantId = 0 (default) - API backend sẽ tìm đúng VariantID
             );
 
             if (response.Success)
