@@ -1,0 +1,230 @@
+@page "/profile"
+@using WebUI.Models
+@using WebUI.Services
+@using WebUI.Services.Interfaces
+@using Microsoft.AspNetCore.Components.Web
+@inject IAuthService AuthService
+@inject Services.IToastService ToastService
+@inject NavigationManager Navigation
+
+<PageTitle>Thông tin cá nhân - Asion</PageTitle>
+
+<div class="profile-container">
+    @if (!AuthService.IsAuthenticated)
+    {
+        <div class="text-center py-5">
+            <p>Vui lòng đăng nhập để xem thông tin cá nhân</p>
+            <button class="btn btn-primary" @onclick="GoToLogin">
+                Đăng nhập
+            </button>
+        </div>
+    }
+    else if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Đang tải...</span>
+            </div>
+        </div>
+    }
+    else if (userProfile != null)
+    {
+        <div class="container py-4">
+            <div class="row">
+                <!-- Sidebar -->
+                <div class="col-md-3 mb-4">
+                    <div class="profile-sidebar">
+                        <div class="profile-avatar text-center mb-3">
+                            @if (!string.IsNullOrEmpty(userProfile.Picture))
+                            {
+                                <img src="@userProfile.Picture" alt="Avatar" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;" />
+                            }
+                            else
+                            {
+                                <div class="avatar-placeholder rounded-circle mx-auto" style="width: 100px; height: 100px; background: #e9ecef; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-user fa-3x text-secondary"></i>
+                                </div>
+                            }
+                            <h5 class="mt-3">@userProfile.FullName</h5>
+                        </div>
+
+                        <ul class="nav flex-column profile-menu">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="/profile">
+                                    <i class="fas fa-user me-2"></i>
+                                    Thông tin cá nhân
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/orders">
+                                    <i class="fas fa-shopping-bag me-2"></i>
+                                    Đơn hàng của tôi
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/wishlist">
+                                    <i class="fas fa-heart me-2"></i>
+                                    Sản phẩm yêu thích
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/cart">
+                                    <i class="fas fa-shopping-cart me-2"></i>
+                                    Giỏ hàng
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="col-md-9">
+                    <!-- Personal Information -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user-circle me-2"></i>
+                                Thông tin cá nhân
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Họ và tên</label>
+                                    <p class="form-control-plaintext">@userProfile.FullName</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Email</label>
+                                    <p class="form-control-plaintext">@userProfile.Email</p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Số điện thoại</label>
+                                    <p class="form-control-plaintext">@userProfile.Phone</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Ngày sinh</label>
+                                    <p class="form-control-plaintext">
+                                        @(userProfile.DateOfBirth?.ToString("dd/MM/yyyy") ?? "Chưa cập nhật")
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <button class="btn btn-primary" disabled>
+                                    <i class="fas fa-edit me-2"></i>
+                                    Chỉnh sửa thông tin
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Addresses -->
+                    <div class="card">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-map-marker-alt me-2"></i>
+                                Địa chỉ của tôi
+                            </h5>
+                            <button class="btn btn-sm btn-outline-primary" disabled>
+                                <i class="fas fa-plus me-2"></i>
+                                Thêm địa chỉ mới
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            @if (userProfile.Addresses.Any())
+                            {
+                                @foreach (var address in userProfile.Addresses)
+                                {
+                                    <div class="address-item p-3 mb-3 border rounded">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <strong class="me-2">Địa chỉ #{address.AddressID}</strong>
+                                                </div>
+                                                <p class="mb-1">
+                                                    <i class="fas fa-map-marker-alt me-2"></i>
+                                                    @address.AddressDetail
+                                                </p>
+                                                <p class="mb-0 text-muted">
+                                                    @address.Street, @address.Ward, @(address.District ?? ""), @address.City
+                                                </p>
+                                            </div>
+                                            <div class="btn-group-vertical btn-group-sm">
+                                                <button class="btn btn-outline-secondary" disabled>
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-outline-danger" disabled>
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-center py-4 text-muted">
+                                    <i class="fas fa-map-marker-alt fa-3x mb-3"></i>
+                                    <p>Chưa có địa chỉ nào</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private UserWithAddressRes? userProfile;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthService.InitializeAsync();
+        
+        if (AuthService.IsAuthenticated)
+        {
+            await LoadUserProfile();
+        }
+        else
+        {
+            isLoading = false;
+        }
+    }
+
+    private void GoToLogin()
+    {
+        Navigation.NavigateTo("/login");
+    }
+
+    private async Task LoadUserProfile()
+    {
+        try
+        {
+            isLoading = true;
+            var response = await AuthService.GetUserWithAddressAsync();
+            
+            if (response.Success && response.Data != null)
+            {
+                userProfile = response.Data;
+            }
+            else
+            {
+                await ToastService.ShowError("Không thể tải thông tin người dùng");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading user profile: {ex.Message}");
+            await ToastService.ShowError("Đã xảy ra lỗi khi tải thông tin");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+}

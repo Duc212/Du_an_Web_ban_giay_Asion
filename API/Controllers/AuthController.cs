@@ -1,9 +1,12 @@
-﻿using BUS.Services.Interfaces;
+﻿using API.Extensions;
+using BUS.Services.Interfaces;
 using DAL.DTOs.Auths.Req;
 using DAL.DTOs.Auths.Res;
 using DAL.Entities;
+using Helper.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace API.Controllers
 {
@@ -44,6 +47,14 @@ namespace API.Controllers
         public async Task<CommonResponse<LoginRes>> GoogleLogin(GoogleLoginReq req)
         {
             return await _authServices.GoogleLogin(req);
+        }
+        [HttpGet]
+        [Route("GetUserWithAddress")]
+        [BAuthorize]
+        public async Task<CommonResponse<UserWithAddressRes>> GetUserWithAddress()
+        {
+            var userId = HttpContextHelper.GetUserId();
+            return await _authServices.GetUserWithAddress(userId);
         }
     }
 }

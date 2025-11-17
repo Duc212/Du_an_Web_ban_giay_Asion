@@ -12,6 +12,7 @@ namespace WebUI.Constants
         public const string ResetPassword = "/api/Auth/ResetPassword";
         public const string RefreshToken = "/api/Auth/RefreshToken";
         public const string Logout = "/api/Auth/Logout";
+        public const string GetUserWithAddress = "/api/Auth/GetUserWithAddress";
 
         // Product endpoints
         public const string Products = "/api/Products";

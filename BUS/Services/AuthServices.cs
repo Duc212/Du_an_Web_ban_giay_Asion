@@ -182,8 +182,7 @@ namespace BUS.Services
 
                 var code = new Random().Next(100000, 999999).ToString();
 
-                // nào config email thì mở dòng dưới ra
-                //await _mailServices.SendVerificationCodeAsync(req.Email,code); 
+                await _mailServices.SendOtpEmail(req.Email,code);
 
                 var encryptedPassword = CryptoHelperUtil.Encrypt(req.Password);
 
@@ -387,6 +386,43 @@ namespace BUS.Services
             }
 
             return response;
+        }
+
+        public async Task<CommonResponse<UserWithAddressRes>> GetUserWithAddress(int userId)
+        {
+            var user = await _userRepository.AsNoTrackingQueryable()
+                .FirstOrDefaultAsync(u => u.UserID == userId);
+            if (user == null)
+            {
+                return new CommonResponse<UserWithAddressRes>
+                {
+                    Success = false,
+                    Message = "Không tìm thấy user.",
+                    Data = null
+                };
+            }
+
+            var addresses = await _userRepository.DbContext.Set<Address>()
+                .Where(a => a.UserID == userId)
+                .ToListAsync();
+
+            var result = new UserWithAddressRes
+            {
+                UserID = user.UserID,
+                FullName = user.FullName,
+                Email = user.Email,
+                Phone = user.Phone,
+                Picture = user.Picture,
+                DateOfBirth = user.DateOfBirth,
+                Status = user.Status,
+                Addresses = addresses
+            };
+            return new CommonResponse<UserWithAddressRes>
+            {
+                Success = true,
+                Message = "Lấy thông tin user thành công.",
+                Data = result
+            };
         }
     }
 }

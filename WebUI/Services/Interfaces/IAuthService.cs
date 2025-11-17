@@ -103,5 +103,10 @@ namespace WebUI.Services.Interfaces
         /// Lấy UserId dạng int nếu có (từ CurrentUser hoặc decode JWT token)
         /// </summary>
         int? GetCurrentUserId();
+
+        /// <summary>
+        /// Lấy thông tin user kèm địa chỉ
+        /// </summary>
+        Task<CommonResponse<UserWithAddressRes>> GetUserWithAddressAsync();
     }
 }

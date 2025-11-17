@@ -2,7 +2,7 @@
 {
     public interface IMailServices
     {
-        Task SendVerificationCodeAsync(string toEmail, string code);
+        Task<bool> SendOtpEmail(string toEmail, string code);
 
     }
 }

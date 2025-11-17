@@ -172,4 +172,27 @@ namespace WebUI.Models
         [Compare(nameof(NewPassword), ErrorMessage = "Mật khẩu xác nhận không khớp")]
         public string ConfirmPassword { get; set; } = "";
     }
+
+    public class UserWithAddressRes
+    {
+        public int UserID { get; set; }
+        public string FullName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Phone { get; set; } = "";
+        public string? Picture { get; set; }
+        public DateTime? DateOfBirth { get; set; }
+        public int Status { get; set; }
+        public List<UserAddressRes> Addresses { get; set; } = new();
+    }
+
+    public class UserAddressRes
+    {
+        public int AddressID { get; set; }
+        public int UserID { get; set; }
+        public string AddressDetail { get; set; } = "";
+        public string City { get; set; } = "";
+        public string? District { get; set; }
+        public string Ward { get; set; } = "";
+        public string Street { get; set; } = "";
+    }
 }

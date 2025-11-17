@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text;
+using System.Net.Http.Json;
 using Microsoft.JSInterop;
 using WebUI.Models;
 using WebUI.Services.Interfaces;
@@ -908,6 +909,53 @@ namespace WebUI.Services
                 }
             }
             return null;
+        }
+
+        public async Task<CommonResponse<UserWithAddressRes>> GetUserWithAddressAsync()
+        {
+            try
+            {
+                if (!IsAuthenticated)
+                {
+                    return new CommonResponse<UserWithAddressRes>
+                    {
+                        Success = false,
+                        Message = "User not authenticated"
+                    };
+                }
+
+                var apiBaseUrl = await _configService.GetApiBaseUrlAsync();
+                var url = $"{apiBaseUrl}{ApiEndpoints.GetUserWithAddress}";
+
+                var httpRequest = new HttpRequestMessage(HttpMethod.Get, url);
+                httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                    "Bearer",
+                    _currentToken
+                );
+
+                var response = await _httpClient.SendAsync(httpRequest);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<CommonResponse<UserWithAddressRes>>();
+                    return result ?? new CommonResponse<UserWithAddressRes> { Success = false };
+                }
+
+                return new CommonResponse<UserWithAddressRes>
+                {
+                    Success = false,
+                    Message = $"API returned status code: {response.StatusCode}"
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting user with address: {ex.Message}");
+                return new CommonResponse<UserWithAddressRes>
+                {
+                    Success = false,
+                    Message = "Error occurred while fetching user data"
+                };
+            }
         }
     }
 }
