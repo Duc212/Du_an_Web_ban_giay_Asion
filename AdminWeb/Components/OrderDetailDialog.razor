@@ -1,0 +1,170 @@
+@using DAL.DTOs.Orders.Res
+@inject AdminWeb.Services.OrderService OrderService
+@inject AdminWeb.Services.ToastService Toast
+
+@if (Show && Order != null)
+{
+    <div class="dialog-backdrop" role="dialog" aria-modal="true" aria-label="Chi tiết đơn hàng" @onclick="OnBackdropClick">
+        <div class="dialog-panel" @onclick:stopPropagation>
+            <div class="dialog-header flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold m-0">Đơn hàng #@Order.OrderNumber</h2>
+                    <div class="dialog-status-badges mt-2">
+                        <span class="badge @GetStatusClass(Order.Status)">@GetStatusText(Order.Status)</span>
+                        <span class="badge payment">@GetPaymentMethod(Order.PaymentMethod)</span>
+                        <span class="badge paystatus @GetPaymentStatusClass(Order.PaymentStatus)">@GetPaymentStatusText(Order.PaymentStatus)</span>
+                    </div>
+                </div>
+                <button type="button" class="dialog-close-btn" @onclick="Close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg></button>
+            </div>
+            <div class="dialog-body space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="dialog-section">
+                            <h3>Thông tin khách hàng</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                                <div><span class="font-semibold">Họ tên:</span> @Order.ReceiverName</div>
+                                <div><span class="font-semibold">Điện thoại:</span> @Order.ReceiverPhone</div>
+                                <div><span class="font-semibold">Email:</span> @Order.ReceiverEmail</div>
+                                <div><span class="font-semibold">Mã khách:</span> @Order.UserId</div>
+                            </div>
+                        </div>
+                        <div class="dialog-section">
+                            <h3>Địa chỉ giao hàng</h3>
+                            <p class="text-sm">@Order.ShippingAddress</p>
+                            <p class="text-xs text-gray-500 mt-1">@Order.Ward @Order.District @Order.City</p>
+                        </div>
+                        <div class="dialog-section">
+                            <h3>Sản phẩm</h3>
+                            <div class="overflow-auto border rounded-lg">
+                                <table class="min-w-full dialog-items-table">
+                                    <thead class="bg-gray-50 text-xs uppercase">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left">Sản phẩm</th>
+                                            <th class="px-4 py-3 text-center">SL</th>
+                                            <th class="px-4 py-3 text-right">Đơn giá</th>
+                                            <th class="px-4 py-3 text-right">Thành tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100 bg-white">
+                                        @foreach(var item in Order.Items)
+                                        {
+                                            <tr class="hover:bg-gray-50">
+                                                <td class="px-4 py-3">
+                                                    <div class="flex items-center">
+                                                        <img src="@item.ImageUrl" alt="img" class="w-12 h-12 rounded-lg object-cover mr-3" />
+                                                        <div>
+                                                            <p class="text-sm font-semibold">@item.ProductName</p>
+                                                            <p class="text-[11px] text-gray-500">Size: @item.SelectedSize • Màu: @item.SelectedColor</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="px-4 py-3 text-center text-sm">@item.Quantity</td>
+                                                <td class="px-4 py-3 text-right text-sm">@item.Price.ToString("N0") ₫</td>
+                                                <td class="px-4 py-3 text-right text-sm font-semibold">@( (item.Price * item.Quantity).ToString("N0") ) ₫</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="dialog-section">
+                            <h3>Tổng kết</h3>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between"><span>Tạm tính</span><span>@Order.SubTotal.ToString("N0") ₫</span></div>
+                                <div class="flex justify-between"><span>Phí vận chuyển</span><span>@Order.ShippingFee.ToString("N0") ₫</span></div>
+                                <div class="flex justify-between"><span>Giảm giá</span><span class="text-red-500">-@Order.Discount.ToString("N0") ₫</span></div>
+                                <div class="flex justify-between"><span>Phương thức</span><span>@GetPaymentMethod(Order.PaymentMethod)</span></div>
+                                <div class="flex justify-between"><span>Thanh toán</span><span class="@GetPaymentStatusClass(Order.PaymentStatus)">@GetPaymentStatusText(Order.PaymentStatus)</span></div>
+                                <div class="border-t pt-2 flex justify-between font-bold text-lg"><span>Tổng cộng</span><span class="text-blue-600">@Order.TotalAmount.ToString("N0") ₫</span></div>
+                            </div>
+                        </div>
+                        <div class="dialog-section">
+                            <h3>Ghi chú</h3>
+                            @if(string.IsNullOrWhiteSpace(Order.Note))
+                            {
+                                <p class="text-xs text-gray-500 italic">Không có ghi chú.</p>
+                            }
+                            else
+                            {
+                                <p class="text-sm">@Order.Note</p>
+                            }
+                        </div>
+                        <div class="dialog-section">
+                            <h3>Hành động</h3>
+                            <p class="text-[11px] text-gray-500 mb-2">Quản lý trạng thái đơn hàng.</p>
+                            <div class="dialog-footer-actions">
+                                @if(Order.Status == 0)
+                                {
+                                    <button @onclick="Accept" class="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium">Xác nhận</button>
+                                    <button @onclick="() => showReject = true" class="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-medium">Từ chối</button>
+                                }
+                                else if(Order.Status == 1)
+                                {
+                                    <button @onclick="Ship" class="px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-medium">Giao hàng</button>
+                                    <button @onclick="() => showReject = true" class="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-medium">Hủy</button>
+                                }
+                                else if(Order.Status == 2)
+                                {
+                                    <button @onclick="Complete" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium">Hoàn thành</button>
+                                }
+                                <button @onclick="Close" class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm font-medium">Đóng</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if(showReject)
+                {
+                    <div class="fixed inset-0 z-[150] flex items-center justify-center bg-black/50 p-4" @onclick="() => showReject=false">
+                        <div class="bg-white rounded-xl shadow-xl w-full max-w-md" @onclick:stopPropagation>
+                            <div class="px-6 py-4 border-b flex items-center justify-between">
+                                <h3 class="font-semibold">Từ chối đơn #@Order.OrderNumber</h3>
+                                <button class="text-gray-400 hover:text-gray-600" @onclick="() => showReject=false"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="14" height="14" fill="currentColor"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg></button>
+                            </div>
+                            <div class="p-6 space-y-4">
+                                <p class="text-sm text-gray-600">Lý do (tùy chọn) sẽ lưu vào ghi chú.</p>
+                                <textarea class="w-full border rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" rows="4" @bind="rejectReason" placeholder="Ví dụ: Khách yêu cầu hủy..."></textarea>
+                                <div class="flex gap-3">
+                                    <button class="flex-1 px-4 py-2 rounded-lg border border-gray-300 text-sm hover:bg-gray-50" @onclick="() => { showReject=false; rejectReason=string.Empty; }">Hủy</button>
+                                    <button class="flex-1 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm" @onclick="Reject">Xác nhận</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Show { get; set; }
+    [Parameter] public GetOrderRes? Order { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnStatusChanged { get; set; }
+
+    private bool showReject = false;
+    private string rejectReason = string.Empty;
+
+    private void OnBackdropClick() => Close();
+    private async void Close() { showReject=false; rejectReason=string.Empty; if(OnClose.HasDelegate) await OnClose.InvokeAsync(); }
+
+    private string GetStatusClass(int status) => status switch
+    { 0 => "bg-orange-100 text-orange-600", 1 => "bg-blue-100 text-blue-600", 2 => "bg-cyan-100 text-cyan-600", 3 => "bg-emerald-100 text-emerald-600", 4 => "bg-red-100 text-red-600", _ => "bg-gray-100 text-gray-600" };
+    private string GetStatusText(int status) => status switch
+    { 0 => "Chờ xử lý", 1 => "Đang xử lý", 2 => "Đang giao", 3 => "Hoàn thành", 4 => "Đã hủy", _ => "Không xác định" };
+    private string GetPaymentMethod(int method) => method switch
+    { 0 => "COD", 1 => "Chuyển khoản", 2 => "Ví điện tử", 3 => "Thẻ tín dụng", _ => "Khác" };
+    private string GetPaymentStatusText(int st) => st == 1 ? "Đã thanh toán" : "Chưa thanh toán";
+    private string GetPaymentStatusClass(int st) => st == 1 ? "text-emerald-600" : "text-red-600";
+
+    private async Task Accept(){ if(Order==null) return; var ok= await OrderService.UpdateStatusAsync(Order.OrderId,1); if(ok){ Order.Status=1; Toast.Success("Đã chuyển sang xử lý"); await RaiseStatusChanged(); } }
+    private async Task Reject(){ if(Order==null) return; var ok= await OrderService.UpdateStatusAsync(Order.OrderId,4); if(ok){ if(!string.IsNullOrWhiteSpace(rejectReason)) Order.Note = "Từ chối: "+rejectReason.Trim(); Order.Status=4; Toast.Error("Đã hủy đơn"); showReject=false; rejectReason=string.Empty; await RaiseStatusChanged(); } }
+    private async Task Ship(){ if(Order==null) return; var ok= await OrderService.UpdateStatusAsync(Order.OrderId,2); if(ok){ Order.Status=2; Toast.Info("Đơn đang giao"); await RaiseStatusChanged(); } }
+    private async Task Complete(){ if(Order==null) return; var ok= await OrderService.UpdateStatusAsync(Order.OrderId,3); if(ok){ Order.Status=3; Toast.Success("Hoàn thành"); await RaiseStatusChanged(); } }
+
+    private async Task RaiseStatusChanged(){ StateHasChanged(); if(OnStatusChanged.HasDelegate) await OnStatusChanged.InvokeAsync(); }
+}

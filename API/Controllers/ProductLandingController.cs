@@ -1,5 +1,9 @@
 ﻿using API.Extensions;
 using BUS.Services.Interfaces;
+using DAL.DTOs.Brands.Req;
+using DAL.DTOs.Brands.Res;
+using DAL.DTOs.Categories.Req;
+using DAL.DTOs.Categories.Res;
 using DAL.DTOs.Products.Req;
 using DAL.DTOs.Products.Res;
 using DAL.Entities;
@@ -7,6 +11,7 @@ using DAL.Enums;
 using Helper.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace API.Controllers
 {
@@ -35,7 +40,7 @@ namespace API.Controllers
             var result = await _productService.GetListCategory();
             return result;
         }
-        [HttpGet]
+        
         [HttpGet("GetProductShop")]
         public async Task<CommonPagination<GetProductRes>> GetProductLangding(int? CategoryId, string? Keyword, int? SortType, int? SortPrice, int CurrentPage, int RecordPerPage)
         {
@@ -81,6 +86,60 @@ namespace API.Controllers
         {
             var result = await _productService.GetProductById(productId);
             return result;
+        }
+
+        [HttpPost("AddBrand")]
+        public async Task<CommonResponse<bool>> Create([FromBody] AddBrandReq req)
+        {
+            return await _productService.CreateBrand(req);
+        }
+
+        [HttpPost("UpdateBrand")]
+        public async Task<CommonResponse<bool>> Update([FromBody] UpdateBrandReq req)
+        {
+            return await _productService.UpdateBrand(req);
+        }
+
+        [HttpPost("RemoveBrand")]
+        public async Task<CommonResponse<bool>> Remove([FromBody] RemoveBrandReq req)
+        {
+            return await _productService.RemoveBrand(req);
+        }
+
+        [HttpGet("GetBrandAll")]
+        public async Task<CommonPagination<GetALLBrandRes>> GetAll(int currentPage = 1, int recordPerPage = 10)
+        {
+            return await _productService.GetBrandsPaged(currentPage, recordPerPage);
+
+        }
+
+        [HttpPost("AddCategory")]
+        public async Task<CommonResponse<bool>> CreateCategory([FromBody] AddCategoryReq req)
+        {
+            return await _productService.CreateCategory(req);
+        }
+
+        [HttpPost("UpdateCategory")]
+        public async Task<CommonResponse<bool>> UpdateCategory([FromBody] UpdateCategoryReq req)
+        {
+            return await _productService.UpdateCategory(req);
+        }
+
+        [HttpPost("RemoveCategory")]
+        public async Task<CommonResponse<bool>> RemoveCategory([FromBody] RemoveCategoryReq req)
+        {
+            return await _productService.RemoveCategoryReq(req);
+        }
+
+        [HttpGet("GetAllCategory")]
+        public async Task<CommonPagination<GetAllCategoryRes>> GetAllCategory(int currentPage = 1, int recordPerPage = 10)
+        {
+            return await _productService.GetAllCategory(currentPage, recordPerPage);
+        }
+        [HttpGet("GetGender")]
+        public async Task<CommonResponse<GetGenderRes>> GetGender()
+        {
+            return await _productService.GetGender();
         }
     }
 }

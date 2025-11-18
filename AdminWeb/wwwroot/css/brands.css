@@ -1,0 +1,508 @@
+/* Brands Page Styles - Modern & Enhanced */
+.brands-page {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Stats Row - Enhanced Design */
+.stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.75rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: currentColor;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1), 0 6px 12px rgba(0, 0, 0, 0.08);
+}
+
+.stat-card:hover::before {
+    opacity: 1;
+}
+
+.stat-card .icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card .info {
+    flex: 1;
+}
+
+.stat-card .info p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+}
+
+.stat-card .info h4 {
+    margin: 0.5rem 0 0 0;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1;
+}
+
+/* Stat Card Variants */
+.stat-card.total {
+    color: #8b5cf6;
+}
+
+.stat-card.total .icon {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+}
+
+.stat-card.pending {
+    color: #3b82f6;
+}
+
+.stat-card.pending .icon {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+}
+
+.stat-card.shipping {
+    color: #10b981;
+}
+
+.stat-card.shipping .icon {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.stat-card.completed {
+    color: #f59e0b;
+}
+
+.stat-card.completed .icon {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+}
+
+/* Filter Bar - Modern Design */
+.filter-bar {
+    background: white;
+    border-radius: 16px;
+    padding: 1.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+    margin-bottom: 2rem;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.filter-bar.enhanced {
+    background: linear-gradient(to bottom, #ffffff 0%, #fafafa 100%);
+}
+
+.filter-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.filter-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+    white-space: nowrap;
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.filter-input-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 380px;
+    flex: 1;
+}
+
+.filter-input {
+    width: 100%;
+    height: 46px;
+    padding: 0 3.5rem 0 3rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    background: white;
+    color: #111827;
+    font-weight: 500;
+}
+
+.filter-input::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+.filter-input:hover {
+    border-color: #3b82f6;
+    background: #f9fafb;
+}
+
+.filter-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.filter-input-wrapper button[aria-label="Tìm kiếm"] {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: #9ca3af;
+    transition: color 0.2s;
+}
+
+.filter-input-wrapper button[aria-label="Tìm kiếm"]:hover {
+    color: #3b82f6;
+}
+
+.filter-clear-btn {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 0.625rem;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+}
+
+.filter-clear-btn:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-50%) scale(1.05);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+}
+
+.filter-clear-btn:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.filter-bar button[class*="bg-blue"] {
+    height: 46px;
+    padding: 0 1.5rem;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    white-space: nowrap;
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);
+}
+
+.filter-bar button[class*="bg-blue"]:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(59, 130, 246, 0.35);
+}
+
+.filter-bar button[class*="bg-blue"]:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.25);
+}
+
+/* Brands Panel - Enhanced */
+.brands-panel {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.brands-panel.full-width-edge {
+    margin: 0;
+}
+
+/* Brands Table - Modern Design */
+.brands-table {
+    min-width: 100%;
+    background: white;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.brands-table thead {
+    background: linear-gradient(to bottom, #f9fafb 0%, #f3f4f6 100%);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.brands-table th {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.brands-table tbody tr {
+    border-bottom: 1px solid #f3f4f6;
+    transition: all 0.2s ease;
+}
+
+.brands-table tbody tr:hover {
+    background: linear-gradient(to right, #f9fafb 0%, #ffffff 100%);
+    transform: scale(1.001);
+}
+
+.brands-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.brands-table td {
+    padding: 1.25rem 1.5rem;
+    font-size: 0.875rem;
+    color: #374151;
+    vertical-align: middle;
+}
+
+.brands-table td:first-child {
+    font-weight: 600;
+    color: #111827;
+}
+
+/* Action Buttons - Modern Style */
+.action-btn {
+    padding: 0.625rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    background: transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn:hover {
+    transform: scale(1.1);
+}
+
+.action-btn:active {
+    transform: scale(0.95);
+}
+
+.btn-view {
+    color: #3b82f6;
+}
+
+.btn-view:hover {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.btn-accept {
+    color: #10b981;
+}
+
+.btn-accept:hover {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+.btn-reject {
+    color: #ef4444;
+}
+
+.btn-reject:hover {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+}
+
+/* Badge Styles */
+.brands-table td span[class*="bg-blue"] {
+    font-weight: 600;
+    padding: 0.375rem 0.875rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1e40af;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+}
+
+/* Loading Spinner Enhancement */
+.animate-spin {
+    animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .brands-page {
+        padding: 1.5rem;
+    }
+
+    .stat-row {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.25rem;
+    }
+
+    .filter-inner {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-input-wrapper {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .brands-page {
+        padding: 1rem;
+    }
+
+    .stat-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .stat-card {
+        padding: 1.25rem;
+    }
+
+    .stat-card .icon {
+        width: 48px;
+        height: 48px;
+    }
+
+    .stat-card .info h4 {
+        font-size: 1.75rem;
+    }
+
+    .filter-bar {
+        padding: 1.25rem;
+    }
+
+    .filter-title {
+        font-size: 1.25rem;
+    }
+
+    .brands-table {
+        font-size: 0.8125rem;
+    }
+
+    .brands-table th,
+    .brands-table td {
+        padding: 0.875rem 1rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .stat-card .info h4 {
+        font-size: 1.5rem;
+    }
+
+    .stat-card {
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .stat-card .icon {
+        width: 44px;
+        height: 44px;
+    }
+
+    .filter-input,
+    .filter-bar button[class*="bg-blue"] {
+        height: 42px;
+    }
+
+    .brands-table th,
+    .brands-table td {
+        padding: 0.75rem 0.75rem;
+    }
+
+    .action-btn {
+        padding: 0.5rem;
+    }
+}
+
+/* Smooth Scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Selection Color */
+::selection {
+    background: #3b82f6;
+    color: white;
+}
+
+::-moz-selection {
+    background: #3b82f6;
+    color: white;
+}

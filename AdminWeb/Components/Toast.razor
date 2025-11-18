@@ -1,0 +1,79 @@
+@inject AdminWeb.Services.ToastService ToastService
+
+<div class="fixed top-4 right-4 z-50 space-y-3 pointer-events-none">
+    @foreach (var toast in toasts)
+    {
+        <div class="pointer-events-auto flex items-start rounded-lg shadow-lg p-4 w-80 animate-fade-in-down transition transform bg-white border-l-4 @GetBorderClass(toast.Type)">
+            <div class="mr-3">
+                <i class="@toast.Icon text-xl @GetColorClass(toast.Type)"></i>
+            </div>
+            <div class="flex-1">
+                <p class="text-sm font-semibold mb-1 @GetColorClass(toast.Type)">@GetTitle(toast.Type)</p>
+                <p class="text-sm text-gray-700">@toast.Message</p>
+            </div>
+            <button class="ml-4 text-gray-400 hover:text-gray-600" @onclick="() => Dismiss(toast)">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    private readonly List<ToastModel> toasts = new();
+
+    protected override void OnInitialized()
+    {
+        ToastService.OnShow += HandleShow;
+    }
+
+    private void HandleShow(string type, string message, string icon)
+    {
+        var model = new ToastModel { Type = type, Message = message, Icon = icon };
+        toasts.Add(model);
+        StateHasChanged();
+        _ = AutoDismissAsync(model);
+    }
+
+    private async Task AutoDismissAsync(ToastModel toast)
+    {
+        await Task.Delay(3500);
+        Dismiss(toast);
+    }
+
+    private void Dismiss(ToastModel toast)
+    {
+        toasts.Remove(toast);
+        StateHasChanged();
+    }
+
+    private string GetTitle(string type) => type switch
+    {
+        "success" => "Thành công",
+        "error" => "Lỗi",
+        "info" => "Thông báo",
+        _ => "Thông báo"
+    };
+
+    private string GetBorderClass(string type) => type switch
+    {
+        "success" => "border-emerald-500",
+        "error" => "border-red-500",
+        "info" => "border-blue-500",
+        _ => "border-gray-300"
+    };
+
+    private string GetColorClass(string type) => type switch
+    {
+        "success" => "text-emerald-600",
+        "error" => "text-red-600",
+        "info" => "text-blue-600",
+        _ => "text-gray-600"
+    };
+
+    private class ToastModel
+    {
+        public string Type { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+        public string Icon { get; set; } = string.Empty;
+    }
+}

@@ -3,11 +3,11 @@
 <aside class="fixed inset-y-0 flex-wrap items-center justify-between block w-full p-0 my-4 overflow-y-auto antialiased transition-transform duration-200 -translate-x-full bg-white border-0 shadow-xl dark:shadow-none dark:bg-slate-850 max-w-64 ease-nav-brand z-990 xl:ml-6 rounded-2xl xl:left-0 xl:translate-x-0" id="sidenav-main">
     <div class="h-19">
         <i class="absolute top-0 right-0 p-4 opacity-50 cursor-pointer fas fa-times dark:text-white text-slate-400 xl:hidden" sidenav-close></i>
-        <a class="block px-8 py-6 m-0 text-sm whitespace-nowrap dark:text-white text-slate-700" href="/">
+        <NavLink href="/" Match="NavLinkMatch.All" class="block px-8 py-6 m-0 text-sm whitespace-nowrap dark:text-white text-slate-700 no-underline">
             <img src="/assets/img/logo-ct.png" class="inline h-full max-w-full transition-all duration-200 dark:hidden ease-nav-brand max-h-8" alt="main_logo" />
             <img src="/assets/img/logo-ct-dark.png" class="hidden h-full max-w-full transition-all duration-200 dark:inline ease-nav-brand max-h-8" alt="main_logo" />
             <span class="ml-1 font-semibold transition-all duration-200 ease-nav-brand">Asion Shop</span>
-        </a>
+        </NavLink>
     </div>
 
     <hr class="h-px mt-0 bg-transparent bg-gradient-to-r from-transparent via-black/40 to-transparent dark:bg-gradient-to-r dark:from-transparent dark:via-white dark:to-transparent" />
@@ -15,8 +15,8 @@
     <div class="items-center block w-auto max-h-screen overflow-auto h-sidenav grow basis-full">
         <ul class="flex flex-col pl-0 mb-0">
             <li class="mt-0.5 w-full">
-                <NavLink href="/" class="py-2.7 bg-blue-500/13 dark:text-white dark:opacity-80 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap rounded-lg px-4 font-semibold text-slate-700 transition-colors" Match="NavLinkMatch.All">
-                    <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
+                <NavLink href="/" class="sidebar-link py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap rounded-lg px-4 font-semibold text-slate-700 transition-all hover:bg-blue-500/10 dark:text-white dark:opacity-80" Match="NavLinkMatch.All">
+                    <div class="sidebar-icon mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
                         <i class="relative top-0 text-sm leading-normal text-blue-500 ni ni-tv-2"></i>
                     </div>
                     <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Dashboard</span>
@@ -24,8 +24,8 @@
             </li>
 
             <li class="mt-0.5 w-full">
-                <NavLink href="/products" class="dark:text-white dark:opacity-80 py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap px-4 transition-colors">
-                    <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
+                <NavLink href="/products" class="sidebar-link py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap rounded-lg px-4 font-semibold text-slate-700 transition-all hover:bg-orange-500/10 dark:text-white dark:opacity-80">
+                    <div class="sidebar-icon mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
                         <i class="relative top-0 text-sm leading-normal text-orange-500 ni ni-box-2"></i>
                     </div>
                     <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Sản phẩm</span>
@@ -33,8 +33,8 @@
             </li>
 
             <li class="mt-0.5 w-full">
-                <NavLink href="/orders" class="dark:text-white dark:opacity-80 py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap px-4 transition-colors">
-                    <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
+                <NavLink href="/orders" class="sidebar-link py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap rounded-lg px-4 font-semibold text-slate-700 transition-all hover:bg-emerald-500/10 dark:text-white dark:opacity-80">
+                    <div class="sidebar-icon mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
                         <i class="relative top-0 text-sm leading-normal text-emerald-500 ni ni-cart"></i>
                     </div>
                     <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Đơn hàng</span>
@@ -42,8 +42,8 @@
             </li>
 
             <li class="mt-0.5 w-full">
-                <NavLink href="/customers" class="dark:text-white dark:opacity-80 py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap px-4 transition-colors">
-                    <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
+                <NavLink href="/customers" class="sidebar-link py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap rounded-lg px-4 font-semibold text-slate-700 transition-all hover:bg-cyan-500/10 dark:text-white dark:opacity-80">
+                    <div class="sidebar-icon mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
                         <i class="relative top-0 text-sm leading-normal text-cyan-500 ni ni-single-02"></i>
                     </div>
                     <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Khách hàng</span>
@@ -51,11 +51,20 @@
             </li>
 
             <li class="mt-0.5 w-full">
-                <NavLink href="/categories" class="dark:text-white dark:opacity-80 py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap px-4 transition-colors">
-                    <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
+                <NavLink href="/categories" class="sidebar-link py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap rounded-lg px-4 font-semibold text-slate-700 transition-all hover:bg-red-500/10 dark:text-white dark:opacity-80">
+                    <div class="sidebar-icon mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
                         <i class="relative top-0 text-sm leading-normal text-red-600 ni ni-folder-17"></i>
                     </div>
                     <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Danh mục</span>
+                </NavLink>
+            </li>
+
+            <li class="mt-0.5 w-full">
+                <NavLink href="/brands" class="sidebar-link py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap rounded-lg px-4 font-semibold text-slate-700 transition-all hover:bg-purple-500/10 dark:text-white dark:opacity-80">
+                    <div class="sidebar-icon mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
+                        <i class="relative top-0 text-sm leading-normal text-purple-600 ni ni-diamond"></i>
+                    </div>
+                    <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Thương hiệu</span>
                 </NavLink>
             </li>
 
@@ -64,8 +73,8 @@
             </li>
 
             <li class="mt-0.5 w-full">
-                <NavLink href="/profile" class="dark:text-white dark:opacity-80 py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap px-4 transition-colors">
-                    <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
+                <NavLink href="/profile" class="sidebar-link py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap rounded-lg px-4 font-semibold text-slate-700 transition-all hover:bg-slate-500/10 dark:text-white dark:opacity-80">
+                    <div class="sidebar-icon mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
                         <i class="relative top-0 text-sm leading-normal text-slate-700 ni ni-single-02"></i>
                     </div>
                     <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Hồ sơ</span>
@@ -73,8 +82,8 @@
             </li>
 
             <li class="mt-0.5 w-full">
-                <NavLink href="/signin" class="dark:text-white dark:opacity-80 py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap px-4 transition-colors">
-                    <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
+                <NavLink href="/signin" class="sidebar-link py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap rounded-lg px-4 font-semibold text-slate-700 transition-all hover:bg-orange-500/10 dark:text-white dark:opacity-80">
+                    <div class="sidebar-icon mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
                         <i class="relative top-0 text-sm leading-normal text-orange-500 ni ni-single-copy-04"></i>
                     </div>
                     <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Đăng nhập</span>
@@ -83,3 +92,19 @@
         </ul>
     </div>
 </aside>
+
+<style>
+    /* Sidebar Navigation Styles */
+    .sidebar-link {
+        text-decoration: none;
+    }
+    
+    .sidebar-link.active {
+        background-color: rgba(59, 130, 246, 0.13) !important;
+        color: #1e293b;
+    }
+    
+    .sidebar-link:not(.active):hover {
+        transform: translateX(2px);
+    }
+</style>

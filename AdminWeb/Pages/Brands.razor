@@ -1,0 +1,427 @@
+@page "/brands"
+@inject AdminWeb.Services.BrandService BrandService
+@inject AdminWeb.Services.ToastService Toast
+@using DAL.DTOs.Brands.Req
+@using DAL.DTOs.Brands.Res
+
+<PageTitle>Thương hiệu - Asion Shop</PageTitle>
+
+<link href="css/brands.css" rel="stylesheet" />
+<link href="css/modal-animation.css" rel="stylesheet" />
+
+<div class="brands-page space-y-8">
+    <!-- Stats Row -->
+    <div class="stat-row">
+        <div class="stat-card total">
+            <div class="icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="20" height="20" fill="currentColor">
+                    <path d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"/>
+                </svg>
+            </div>
+            <div class="info"><p>Tổng thương hiệu</p><h4>@totalRecords</h4></div>
+        </div>
+        <div class="stat-card pending">
+            <div class="icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="20" height="20" fill="currentColor">
+                    <path d="M253.3 35.1c6.1-11.8 1.5-26.3-10.2-32.4s-26.3-1.5-32.4 10.2L117.6 192H32c-17.7 0-32 14.3-32 32s14.3 32 32 32L83.9 463.5C91 492 116.6 512 146 512H430c29.4 0 55-20 62.1-48.5L544 256c17.7 0 32-14.3 32-32s-14.3-32-32-32H458.4L365.3 12.9C359.2 1.2 344.7-3.4 332.9 2.7s-16.3 20.6-10.2 32.4L404.3 192H171.7L253.3 35.1zM192 304v96c0 8.8-7.2 16-16 16s-16-7.2-16-16V304c0-8.8 7.2-16 16-16s16 7.2 16 16zm96-16c8.8 0 16 7.2 16 16v96c0 8.8-7.2 16-16 16s-16-7.2-16-16V304c0-8.8 7.2-16 16-16zm128 16v96c0 8.8-7.2 16-16 16s-16-7.2-16-16V304c0-8.8 7.2-16 16-16s16 7.2 16 16z"/>
+                </svg>
+            </div>
+            <div class="info"><p>Tổng sản phẩm</p><h4>@brands.Sum(b=>b.ProductCount)</h4></div>
+        </div>
+    </div>
+
+    <div class="filter-bar enhanced">
+        <div class="filter-inner">
+            <h2 class="filter-title">Danh sách thương hiệu</h2>
+            <div class="flex items-center gap-4">
+                <div class="relative filter-input-wrapper">
+                    <input type="text" @bind="searchQuery" @bind:event="oninput" @onkeydown="@(async e => { if(e.Key == "Enter") await PerformSearch(); })" class="filter-input" placeholder="Tìm thương hiệu..." />
+                    <button type="button" @onclick="PerformSearch" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" aria-label="Tìm kiếm">
+                        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>
+                    </button>
+                    @if(!string.IsNullOrWhiteSpace(searchQuery))
+                    {
+                        <button type="button" class="filter-clear-btn" @onclick="ClearSearch" aria-label="Xóa tìm kiếm">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
+                        </button>
+                    }
+                </div>
+                <button @onclick="OpenCreateModal" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="14" height="14" fill="currentColor"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
+                    Thêm thương hiệu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Brands Table -->
+    <div class="brands-panel full-width-edge">
+        <div class="relative flex flex-col bg-white shadow-xl rounded-none md:rounded-2xl">
+            <div class="flex-auto p-6">
+                @if(loading)
+                {
+                    <div class="flex items-center justify-center py-20"><div class="animate-spin rounded-full h-14 w-14 border-t-2 border-b-2 border-blue-500"></div></div>
+                }
+                else
+                {
+                    <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+                        <table class="brands-table w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50 sticky top-0 z-10">
+                                <tr>
+                                    <th scope="col" class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tên thương hiệu</th>
+                                    <th scope="col" class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Mô tả</th>
+                                    <th scope="col" class="px-5 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Sản phẩm</th>
+                                    <th scope="col" class="px-5 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 bg-white">
+                                @foreach (var brand in brands)
+                                {
+                                    <tr class="group hover:bg-gray-50 transition">
+                                        <td class="px-5 py-4">
+                                            <p class="text-sm font-semibold text-gray-900">@brand.BrandName</p>
+                                        </td>
+                                        <td class="px-5 py-4">
+                                            <p class="text-sm text-gray-600 max-w-xs truncate">@(brand.Description ?? "Chưa có mô tả")</p>
+                                        </td>
+                                        <td class="px-5 py-4 text-center">
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-600">@brand.ProductCount</span>
+                                        </td>
+                                        <td class="px-5 py-4 text-center">
+                                            <div class="flex items-center justify-center gap-1">
+                                                <button @onclick="() => OpenDetailModal(brand)" class="action-btn btn-view" title="Xem chi tiết">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M572.52 241.4C518.9 135.59 407.81 64 288 64 168.19 64 57.1 135.59 3.48 241.4a32.35 32.35 0 0 0 0 29.2C57.1 376.41 168.19 448 288 448c119.81 0 230.9-71.59 284.52-177.4a32.35 32.35 0 0 0 0-29.2zM288 400c-97 0-176-79-176-176S191 48 288 48s176 79 176 176-79 176-176 176zm0-304a128 128 0 1 0 128 128A128 128 0 0 0 288 96z"/></svg>
+                                                </button>
+                                                <button @onclick="() => OpenEditModal(brand)" class="action-btn btn-accept" title="Sửa">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M471.6 21.7c-21.9-21.9-57.3-21.9-79.2 0L362.3 51.7l97.9 97.9 30.1-30.1c21.9-21.9 21.9-57.3 0-79.2L471.6 21.7zm-299.2 220c-6.1 6.1-10.8 13.6-13.5 21.9l-29.6 88.8c-2.9 8.6-.6 18.1 5.8 24.6s15.9 8.7 24.6 5.8l88.8-29.6c8.2-2.7 15.7-7.4 21.9-13.5L437.7 172.3 339.7 74.3 172.4 241.7zM96 64C43 64 0 107 0 160V416c0 53 43 96 96 96H352c53 0 96-43 96-96V320c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V160c0-17.7 14.3-32 32-32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H96z"/></svg>
+                                                </button>
+                                                <button @onclick="() => OpenDeleteConfirm(brand)" class="action-btn btn-reject" title="Xóa">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    @if (totalPages > 1)
+                    {
+                        <div class="mt-6">
+                            <Pagination CurrentPage="@currentPage" TotalItems="@totalRecords" ItemsPerPage="@recordPerPage" OnPageChanged="@OnPageChanged" />
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detail Modal (Bootstrap small) -->
+@if (showDetailModal && selectedBrand != null)
+{
+    <div class="modal fade show" tabindex="-1" role="dialog" aria-modal="true" style="display:block; background:rgba(0,0,0,0.5);" @onclick="CloseDetailModal">
+        <div class="modal-dialog modal-sm modal-dialog-centered" role="document" @onclick:stopPropagation>
+            <div class="modal-content rounded-3 shadow">
+                <div class="modal-header bg-light border-0">
+                    <h5 class="modal-title fw-bold">Chi tiết thương hiệu</h5>
+                    <button type="button" class="btn-close" aria-label="Đóng" @onclick="CloseDetailModal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width:56px;height:56px;background:linear-gradient(135deg,#3b82f6,#4f46e5);font-size:1.25rem;">
+                            @(string.IsNullOrEmpty(selectedBrand.BrandName) ? "?" : selectedBrand.BrandName.Substring(0, Math.Min(1, selectedBrand.BrandName.Length)))
+                        </div>
+                        <div>
+                            <div class="h6 mb-0 fw-bold text-truncate">@selectedBrand.BrandName</div>
+                            <small class="text-muted">ID: @selectedBrand.BrandId</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-2 p-2 rounded-2" style="background:#f8fafc;border:1px solid #e6eef8;">
+                        <small class="fw-semibold text-muted d-block mb-1">Mô tả</small>
+                        <div class="small text-secondary">@(selectedBrand.Description ?? "Chưa có mô tả")</div>
+                    </div>
+
+                    <div class="mb-0 p-2 rounded-2" style="background:#eef2ff;border:1px solid #dbe4ff;">
+                        <small class="fw-semibold text-primary d-block mb-1">Số sản phẩm</small>
+                        <div class="h5 fw-bold text-primary mb-0">@selectedBrand.ProductCount</div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="CloseDetailModal">Đóng</button>
+                    <button type="button" class="btn btn-sm btn-primary" @onclick="() => { CloseDetailModal(); OpenEditModal(selectedBrand); }">Chỉnh sửa</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+<!-- Create/Edit Modal -->
+<!-- Create/Edit Modal (Bootstrap medium) -->
+@if (showEditModal)
+{
+    <div class="modal fade show" tabindex="-1" role="dialog" aria-modal="true" style="display:block; background:rgba(0,0,0,0.45);" @onclick="CloseEditModal">
+        <div class="modal-dialog modal-dialog-centered" role="document" @onclick:stopPropagation>
+            <div class="modal-content rounded-3 shadow">
+                <div class="modal-header bg-light border-0">
+                    <h5 class="modal-title fw-bold">@(isEdit ? "Chỉnh sửa thương hiệu" : "Thêm thương hiệu mới")</h5>
+                    <button type="button" class="btn-close" aria-label="Đóng" @onclick="CloseEditModal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Tên thương hiệu <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control form-control-sm" placeholder="Nhập tên thương hiệu..." @bind="formBrandName" />
+                    </div>
+
+                    <div>
+                        <label class="form-label small fw-semibold">Mô tả</label>
+                        <textarea class="form-control form-control-sm" rows="3" placeholder="Nhập mô tả..." @bind="formDescription"></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="CloseEditModal">Hủy</button>
+                    <button type="button" class="btn btn-sm btn-primary" @onclick="SaveBrand" disabled="@isSaving">
+                        @(isSaving ? "Đang lưu..." : "Lưu")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+<!-- Delete Confirm -->
+@if(showDeleteConfirm && selectedBrand != null)
+{
+    <div class="modal fade show" tabindex="-1" style="display:block; background:rgba(0,0,0,0.5);" aria-modal="true" role="dialog" @onclick="CloseDeleteConfirm">
+        <div class="modal-dialog modal-sm modal-dialog-centered" @onclick:stopPropagation>
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white py-2 px-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="bg-white rounded-circle d-flex align-items-center justify-content-center" style="width:32px;height:32px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18" height="18" fill="#dc2626">
+                                <path d="M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7 .2 40.1S486.3 480 472 480H40c-14.3 0-27.6-7.7-34.7-20.1s-7-27.8 .2-40.1l216-368C228.7 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24V296c0 13.3 10.7 24 24 24s24-10.7 24-24V184c0-13.3-10.7-24-24-24zm32 224a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z"/>
+                            </svg>
+                        </span>
+                        <h5 class="modal-title ms-2 mb-0">Xác nhận xóa</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white ms-2" aria-label="Đóng" @onclick="CloseDeleteConfirm"></button>
+                </div>
+                <div class="modal-body py-3 px-3">
+                    <div class="alert alert-danger mb-2 p-2 text-center">
+                        <div class="fw-bold">@selectedBrand.BrandName</div>
+                        <div class="small">Bạn có chắc chắn muốn xóa thương hiệu này?</div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 text-danger justify-content-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="14" height="14" fill="currentColor">
+                            <path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zm0-384c13.3 0 24 10.7 24 24V264c0 13.3-10.7 24-24 24s-24-10.7-24-24V152c0-13.3 10.7-24 24-24zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/>
+                        </svg>
+                        <span class="small">Hành động này không thể hoàn tác.</span>
+                    </div>
+                </div>
+                <div class="modal-footer py-2 px-3 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="CloseDeleteConfirm">Hủy</button>
+                    <button type="button" class="btn btn-danger btn-sm" @onclick="DeleteBrand" disabled="@isSaving">
+                        @(isSaving ? "Đang xóa..." : "Xóa")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<GetListBrandRes> brands = new();
+    private GetListBrandRes? selectedBrand;
+    private bool loading = true;
+    private string searchQuery = string.Empty;
+    private string lastSearchQuery = string.Empty;
+
+    // Pagination
+    private int currentPage = 1;
+    private int totalPages = 1;
+    private int totalRecords = 0;
+    private int recordPerPage = 10;
+
+    // Modals
+    private bool showDetailModal = false;
+    private bool showEditModal = false;
+    private bool showDeleteConfirm = false;
+    private bool isEdit = false;
+    private bool isSaving = false;
+
+    // Form
+    private int formBrandId;
+    private string formBrandName = string.Empty;
+    private string formDescription = string.Empty;
+    private string formLogo = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBrands();
+    }
+
+    private async Task LoadBrands()
+    {
+        loading = true;
+        var result = await BrandService.GetAllBrandsAsync(currentPage, recordPerPage);
+        brands = result.Data;
+        currentPage = result.CurrentPage;
+        totalPages = result.TotalPages;
+        totalRecords = result.TotalRecords;
+        loading = false;
+        StateHasChanged();
+    }
+
+    private async Task OnPageChanged(int page)
+    {
+        currentPage = page;
+        await LoadBrands();
+    }
+
+    private async Task PerformSearch()
+    {
+        if (searchQuery != lastSearchQuery)
+        {
+            currentPage = 1;
+            lastSearchQuery = searchQuery;
+        }
+        await LoadBrands();
+    }
+
+    private IEnumerable<GetListBrandRes> GetFilteredBrands()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery)) return brands;
+        return brands.Where(b => b.BrandName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private async Task ClearSearch()
+    {
+        searchQuery = string.Empty;
+        lastSearchQuery = string.Empty;
+        currentPage = 1;
+        await LoadBrands();
+    }
+
+    private void OpenDetailModal(GetListBrandRes brand)
+    {
+        selectedBrand = brand;
+        showDetailModal = true;
+    }
+
+    private void CloseDetailModal()
+    {
+        showDetailModal = false;
+        selectedBrand = null;
+    }
+
+    private void OpenCreateModal()
+    {
+        isEdit = false;
+        formBrandId = 0;
+        formBrandName = string.Empty;
+        formDescription = string.Empty;
+        formLogo = string.Empty;
+        showEditModal = true;
+    }
+
+    private void OpenEditModal(GetListBrandRes brand)
+    {
+        isEdit = true;
+        formBrandId = brand.BrandId;
+        formBrandName = brand.BrandName;
+        formDescription = brand.Description ?? string.Empty;
+        showEditModal = true;
+    }
+
+    private void CloseEditModal()
+    {
+        showEditModal = false;
+    }
+
+    private async Task SaveBrand()
+    {
+        if (string.IsNullOrWhiteSpace(formBrandName))
+        {
+            Toast.Error("Vui lòng nhập tên thương hiệu");
+            return;
+        }
+
+        isSaving = true;
+        (bool success, string message) result;
+
+        if (isEdit)
+        {
+            var req = new UpdateBrandReq
+            {
+                BrandId = formBrandId,
+                BrandName = formBrandName.Trim(),
+                Description = string.IsNullOrWhiteSpace(formDescription) ? null : formDescription.Trim(),
+                Logo = string.IsNullOrWhiteSpace(formLogo) ? null : formLogo.Trim()
+            };
+            result = await BrandService.UpdateBrandAsync(req);
+        }
+        else
+        {
+            var req = new AddBrandReq
+            {
+                BrandName = formBrandName.Trim(),
+                Description = string.IsNullOrWhiteSpace(formDescription) ? null : formDescription.Trim(),
+                Logo = string.IsNullOrWhiteSpace(formLogo) ? null : formLogo.Trim()
+            };
+            result = await BrandService.CreateBrandAsync(req);
+        }
+
+        isSaving = false;
+
+        if (result.success)
+        {
+            Toast.Success(result.message);
+            CloseEditModal();
+            await LoadBrands();
+        }
+        else
+        {
+            Toast.Error(result.message);
+        }
+    }
+
+    private void OpenDeleteConfirm(GetListBrandRes brand)
+    {
+        selectedBrand = brand;
+        showDeleteConfirm = true;
+    }
+
+    private void CloseDeleteConfirm()
+    {
+        showDeleteConfirm = false;
+        selectedBrand = null;
+    }
+
+    private async Task DeleteBrand()
+    {
+        if (selectedBrand == null) return;
+
+        isSaving = true;
+        var result = await BrandService.RemoveBrandAsync(selectedBrand.BrandId);
+        isSaving = false;
+
+        if (result.success)
+        {
+            Toast.Success(result.message);
+            CloseDeleteConfirm();
+            await LoadBrands();
+        }
+        else
+        {
+            Toast.Error(result.message);
+        }
+    }
+}

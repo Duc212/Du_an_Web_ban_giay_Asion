@@ -105,12 +105,80 @@
     </div>
 </div>
 
-<!-- Projects / Products Table -->
+<!-- Charts Row 1: Revenue & Orders -->
 <div class="flex flex-wrap mt-6 -mx-3">
-    <div class="w-full max-w-full px-3 mt-0 lg:w-7/12 lg:flex-none">
+    <!-- Revenue Chart -->
+    <div class="w-full max-w-full px-3 mb-6 lg:mb-0 lg:w-7/12 lg:flex-none">
+        <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
+            <div class="border-black/12.5 mb-0 rounded-t-2xl border-b-0 border-solid p-6 pb-0">
+                <h6 class="dark:text-white mb-0">Biểu đồ doanh thu</h6>
+                <p class="text-sm leading-normal dark:text-white dark:opacity-60 mb-0">
+                    <i class="fa fa-arrow-up text-emerald-500"></i>
+                    <span class="font-semibold">4% tăng</span> so với tuần trước
+                </p>
+            </div>
+            <div class="flex-auto p-6">
+                <canvas id="revenueChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders by Status Chart -->
+    <div class="w-full max-w-full px-3 lg:w-5/12 lg:flex-none">
+        <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
+            <div class="border-black/12.5 mb-0 rounded-t-2xl border-b-0 border-solid p-6 pb-0">
+                <h6 class="dark:text-white mb-0">Trạng thái đơn hàng</h6>
+                <p class="text-sm leading-normal dark:text-white dark:opacity-60 mb-0">
+                    Phân bổ đơn hàng theo trạng thái
+                </p>
+            </div>
+            <div class="flex-auto p-6">
+                <canvas id="ordersChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 2: Products & Customer Growth -->
+<div class="flex flex-wrap mt-6 -mx-3">
+    <!-- Top Products Chart -->
+    <div class="w-full max-w-full px-3 mb-6 lg:mb-0 lg:w-5/12 lg:flex-none">
+        <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
+            <div class="border-black/12.5 mb-0 rounded-t-2xl border-b-0 border-solid p-6 pb-0">
+                <h6 class="dark:text-white mb-0">Sản phẩm bán chạy</h6>
+                <p class="text-sm leading-normal dark:text-white dark:opacity-60 mb-0">
+                    Top 5 sản phẩm trong tháng
+                </p>
+            </div>
+            <div class="flex-auto p-6">
+                <canvas id="topProductsChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Growth Chart -->
+    <div class="w-full max-w-full px-3 lg:w-7/12 lg:flex-none">
+        <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
+            <div class="border-black/12.5 mb-0 rounded-t-2xl border-b-0 border-solid p-6 pb-0">
+                <h6 class="dark:text-white mb-0">Tăng trưởng khách hàng</h6>
+                <p class="text-sm leading-normal dark:text-white dark:opacity-60 mb-0">
+                    <i class="fa fa-arrow-up text-emerald-500"></i>
+                    <span class="font-semibold">15% tăng</span> khách hàng mới
+                </p>
+            </div>
+            <div class="flex-auto p-6">
+                <canvas id="customerGrowthChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Products Table -->
+<div class="flex flex-wrap mt-6 -mx-3">
+    <div class="w-full max-w-full px-3 mt-0 lg:flex-none">
         <div class="border-black/12.5 dark:bg-slate-850 dark:shadow-dark-xl shadow-xl relative z-20 flex min-w-0 flex-col break-words rounded-2xl border-0 border-solid bg-white bg-clip-border">
             <div class="border-black/12.5 mb-0 rounded-t-2xl border-b-0 border-solid p-6 pb-0">
-                <h6 class="dark:text-white">Sản phẩm bán chạy</h6>
+                <h6 class="dark:text-white">Sản phẩm bán chạy nhất</h6>
                 <p class="text-sm leading-normal dark:text-white dark:opacity-60">
                     <i class="fa fa-check text-cyan-500"></i>
                     <span class="ml-1 font-semibold">30 sản phẩm</span> trong tháng này
@@ -172,6 +240,28 @@
                                     <span class="text-xs font-semibold leading-tight dark:text-white dark:opacity-80">₫576,000,000</span>
                                 </td>
                             </tr>
+                            <tr>
+                                <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                    <div class="flex px-2 py-1">
+                                        <div>
+                                            <img src="/assets/img/team-4.jpg" class="inline-flex items-center justify-center mr-4 text-sm text-white transition-all duration-200 ease-in-out h-9 w-9 rounded-xl" alt="product" />
+                                        </div>
+                                        <div class="flex flex-col justify-center">
+                                            <h6 class="mb-0 text-sm leading-normal dark:text-white">Puma RS-X</h6>
+                                            <p class="mb-0 text-xs leading-tight dark:text-white dark:opacity-80 text-slate-400">Giày casual</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                    <p class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">145</p>
+                                </td>
+                                <td class="p-2 text-sm leading-normal text-center align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                    <span class="text-xs font-semibold leading-tight dark:text-white dark:opacity-80 text-slate-400">₫1,800,000</span>
+                                </td>
+                                <td class="p-2 text-center align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                    <span class="text-xs font-semibold leading-tight dark:text-white dark:opacity-80">₫261,000,000</span>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -181,5 +271,13 @@
 </div>
 
 @code {
-    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initDashboardCharts");
+        }
+    }
 }
+
+@inject IJSRuntime JSRuntime

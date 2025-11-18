@@ -1,0 +1,37 @@
+@page "/categories"
+@inject AdminWeb.Services.CategoryService CategoryService
+@inject AdminWeb.Services.ToastService Toast
+@using DAL.DTOs.Categories.Req
+@using DAL.DTOs.Categories.Res
+
+<PageTitle>Danh mục - Asion Shop</PageTitle>
+
+<div class="categories-page space-y-8">
+    <!-- Stats Row -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Total Categories Card -->
+        <div class="bg-gradient-to-br from-red-500 to-red-700 rounded-2xl shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-2xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-red-100 text-sm font-medium mb-1">Tổng danh mục</p>
+                    <h4 class="text-3xl font-bold mb-2">@totalRecords</h4>
+                    <span class="inline-flex items-center text-xs font-semibold bg-white/20 px-3 py-1 rounded-full">
+                        <svg class="mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="12" height="12" fill="currentColor">
+                            <path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zm50.7-186.9L162.4 380.6c-19.4 7.5-38.5-11.6-31-31l55.5-144.3c3.3-8.5 9.9-15.1 18.4-18.4l144.3-55.5c19.4-7.5 38.5 11.6 31 31L325.1 306.7c-3.2 8.5-9.9 15.1-18.4 18.4z"/>
+                        </svg>
+                        Đang hoạt động
+                    </span>
+                </div>
+                <div class="bg-white/20 rounded-full p-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="32" height="32" fill="currentColor">
+                        <path d="M0 96C0 60.7 28.7 32 64 32H448c35.3 0 64 28.7 64 64V416c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V96zm64 0v64h64V96H64zm384 0H192v64H448V96zM64 224v64h64V224H64zm384 0H192v64H448V224zM64 352v64h64V352H64zm384 0H192v64H448V352z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int totalRecords = 0;
+}

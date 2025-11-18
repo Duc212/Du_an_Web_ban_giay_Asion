@@ -1,10 +1,14 @@
 ﻿using BUS.Services.Interfaces;
+using DAL.DTOs.Brands.Req;
+using DAL.DTOs.Brands.Res;
+using DAL.DTOs.Categories.Req;
+using DAL.DTOs.Categories.Res;
 using DAL.DTOs.Products.Res;
 using DAL.Entities;
+using DAL.Enums;
 using DAL.Models;
 using DAL.RepositoryAsyns;
 using Microsoft.EntityFrameworkCore;
-using DAL.Enums;
 
 namespace BUS.Services
 {
@@ -41,7 +45,196 @@ namespace BUS.Services
             _productImageRepository = productImageRepository;
             _favoriteProductRepository = favoriteProductRepository;
         }
+        public async Task<CommonResponse<bool>> CreateBrand(AddBrandReq req)
+        {
+            var response = new CommonResponse<bool>();
+            try
+            {
+                if (string.IsNullOrWhiteSpace(req.BrandName))
+                {
+                    response.Success = false;
+                    response.Message = "Tên thương hiệu không được trống.";
+                    return response;
+                }
 
+                var existed = await _brandRepository.AsNoTrackingQueryable()
+                    .AnyAsync(b => b.Name == req.BrandName.Trim());
+                if (existed)
+                {
+                    response.Success = false;
+                    response.Message = "Thương hiệu đã tồn tại.";
+                    return response;
+                }
+
+                var brand = new Brand
+                {
+                    Name = req.BrandName.Trim(),
+                    Description = string.IsNullOrWhiteSpace(req.Description) ? null : req.Description.Trim()
+                };
+                await _brandRepository.AddAsync(brand);
+                await _brandRepository.SaveChangesAsync();
+
+                response.Success = true;
+                response.Data = true;
+                response.Message = "Tạo thương hiệu thành công.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Data = false;
+                response.Message = $"Lỗi: {ex.Message}";
+            }
+            return response;
+        }
+
+        public async Task<CommonResponse<bool>> UpdateBrand(UpdateBrandReq req)
+        {
+            var response = new CommonResponse<bool>();
+            try
+            {
+                var brand = await _brandRepository.AsQueryable()
+                    .FirstOrDefaultAsync(b => b.BrandID == req.BrandID);
+                if (brand == null)
+                {
+                    response.Success = false;
+                    response.Data = false;
+                    response.Message = "Không tìm thấy thương hiệu.";
+                    return response;
+                }
+
+                if (string.IsNullOrWhiteSpace(req.Name))
+                {
+                    response.Success = false;
+                    response.Data = false;
+                    response.Message = "Tên thương hiệu không được trống.";
+                    return response;
+                }
+
+                // Kiểm tra trùng tên với brand khác
+                var duplicate = await _brandRepository.AsNoTrackingQueryable()
+                    .AnyAsync(b => b.BrandID != req.BrandID && b.Name == req.Name.Trim());
+                if (duplicate)
+                {
+                    response.Success = false;
+                    response.Data = false;
+                    response.Message = "Tên thương hiệu đã được sử dụng.";
+                    return response;
+                }
+
+                brand.Name = req.Name.Trim();
+                brand.Description = string.IsNullOrWhiteSpace(req.Description) ? null : req.Description.Trim();
+                await _brandRepository.UpdateAsync(brand);
+                await _brandRepository.SaveChangesAsync();
+
+                response.Success = true;
+                response.Data = true;
+                response.Message = "Cập nhật thương hiệu thành công.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Data = false;
+                response.Message = $"Lỗi: {ex.Message}";
+            }
+            return response;
+        }
+
+        public async Task<CommonResponse<bool>> RemoveBrand(RemoveBrandReq req)
+        {
+            var response = new CommonResponse<bool>();
+            try
+            {
+                var brand = await _brandRepository.AsQueryable()
+                    .FirstOrDefaultAsync(b => b.BrandID == req.BrandID);
+                if (brand == null)
+                {
+                    response.Success = false;
+                    response.Data = false;
+                    response.Message = "Không tìm thấy thương hiệu.";
+                    return response;
+                }
+
+                // Có thể kiểm tra ràng buộc (ví dụ còn sản phẩm) trước khi xóa
+                var hasProducts = await _productRepository.AsNoTrackingQueryable()
+                    .AnyAsync(p => p.BrandId == brand.BrandID);
+                if (hasProducts)
+                {
+                    response.Success = false;
+                    response.Data = false;
+                    response.Message = "Không thể xóa: thương hiệu đang có sản phẩm.";
+                    return response;
+                }
+
+                await _brandRepository.RemoveAsync(brand);
+                await _brandRepository.SaveChangesAsync();
+
+                response.Success = true;
+                response.Data = true;
+                response.Message = "Xóa thương hiệu thành công.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Data = false;
+                response.Message = $"Lỗi: {ex.Message}";
+            }
+            return response;
+        }
+
+   
+
+        public async Task<CommonPagination<GetALLBrandRes>> GetBrandsPaged(int currentPage, int recordPerPage)
+        {
+            try
+            {
+                if (currentPage < 1) currentPage = 1;
+                if (recordPerPage < 1) recordPerPage = 10;
+
+                var query = _brandRepository.AsNoTrackingQueryable();
+                var total = await query.CountAsync();
+
+                var brands = await query
+                    .OrderBy(b => b.BrandID)
+                    .Skip((currentPage - 1) * recordPerPage)
+                    .Take(recordPerPage)
+                    .Include(b => b.Products)
+                    .ToListAsync();
+
+                var brandIds = brands.Select(b => b.BrandID).ToList();
+                var productCounts = await _productRepository.AsNoTrackingQueryable()
+                    .Where(p => brandIds.Contains(p.BrandId))
+                    .GroupBy(p => p.BrandId)
+                    .Select(g => new { BrandId = g.Key, Count = g.Count() })
+                    .ToListAsync();
+
+                var data = brands.Select(b => new GetALLBrandRes
+                {
+                    BrandId = b.BrandID,
+                    BrandName = b.Name,
+                    Description = b.Description,
+                    ProductCount = productCounts.FirstOrDefault(pc => pc.BrandId == b.BrandID)?.Count ?? 0,
+                   
+                }).ToList();
+
+                return new CommonPagination<GetALLBrandRes>
+                {
+                    Success = true,
+                    Message = "Lấy danh sách thương hiệu phân trang thành công",
+                    Data = data,
+                    TotalRecord = total
+                };
+            }
+            catch (Exception ex)
+            {
+                return new CommonPagination<GetALLBrandRes>
+                {
+                    Success = false,
+                    Message = $"Lỗi: {ex.Message}",
+                    Data = new List<GetALLBrandRes>(),
+                    TotalRecord = 0
+                };
+            }
+        }
         #region Public Methods
 
         public async Task<CommonPagination<GetProductRes>> GetProductLanding(int? CategoryId, int currentPage, int recordPerPage, ProductLandingFilterType? filterType = null)
@@ -72,7 +265,6 @@ namespace BUS.Services
                             query = query.Where(x => x.product.CreatedAt >= DateTime.UtcNow.AddDays(-30));
                             break;
                         case ProductLandingFilterType.FeaturedCollections:
-                            query = query;
                             break;
                     }
                 }
@@ -328,11 +520,16 @@ namespace BUS.Services
 
         public async Task<CommonResponse<List<GetListBrandRes>>> GetListBrand()
         {
-            var brands = await _brandRepository.AsQueryable().ToListAsync();
+            var brands = await _brandRepository.AsNoTrackingQueryable().ToListAsync();
+            var productCounts = await _productRepository.AsNoTrackingQueryable()
+                .GroupBy(p => p.BrandId)
+                .Select(g => new { BrandId = g.Key, Count = g.Count() })
+                .ToListAsync();
+
             var result = brands.Select(b => new GetListBrandRes
             {
                 BrandID = b.BrandID,
-                Name = b.Name
+                Name = b.Name,
             }).ToList();
 
             return new CommonResponse<List<GetListBrandRes>>
@@ -392,10 +589,9 @@ namespace BUS.Services
             var colorImages = BuildColorImages(variants, images, mainImages);
             var sizes = GetAvailableSizes(variants);
 
-            // Loại bỏ trùng lặp màu dựa trên giá trị
             var colors = variants
                 .Where(v => v.Color != null && v.StockQuantity >0)
-                .Select(v => new GetColorRes { ColorName = v.Color.Name, HexColor = v.Color.HexCode })
+                .Select(v => new GetColorRes { ColorName = v.Color.Name, HexColor = v.Color.HexCode, ColorID = v.Color.ColorID })
                 .GroupBy(c => new { c.ColorName, c.HexColor })
                 .Select(g => g.First())
                 .ToList();
@@ -607,6 +803,211 @@ namespace BUS.Services
                 Message = "Lấy danh sách sản phẩm yêu thích thành công.",
                 Data = productList
             };
+        }
+
+        public async Task<CommonResponse<bool>> CreateCategory(AddCategoryReq req)
+        {
+            var response = new CommonResponse<bool>();
+            try
+            {
+                if (string.IsNullOrWhiteSpace(req.Name))
+                {
+                    response.Success = false;
+                    response.Data = false;
+                    response.Message = "Tên danh mục không được trống.";
+                    return response;
+                }
+                var existed = await _categoryRepository.AsNoTrackingQueryable()
+                    .AnyAsync(c => c.Name == req.Name.Trim());
+                if (existed)
+                {
+                    response.Success = false;
+                    response.Data = false;
+                    response.Message = "Danh mục đã tồn tại.";
+                    return response;
+                }
+                var category = new Category
+                {
+                    Name = req.Name.Trim(),
+                    Description = string.IsNullOrWhiteSpace(req.Description) ? null : req.Description.Trim(),
+                    Icon = string.IsNullOrWhiteSpace(req.Icon) ? "" : req.Icon.Trim()
+                };
+                await _categoryRepository.AddAsync(category);
+                await _categoryRepository.SaveChangesAsync();
+                response.Success = true;
+                response.Data = true;
+                response.Message = "Tạo danh mục thành công.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Data = false;
+                response.Message = $"Lỗi: {ex.Message}";
+            }
+            return response;
+        }
+
+        public async Task<CommonResponse<bool>> UpdateCategory(UpdateCategoryReq req)
+        {
+            var response = new CommonResponse<bool>();
+            try
+            {
+                var category = await _categoryRepository.AsQueryable()
+                    .FirstOrDefaultAsync(c => c.CategoryID == req.CategoryID);
+                if (category == null)
+                {
+                    response.Success = false;
+                    response.Data = false;
+                    response.Message = "Không tìm thấy danh mục.";
+                    return response;
+                }
+                if (string.IsNullOrWhiteSpace(req.Name))
+                {
+                    response.Success = false;
+                    response.Data = false;
+                    response.Message = "Tên danh mục không được trống.";
+                    return response;
+                }
+                var duplicate = await _categoryRepository.AsNoTrackingQueryable()
+                    .AnyAsync(c => c.CategoryID != req.CategoryID && c.Name == req.Name.Trim());
+                if (duplicate)
+                {
+                    response.Success = false;
+                    response.Data = false;
+                    response.Message = "Tên danh mục đã được sử dụng.";
+                    return response;
+                }
+                category.Name = req.Name.Trim();
+                category.Description = string.IsNullOrWhiteSpace(req.Description) ? null : req.Description.Trim();
+                category.Icon = string.IsNullOrWhiteSpace(req.Icon) ? "" : req.Icon.Trim();
+                await _categoryRepository.UpdateAsync(category);
+                await _categoryRepository.SaveChangesAsync();
+                response.Success = true;
+                response.Data = true;
+                response.Message = "Cập nhật danh mục thành công.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Data = false;
+                response.Message = $"Lỗi: {ex.Message}";
+            }
+            return response;
+        }
+
+        public async Task<CommonResponse<bool>> RemoveCategoryReq(RemoveCategoryReq req)
+        {
+            var response = new CommonResponse<bool>();
+            try
+            {
+                var category = await _categoryRepository.AsQueryable()
+                    .FirstOrDefaultAsync(c => c.CategoryID == req.CategoryID);
+                if (category == null)
+                {
+                    response.Success = false;
+                    response.Data = false;
+                    response.Message = "Không tìm thấy danh mục.";
+                    return response;
+                }
+                var hasProducts = await _productRepository.AsNoTrackingQueryable()
+                    .AnyAsync(p => p.CategoryId == category.CategoryID);
+                if (hasProducts)
+                {
+                    response.Success = false;
+                    response.Data = false;
+                    response.Message = "Không thể xóa: danh mục đang có sản phẩm.";
+                    return response;
+                }
+                await _categoryRepository.RemoveAsync(category);
+                await _categoryRepository.SaveChangesAsync();
+                response.Success = true;
+                response.Data = true;
+                response.Message = "Xóa danh mục thành công.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Data = false;
+                response.Message = $"Lỗi: {ex.Message}";
+            }
+            return response;
+        }
+
+        public async Task<CommonPagination<GetAllCategoryRes>> GetAllCategory(int currentPage, int recordPerPage)
+        {
+            try
+            {
+                if (currentPage < 1) currentPage = 1;
+                if (recordPerPage < 1) recordPerPage = 10;
+                var query = _categoryRepository.AsNoTrackingQueryable();
+                var total = await query.CountAsync();
+                var categories = await query
+                    .OrderBy(c => c.CategoryID)
+                    .Skip((currentPage - 1) * recordPerPage)
+                    .Take(recordPerPage)
+                    .ToListAsync();
+                var categoryIds = categories.Select(c => c.CategoryID).ToList();
+                var productCounts = await _productRepository.AsNoTrackingQueryable()
+                    .Where(p => categoryIds.Contains(p.CategoryId))
+                    .GroupBy(p => p.CategoryId)
+                    .Select(g => new { CategoryId = g.Key, Count = g.Count() })
+                    .ToListAsync();
+                var data = categories.Select(c => new GetAllCategoryRes
+                {
+                    CategoryID = c.CategoryID,
+                    Name = c.Name,
+                    Description = c.Description ?? "",
+                    Icon = c.Icon ?? "",
+                    TotalProduct = productCounts.FirstOrDefault(pc => pc.CategoryId == c.CategoryID)?.Count ?? 0
+                }).ToList();
+                return new CommonPagination<GetAllCategoryRes>
+                {
+                    Success = true,
+                    Message = "Lấy danh sách danh mục thành công",
+                    Data = data,
+                    TotalRecord = total
+                };
+            }
+            catch (Exception ex)
+            {
+                return new CommonPagination<GetAllCategoryRes>
+                {
+                    Success = false,
+                    Message = $"Lỗi: {ex.Message}",
+                    Data = new List<GetAllCategoryRes>(),
+                    TotalRecord = 0
+                };
+            }
+        }
+
+        public async Task<CommonResponse<GetGenderRes>> GetGender()
+        {
+            var response = new CommonResponse<GetGenderRes>();
+            try
+            {
+                var gender = await _genderRepository.AsQueryable().FirstOrDefaultAsync();
+                if (gender == null)
+                {
+                    response.Success = false;
+                    response.Message = "Không tìm thấy giới tính.";
+                    response.Data = null;
+                    return response;
+                }
+                response.Success = true;
+                response.Message = "Lấy giới tính thành công.";
+                response.Data = new GetGenderRes
+                {
+                    GenderId = gender.GenderID,
+                    Name = gender.Name
+                };
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = $"Lỗi: {ex.Message}";
+                response.Data = null;
+            }
+            return response;
         }
 
         #endregion
