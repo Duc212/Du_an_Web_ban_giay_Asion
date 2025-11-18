@@ -8,7 +8,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // Cấu hình HttpClient cho AdminWeb API
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7134/") });
 
 // Đăng ký dịch vụ giả lập đơn hàng & toast
 builder.Services.AddScoped<OrderService>();

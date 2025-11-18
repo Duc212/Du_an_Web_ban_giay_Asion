@@ -1,0 +1,126 @@
+/* =============================
+   CATEGORIES PAGE STATS & TABLE
+   ============================= */
+
+.categories-page {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    min-height: 100vh;
+}
+
+.stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+
+.stat-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    border: 2px solid #f59e42;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: currentColor;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1), 0 6px 12px rgba(0, 0, 0, 0.08);
+}
+
+.stat-card:hover::before {
+    opacity: 1;
+}
+
+
+.stat-card .icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #f59e42;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(245,158,66,0.15);
+}
+
+.stat-card .info {
+    flex: 1;
+}
+
+
+.stat-card .info p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #a3a3a3;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+
+.stat-card .info h4 {
+    margin: 0.25rem 0 0 0;
+    font-size: 2.1rem;
+    font-weight: 700;
+    color: #222;
+    line-height: 1.1;
+}
+
+/* Stat Card Variants */
+.stat-card.total {
+    border-left: 4px solid #ef4444;
+}
+.stat-card.total .icon {
+    background: linear-gradient(135deg, #ef4444 0%, #f59e42 100%);
+    color: white;
+}
+
+.stat-card.pending {
+    border-color: #f59e42;
+}
+.stat-card.pending .icon {
+    background: #f59e42;
+    color: #fff;
+}
+/* Badge style for status below number */
+.stat-card .info .badge {
+    display: inline-block;
+    margin-top: 0.5rem;
+    padding: 0.15rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #f59e42;
+    background: #fff7ed;
+    border-radius: 8px;
+    border: 1px solid #ffe0b2;
+    letter-spacing: 0.02em;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .categories-page { padding: 1rem; }
+    .stat-row { grid-template-columns: 1fr; }
+}
