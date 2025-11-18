@@ -1,5 +1,4 @@
 ﻿using API.Extensions;
-using BUS.Service;
 using BUS.Services;
 using BUS.Services.Interfaces;
 using DAL;
@@ -75,9 +74,9 @@ builder.Services.AddTransient<IAvatarUtils, AvatarUtils>();
 builder.Services.AddTransient<IProductServices, ProductServices>();
 builder.Services.AddTransient<ICartServices, CartServices>();
 builder.Services.AddTransient<IPaymentServices, PaymentServices>();
+builder.Services.AddTransient<IUserServices, UserServices>(); // đã đăng ký
 
 builder.Services.AddScoped<UserRepository>();
-builder.Services.AddScoped<UserService>();
 
 builder.Services.AddMemoryCache(); 
 builder.Services.AddSingleton<IMemoryCacheSystem, MemoryCacheSystem>();

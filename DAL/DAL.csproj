@@ -28,6 +28,7 @@
 
   <ItemGroup>
     <Folder Include="DTOs\ProductVariants\Req\" />
+    <Folder Include="DTOs\Users\Req\" />
   </ItemGroup>
 
 </Project>

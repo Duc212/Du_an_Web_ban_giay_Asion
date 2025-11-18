@@ -184,7 +184,7 @@ namespace BUS.Services
                 Success = true,
                 Message = "Lấy danh sách đơn hàng thành công.",
                 Data = new List<List<GetOrderRes>> { data },
-                TotalRecord = await _orderRepository.AsQueryable().CountAsync(o => o.UserID == userId)
+                TotalRecords = await _orderRepository.AsQueryable().CountAsync(o => o.UserID == userId)
             };
         }
 
@@ -386,7 +386,7 @@ namespace BUS.Services
                 Success = true,
                 Message = "L?y danh sách don hàng thành công.",
                 Data = data,
-                TotalRecord = totalRecords
+                TotalRecords = totalRecords
             };
         }
         public async Task<CommonResponse<GetOrderDetailRes>> GetOrderDetail(int OrderID)

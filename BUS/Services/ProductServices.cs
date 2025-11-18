@@ -221,7 +221,7 @@ namespace BUS.Services
                     Success = true,
                     Message = "Lấy danh sách thương hiệu phân trang thành công",
                     Data = data,
-                    TotalRecord = total
+                    TotalRecords = total
                 };
             }
             catch (Exception ex)
@@ -231,7 +231,7 @@ namespace BUS.Services
                     Success = false,
                     Message = $"Lỗi: {ex.Message}",
                     Data = new List<GetALLBrandRes>(),
-                    TotalRecord = 0
+                    TotalRecords = 0
                 };
             }
         }
@@ -336,7 +336,7 @@ namespace BUS.Services
                         Success = true,
                         Message = "Lấy danh sách sản phẩm Landing thành công",
                         Data = productListDiscount,
-                        TotalRecord = totalRecordsAfterDiscount
+                        TotalRecords = totalRecordsAfterDiscount
                     };
                 }
 
@@ -377,7 +377,7 @@ namespace BUS.Services
                     Success = true,
                     Message = "Lấy danh sách sản phẩm Landing thành công",
                     Data = productList,
-                    TotalRecord = totalRecordsBeforeFilter
+                    TotalRecords = totalRecordsBeforeFilter
                 };
             }
             catch (Exception ex)
@@ -387,7 +387,7 @@ namespace BUS.Services
                     Success = false,
                     Message = $"Lỗi: {ex.Message}",
                     Data = new List<GetProductRes>(),
-                    TotalRecord = 0
+                    TotalRecords = 0
                 };
             }
         }
@@ -479,7 +479,7 @@ namespace BUS.Services
                     Success = true,
                     Message = "Lấy danh sách sản phẩm Shop thành công",
                     Data = productList,
-                    TotalRecord = totalRecords
+                    TotalRecords = totalRecords
                 };
             }
             catch (Exception ex)
@@ -489,7 +489,7 @@ namespace BUS.Services
                     Success = false,
                     Message = $"Lỗi: {ex.Message}",
                     Data = new List<GetProductRes>(),
-                    TotalRecord = 0
+                    TotalRecords = 0
                 };
             }
         }
@@ -965,7 +965,7 @@ namespace BUS.Services
                     Success = true,
                     Message = "Lấy danh sách danh mục thành công",
                     Data = data,
-                    TotalRecord = total
+                    TotalRecords = total
                 };
             }
             catch (Exception ex)
@@ -975,7 +975,7 @@ namespace BUS.Services
                     Success = false,
                     Message = $"Lỗi: {ex.Message}",
                     Data = new List<GetAllCategoryRes>(),
-                    TotalRecord = 0
+                    TotalRecords = 0
                 };
             }
         }

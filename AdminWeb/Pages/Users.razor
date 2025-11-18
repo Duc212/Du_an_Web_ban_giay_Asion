@@ -1,9 +1,9 @@
-@page "/customers"
+@page "/users"
 @inject AdminWeb.Services.UserService UserService
 @inject AdminWeb.Services.ToastService Toast
 @using AdminWeb.Models
 
-<PageTitle>Khách hàng - Asion Shop</PageTitle>
+<PageTitle>Người dùng - Asion Shop</PageTitle>
 
 <link href="css/users.css" rel="stylesheet" />
 <link href="css/modal-styles.css" rel="stylesheet" />
@@ -18,7 +18,7 @@
                 </svg>
             </div>
             <div class="info">
-                <p>Tổng khách hàng</p>
+                <p>Tổng người dùng</p>
                 <h4>@totalRecords</h4>
             </div>
         </div>
@@ -30,7 +30,7 @@
             </div>
             <div class="info">
                 <p>Đang hoạt động</p>
-                <h4>@customers.Count(u => u.Status == 1)</h4>
+                <h4>@users.Count(u => u.Status == 1)</h4>
             </div>
         </div>
         <div class="stat-card locked">
@@ -41,7 +41,7 @@
             </div>
             <div class="info">
                 <p>Bị khóa</p>
-                <h4>@customers.Count(u => u.Status == 0)</h4>
+                <h4>@users.Count(u => u.Status == 0)</h4>
             </div>
         </div>
     </div>
@@ -49,11 +49,11 @@
     <!-- Filter Bar -->
     <div class="filter-bar enhanced">
         <div class="filter-inner">
-            <h2 class="filter-title">Danh sách khách hàng</h2>
+            <h2 class="filter-title">Danh sách người dùng</h2>
             <div class="flex items-center gap-3 flex-wrap">
                 <div class="relative filter-input-wrapper">
                     <input type="text" @bind="searchKeyword" @bind:event="oninput" @onkeydown="HandleKeyDown" class="filter-input" placeholder="Tìm tên, email, SĐT..." />
-                    <button type="button" @onclick="SearchCustomers" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" aria-label="Tìm kiếm">
+                    <button type="button" @onclick="SearchUsers" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" aria-label="Tìm kiếm">
                         <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="14" height="14" fill="currentColor"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>
                     </button>
                     @if (!string.IsNullOrWhiteSpace(searchKeyword))
@@ -72,14 +72,14 @@
         </div>
     </div>
 
-    <!-- Customers Table -->
+    <!-- Users Table -->
     <div class="users-panel full-width-edge">
         <div class="relative flex flex-col bg-white shadow-xl rounded-none md:rounded-2xl">
             <div class="flex-auto p-6">
                 @if (loading)
                 {
                     <div class="flex items-center justify-center py-20">
-                        <div class="animate-spin rounded-full h-14 w-14 border-t-2 border-b-2 border-cyan-500"></div>
+                        <div class="animate-spin rounded-full h-14 w-14 border-t-2 border-b-2 border-blue-500"></div>
                     </div>
                 }
                 else
@@ -88,67 +88,65 @@
                         <table class="users-table w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50 sticky top-0 z-10">
                                 <tr>
-                                    <th scope="col" class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Khách hàng</th>
-                                    <th scope="col" class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Email</th>
-                                    <th scope="col" class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Số điện thoại</th>
-                                    <th scope="col" class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Ngày tham gia</th>
+                                    <th scope="col" class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Người dùng</th>
+                                    <th scope="col" class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Liên hệ</th>
+                                    <th scope="col" class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Vai trò</th>
                                     <th scope="col" class="px-5 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Trạng thái</th>
                                     <th scope="col" class="px-5 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100 bg-white">
-                                @foreach (var customer in customers)
+                                @foreach (var user in users)
                                 {
                                     <tr class="group hover:bg-gray-50 transition">
                                         <td class="px-5 py-4">
                                             <div class="flex items-center gap-3">
                                                 <div class="flex-shrink-0">
-                                                    @if (!string.IsNullOrEmpty(customer.Picture))
+                                                    @if (!string.IsNullOrEmpty(user.Picture))
                                                     {
-                                                        <img src="@customer.Picture" alt="@customer.UserName" class="w-10 h-10 rounded-full object-cover" />
+                                                        <img src="@user.Picture" alt="@user.UserName" class="w-10 h-10 rounded-full object-cover" />
                                                     }
                                                     else
                                                     {
-                                                        <div class="w-10 h-10 rounded-full bg-cyan-600 flex items-center justify-center text-white text-sm font-semibold">
-                                                            @GetInitials(customer.UserName)
+                                                        <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-semibold">
+                                                            @GetInitials(user.UserName)
                                                         </div>
                                                     }
                                                 </div>
                                                 <div>
-                                                    <p class="text-sm font-semibold text-gray-900">@customer.UserName</p>
-                                                    <p class="text-xs text-gray-500">ID: @customer.Id</p>
+                                                    <p class="text-sm font-semibold text-gray-900">@user.UserName</p>
+                                                    <p class="text-xs text-gray-500">ID: @user.Id</p>
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="px-5 py-4">
-                                            <p class="text-sm text-gray-800">@customer.Email</p>
+                                            <p class="text-sm text-gray-800">@user.Email</p>
+                                            <p class="text-xs text-gray-500">@user.PhoneNumber</p>
                                         </td>
                                         <td class="px-5 py-4">
-                                            <p class="text-sm text-gray-800">@customer.PhoneNumber</p>
-                                        </td>
-                                        <td class="px-5 py-4">
-                                            <p class="text-sm text-gray-800">@customer.CreatedAt.ToString("dd/MM/yyyy")</p>
-                                            <p class="text-xs text-gray-500">@customer.CreatedAt.ToString("HH:mm")</p>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium @GetRoleBadgeClass(user.RoleName)">
+                                                @user.RoleName
+                                            </span>
                                         </td>
                                         <td class="px-5 py-4 text-center">
-                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold @GetStatusClass(customer.Status)">
-                                                @GetStatusText(customer.Status)
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold @GetStatusClass(user.Status)">
+                                                @GetStatusText(user.Status)
                                             </span>
                                         </td>
                                         <td class="px-5 py-4 text-center">
                                             <div class="flex items-center justify-center gap-1">
-                                                <button @onclick="() => OpenDetailModal(customer)" class="action-btn btn-view" title="Chi tiết">
+                                                <button @onclick="() => OpenDetailModal(user)" class="action-btn btn-view" title="Chi tiết">
                                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="16" height="16" fill="currentColor"><path d="M572.52 241.4C518.9 135.59 407.81 64 288 64 168.19 64 57.1 135.59 3.48 241.4a32.35 32.35 0 0 0 0 29.2C57.1 376.41 168.19 448 288 448c119.81 0 230.9-71.59 284.52-177.4a32.35 32.35 0 0 0 0-29.2zM288 400c-97 0-176-79-176-176S191 48 288 48s176 79 176 176-79 176-176 176zm0-304a128 128 0 1 0 128 128A128 128 0 0 0 288 96z"/></svg>
                                                 </button>
-                                                @if (customer.Status == 1)
+                                                @if (user.Status == 1)
                                                 {
-                                                    <button @onclick="() => ConfirmStatusChange(customer, 0)" class="action-btn btn-reject" title="Khóa tài khoản">
+                                                    <button @onclick="() => ConfirmStatusChange(user, 0)" class="action-btn btn-reject" title="Khóa tài khoản">
                                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="14" height="14" fill="currentColor"><path d="M144 144v48H304V144c0-44.2-35.8-80-80-80s-80 35.8-80 80zM80 192V144C80 64.5 144.5 0 224 0s144 64.5 144 144v48h16c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V256c0-35.3 28.7-64 64-64H80z"/></svg>
                                                     </button>
                                                 }
                                                 else
                                                 {
-                                                    <button @onclick="() => ConfirmStatusChange(customer, 1)" class="action-btn btn-accept" title="Mở khóa">
+                                                    <button @onclick="() => ConfirmStatusChange(user, 1)" class="action-btn btn-accept" title="Mở khóa">
                                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="14" height="14" fill="currentColor"><path d="M352 144c0-44.2 35.8-80 80-80s80 35.8 80 80v48c0 17.7 14.3 32 32 32s32-14.3 32-32V144C576 64.5 511.5 0 432 0S288 64.5 288 144v48H64c-35.3 0-64 28.7-64 64V448c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V256c0-35.3-28.7-64-64-64H352V144z"/></svg>
                                                     </button>
                                                 }
@@ -170,41 +168,41 @@
 </div>
 
 <!-- Detail Modal -->
-@if (showDetailModal && selectedCustomer != null)
+@if (showDetailModal && selectedUser != null)
 {
     <div class="modal fade show d-flex align-items-center justify-content-center" tabindex="-1" role="dialog" aria-modal="true" style="display:flex !important; background:rgba(0,0,0,0.5);" @onclick="CloseDetailModal">
         <div class="modal-dialog modal-lg" role="document" @onclick:stopPropagation>
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18" height="18" fill="#0891b2">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18" height="18" fill="#3b82f6">
                             <path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/>
                         </svg>
-                        Chi tiết khách hàng
+                        Chi tiết người dùng
                     </h5>
                     <button type="button" class="btn-close" aria-label="Đóng" @onclick="CloseDetailModal"></button>
                 </div>
 
                 <div class="modal-body">
-                    <!-- Customer Avatar & Name -->
+                    <!-- User Avatar & Name -->
                     <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
                         <div>
-                            @if (!string.IsNullOrEmpty(selectedCustomer.Picture))
+                            @if (!string.IsNullOrEmpty(selectedUser.Picture))
                             {
-                                <img src="@selectedCustomer.Picture" alt="@selectedCustomer.UserName" class="rounded-circle" style="width:80px;height:80px;object-fit:cover;" />
+                                <img src="@selectedUser.Picture" alt="@selectedUser.UserName" class="rounded-circle" style="width:80px;height:80px;object-fit:cover;" />
                             }
                             else
                             {
-                                <div class="rounded-circle d-flex align-items-center justify-center text-white fw-bold" style="width:80px;height:80px;background:#0891b2;font-size:2rem;">
-                                    @GetInitials(selectedCustomer.UserName)
+                                <div class="rounded-circle d-flex align-items-center justify-center text-white fw-bold" style="width:80px;height:80px;background:#3b82f6;font-size:2rem;">
+                                    @GetInitials(selectedUser.UserName)
                                 </div>
                             }
                         </div>
                         <div class="flex-grow-1">
-                            <h4 class="mb-1 fw-bold">@selectedCustomer.UserName</h4>
+                            <h4 class="mb-1 fw-bold">@selectedUser.UserName</h4>
                             <div class="d-flex align-items-center gap-2 flex-wrap">
-                                <span class="badge bg-cyan-100 text-cyan-700">Khách hàng</span>
-                                <span class="badge @GetStatusClass(selectedCustomer.Status)">@GetStatusText(selectedCustomer.Status)</span>
+                                <span class="badge @GetRoleBadgeClass(selectedUser.RoleName)">@selectedUser.RoleName</span>
+                                <span class="badge @GetStatusClass(selectedUser.Status)">@GetStatusText(selectedUser.Status)</span>
                             </div>
                         </div>
                     </div>
@@ -217,7 +215,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="12" height="12" fill="currentColor" class="me-1"><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4L236.8 313.6c11.4 8.5 27 8.5 38.4 0L492.8 150.4c12.1-9.1 19.2-23.3 19.2-38.4c0-26.5-21.5-48-48-48H48zM0 176V384c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V176L294.4 339.2c-22.8 17.1-54 17.1-76.8 0L0 176z"/></svg>
                                     Email
                                 </div>
-                                <div class="detail-info-value">@selectedCustomer.Email</div>
+                                <div class="detail-info-value">@selectedUser.Email</div>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -226,7 +224,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="12" height="12" fill="currentColor" class="me-1"><path d="M164.9 24.6c-7.7-18.6-28-28.5-47.4-23.2l-88 24C12.1 30.2 0 46 0 64C0 311.4 200.6 512 448 512c18 0 33.8-12.1 38.6-29.5l24-88c5.3-19.4-4.6-39.7-23.2-47.4l-96-40c-16.3-6.8-35.2-2.1-46.3 11.6L304.7 368C234.3 334.7 177.3 277.7 144 207.3L193.3 167c13.7-11.2 18.4-30 11.6-46.3l-40-96z"/></svg>
                                     Điện thoại
                                 </div>
-                                <div class="detail-info-value">@selectedCustomer.PhoneNumber</div>
+                                <div class="detail-info-value">@selectedUser.PhoneNumber</div>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -235,25 +233,25 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12" fill="currentColor" class="me-1"><path d="M152 24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H64C28.7 64 0 92.7 0 128v16 48V448c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V192 144 128c0-35.3-28.7-64-64-64H344V24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H152V24z"/></svg>
                                     Ngày sinh
                                 </div>
-                                <div class="detail-info-value">@(selectedCustomer.DateOfBirth?.ToString("dd/MM/yyyy") ?? "Chưa cập nhật")</div>
+                                <div class="detail-info-value">@(selectedUser.DateOfBirth?.ToString("dd/MM/yyyy") ?? "Chưa cập nhật")</div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="detail-info-row">
                                 <div class="detail-info-label">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="12" height="12" fill="currentColor" class="me-1"><path d="M256 0a256 256 0 1 1 0 512A256 256 0 1 1 256 0zM232 120V256c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2V120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"/></svg>
-                                    Ngày tham gia
+                                    Ngày tạo
                                 </div>
-                                <div class="detail-info-value">@selectedCustomer.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                                <div class="detail-info-value">@selectedUser.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
                             </div>
                         </div>
                     </div>
 
-                    @if (selectedCustomer.Address != null && selectedCustomer.Address.Any())
+                    @if (selectedUser.Address != null && selectedUser.Address.Any())
                     {
                         <div class="mt-4">
-                            <h6 class="fw-bold mb-3">Địa chỉ giao hàng</h6>
-                            @foreach (var addr in selectedCustomer.Address)
+                            <h6 class="fw-bold mb-3">Địa chỉ</h6>
+                            @foreach (var addr in selectedUser.Address)
                             {
                                 <div class="alert alert-light mb-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="12" height="12" fill="currentColor" class="me-2"><path d="M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"/></svg>
@@ -267,16 +265,16 @@
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" @onclick="CloseDetailModal">Đóng</button>
-                    @if (selectedCustomer.Status == 1)
+                    @if (selectedUser.Status == 1)
                     {
-                        <button type="button" class="btn btn-danger" @onclick="() => { CloseDetailModal(); ConfirmStatusChange(selectedCustomer, 0); }">
+                        <button type="button" class="btn btn-danger" @onclick="() => { CloseDetailModal(); ConfirmStatusChange(selectedUser, 0); }">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12" fill="currentColor"><path d="M144 144v48H304V144c0-44.2-35.8-80-80-80s-80 35.8-80 80zM80 192V144C80 64.5 144.5 0 224 0s144 64.5 144 144v48h16c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V256c0-35.3 28.7-64 64-64H80z"/></svg>
                             Khóa tài khoản
                         </button>
                     }
                     else
                     {
-                        <button type="button" class="btn btn-success" @onclick="() => { CloseDetailModal(); ConfirmStatusChange(selectedCustomer, 1); }">
+                        <button type="button" class="btn btn-success" @onclick="() => { CloseDetailModal(); ConfirmStatusChange(selectedUser, 1); }">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="12" height="12" fill="currentColor"><path d="M352 144c0-44.2 35.8-80 80-80s80 35.8 80 80v48c0 17.7 14.3 32 32 32s32-14.3 32-32V144C576 64.5 511.5 0 432 0S288 64.5 288 144v48H64c-35.3 0-64 28.7-64 64V448c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V256c0-35.3-28.7-64-64-64H352V144z"/></svg>
                             Mở khóa
                         </button>
@@ -288,7 +286,7 @@
 }
 
 <!-- Status Change Confirm Modal -->
-@if (showStatusConfirm && customerToChange != null)
+@if (showStatusConfirm && userToChange != null)
 {
     <div class="modal fade show d-flex align-items-center justify-content-center" tabindex="-1" style="display:flex !important; background:rgba(0,0,0,0.5);" @onclick="CloseStatusConfirm">
         <div class="modal-dialog modal-sm" @onclick:stopPropagation>
@@ -300,8 +298,8 @@
                 <div class="modal-body py-3">
                     <p class="mb-2">Bạn có chắc chắn muốn <strong>@(newStatus == 0 ? "khóa" : "mở khóa")</strong> tài khoản:</p>
                     <div class="alert @(newStatus == 0 ? "alert-danger" : "alert-success") mb-0 p-2">
-                        <strong>@customerToChange.UserName</strong><br/>
-                        <small>@customerToChange.Email</small>
+                        <strong>@userToChange.UserName</strong><br/>
+                        <small>@userToChange.Email</small>
                     </div>
                 </div>
                 <div class="modal-footer py-2 px-3">
@@ -316,7 +314,7 @@
 }
 
 @code {
-    private List<GetListUserRes> customers = new();
+    private List<GetListUserRes> users = new();
     private int totalRecords = 0;
     private int currentPage = 1;
     private int pageSize = 10;
@@ -327,20 +325,20 @@
 
     // Detail modal
     private bool showDetailModal = false;
-    private GetListUserRes? selectedCustomer;
+    private GetListUserRes? selectedUser;
 
     // Status change modal
     private bool showStatusConfirm = false;
-    private GetListUserRes? customerToChange;
+    private GetListUserRes? userToChange;
     private int newStatus = 0;
     private bool isChanging = false;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadCustomers();
+        await LoadUsers();
     }
 
-    private async Task LoadCustomers()
+    private async Task LoadUsers()
     {
         loading = true;
         
@@ -359,7 +357,7 @@
 
         if (response.Success)
         {
-            customers = response.Data;
+            users = response.Data;
             totalRecords = response.TotalRecords;
         }
         else
@@ -373,45 +371,45 @@
     private async Task OnPageChanged(int page)
     {
         currentPage = page;
-        await LoadCustomers();
+        await LoadUsers();
     }
 
-    private async Task SearchCustomers()
+    private async Task SearchUsers()
     {
         currentPage = 1;
-        await LoadCustomers();
+        await LoadUsers();
     }
 
     private async Task ClearSearch()
     {
         searchKeyword = string.Empty;
         currentPage = 1;
-        await LoadCustomers();
+        await LoadUsers();
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
     {
         if (e.Key == "Enter")
         {
-            await SearchCustomers();
+            await SearchUsers();
         }
     }
 
-    private void OpenDetailModal(GetListUserRes customer)
+    private void OpenDetailModal(GetListUserRes user)
     {
-        selectedCustomer = customer;
+        selectedUser = user;
         showDetailModal = true;
     }
 
     private void CloseDetailModal()
     {
         showDetailModal = false;
-        selectedCustomer = null;
+        selectedUser = null;
     }
 
-    private void ConfirmStatusChange(GetListUserRes customer, int status)
+    private void ConfirmStatusChange(GetListUserRes user, int status)
     {
-        customerToChange = customer;
+        userToChange = user;
         newStatus = status;
         showStatusConfirm = true;
     }
@@ -419,21 +417,21 @@
     private void CloseStatusConfirm()
     {
         showStatusConfirm = false;
-        customerToChange = null;
+        userToChange = null;
     }
 
     private async Task ChangeStatusAsync()
     {
-        if (isChanging || customerToChange == null) return;
+        if (isChanging || userToChange == null) return;
 
         isChanging = true;
-        var result = await UserService.ChangeUserStatusAsync(customerToChange.Id, newStatus);
+        var result = await UserService.ChangeUserStatusAsync(userToChange.Id, newStatus);
         
         if (result.Success)
         {
             Toast.Success(result.Message);
             CloseStatusConfirm();
-            await LoadCustomers();
+            await LoadUsers();
         }
         else
         {
@@ -464,5 +462,12 @@
         1 => "Hoạt động",
         0 => "Đã khóa",
         _ => "Không xác định"
+    };
+
+    private string GetRoleBadgeClass(string role) => role?.ToLower() switch
+    {
+        "admin" => "bg-purple-100 text-purple-700",
+        "user" => "bg-blue-100 text-blue-700",
+        _ => "bg-gray-100 text-gray-700"
     };
 }

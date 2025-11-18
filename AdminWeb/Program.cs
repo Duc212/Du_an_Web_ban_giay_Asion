@@ -15,6 +15,7 @@ builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<ToastService>();
 builder.Services.AddScoped<BrandService>();
 builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<UserService>();
 
 // Nếu cần sử dụng API base URL từ cấu hình
 // builder.Services.AddHttpClient<ProductService>(client =>
