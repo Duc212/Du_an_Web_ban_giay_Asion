@@ -733,5 +733,68 @@ namespace BUS.Services
 
             return response;
         }
+
+        public async Task<CommonResponse<LoginRes>> StaffLogin(LoginReq req)
+        {
+            var response = new CommonResponse<LoginRes>();
+
+            if (string.IsNullOrWhiteSpace(req.UserName) || string.IsNullOrWhiteSpace(req.Password))
+            {
+                response.Success = false;
+                response.Message = "Tên đăng nhập hoặc mật khẩu không được để trống.";
+                return response;
+            }
+
+            var user = await _userRepository.AsQueryable()
+                .FirstOrDefaultAsync(x => x.Username == req.UserName);
+
+            if (user == null)
+            {
+                response.Success = false;
+                response.Message = "Tài khoản không tồn tại.";
+                return response;
+            }
+
+            if (CryptoHelperUtil.Decrypt(user.Password) != req.Password)
+            {
+                response.Success = false;
+                response.Message = "Mật khẩu không đúng.";
+                return response;
+            }
+
+            var roles = await (from ur in _userRoleRepository.AsQueryable()
+                               join r in _roleRepository.AsQueryable() on ur.RoleID equals r.RoleID
+                               where ur.UserID == user.UserID
+                               select r.Name)
+                   .ToListAsync();
+
+            var isStaff = roles.Any(r => r.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
+                                         r.Equals("Employee", StringComparison.OrdinalIgnoreCase));
+            if (!isStaff)
+            {
+                response.Success = false;
+                response.Message = "Tài khoản không có quyền truy cập trang quản trị.";
+                return response;
+            }
+
+            var accessToken = _tokenUtils.GenerateToken(user.UserID);
+            var refreshToken = _tokenUtils.GenerateRefreshToken(user.UserID);
+
+            response.Success = true;
+            response.Message = "Đăng nhập nhân viên thành công.";
+            response.Data = new LoginRes
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
+                UserID = user.UserID,
+                FullName = user.FullName,
+                Email = user.Email,
+                Phone = user.Phone,
+                Picture = user.Picture,
+                IsEmailVerified = true,
+                RoleName = roles
+            };
+            return response;
+        }
     }
 }

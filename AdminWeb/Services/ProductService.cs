@@ -1,5 +1,6 @@
 using AdminWeb.Models;
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.Components.Forms;
 
 namespace AdminWeb.Services
 {
@@ -249,6 +250,34 @@ namespace AdminWeb.Services
             }
         }
 
+        public async Task<ApiResponse> UpdateVariantAsync(int variantId, UpdateVariantRequest request)
+        {
+            try
+            {
+                var response = await _http.PutAsJsonAsync($"api/ProductAdmin/UpdateVariant/{variantId}", request);
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<ApiResponse>()
+                        ?? new ApiResponse { Success = false, Message = "Lỗi không xác định" };
+                }
+
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return new ApiResponse
+                {
+                    Success = false,
+                    Message = $"Lỗi: {response.StatusCode} - {errorContent}"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse
+                {
+                    Success = false,
+                    Message = $"Lỗi: {ex.Message}"
+                };
+            }
+        }
+
         public async Task<ApiResponse> DeleteVariantAsync(int variantId)
         {
             try
@@ -426,6 +455,73 @@ namespace AdminWeb.Services
                 Success = false,
                 Message = "Lỗi khi tải sản phẩm sắp hết hàng"
             };
+        }
+
+        public async Task<UploadImageResponse> UploadImageAsync(IBrowserFile file)
+        {
+            try
+            {
+                // Create multipart form data
+                using var content = new MultipartFormDataContent();
+                
+                // Read file content
+                var fileContent = new StreamContent(file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024)); // 5MB max
+                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+                content.Add(fileContent, "file", file.Name);
+
+                var response = await _http.PostAsync("api/ProductAdmin/UploadImage", content);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<UploadImageResponse>()
+                        ?? new UploadImageResponse { Success = false, Message = "Lỗi khi parse response" };
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    return new UploadImageResponse
+                    {
+                        Success = false,
+                        Message = $"Upload thất bại: {response.StatusCode}"
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new UploadImageResponse
+                {
+                    Success = false,
+                    Message = $"Lỗi: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<ApiResponse> AddProductImageAsync(AddProductImageRequest request)
+        {
+            try
+            {
+                var response = await _http.PostAsJsonAsync("api/ProductAdmin/AddProductImage", request);
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<ApiResponse>()
+                        ?? new ApiResponse { Success = false, Message = "Lỗi không xác định" };
+                }
+
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return new ApiResponse
+                {
+                    Success = false,
+                    Message = $"Thêm ảnh thất bại: {response.StatusCode}"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse
+                {
+                    Success = false,
+                    Message = $"Lỗi: {ex.Message}"
+                };
+            }
         }
     }
 }

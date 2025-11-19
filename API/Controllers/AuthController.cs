@@ -61,7 +61,7 @@ namespace API.Controllers
 
         [HttpPost]
         [Route("AddUser")]
-        //[BAuthorize]
+        [BAuthorize]
         public async Task<CommonResponse<bool>> AddUser(AddUserReq req)
         {
             return await _authServices.AddUser(req);
@@ -96,6 +96,13 @@ namespace API.Controllers
         public async Task<CommonResponse<bool>> DeleteUser(int userId)
         {
             return await _authServices.DeleteUser(userId);
+        }
+
+        [HttpPost]
+        [Route("StaffLogin")]
+        public async Task<CommonResponse<LoginRes>> StaffLogin(LoginReq req)
+        {
+            return await _authServices.StaffLogin(req);
         }
     }
 }

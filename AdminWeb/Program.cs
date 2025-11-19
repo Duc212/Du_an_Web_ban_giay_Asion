@@ -2,25 +2,55 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using AdminWeb.Services;
+using Microsoft.AspNetCore.Components.Authorization;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// Cấu hình HttpClient cho AdminWeb API
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7134/") });
+// Đăng ký Authentication
+builder.Services.AddAuthorizationCore();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 
-// Đăng ký dịch vụ giả lập đơn hàng & toast
-builder.Services.AddScoped<OrderService>();
+// Tạo HttpMessageHandler tự động thêm token
+builder.Services.AddScoped<AuthorizationMessageHandler>();
+
+// Cấu hình HttpClient với token handler
+builder.Services.AddHttpClient<ProductService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7134/");
+})
+.AddHttpMessageHandler<AuthorizationMessageHandler>();
+
+builder.Services.AddHttpClient<BrandService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7134/");
+})
+.AddHttpMessageHandler<AuthorizationMessageHandler>();
+
+builder.Services.AddHttpClient<CategoryService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7134/");
+})
+.AddHttpMessageHandler<AuthorizationMessageHandler>();
+
+builder.Services.AddHttpClient<UserService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7134/");
+})
+.AddHttpMessageHandler<AuthorizationMessageHandler>();
+
+builder.Services.AddHttpClient<OrderService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7134/");
+})
+.AddHttpMessageHandler<AuthorizationMessageHandler>();
+
+builder.Services.AddHttpClient<AuthService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7134/");
+});
+
 builder.Services.AddScoped<ToastService>();
-builder.Services.AddScoped<BrandService>();
-builder.Services.AddScoped<CategoryService>();
-builder.Services.AddScoped<UserService>();
-
-// Nếu cần sử dụng API base URL từ cấu hình
-// builder.Services.AddHttpClient<ProductService>(client =>
-// {
-//     client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]);
-// });
 
 await builder.Build().RunAsync();

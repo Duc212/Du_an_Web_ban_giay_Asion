@@ -759,6 +759,7 @@ namespace BUS.Services
                         {
                             ProductID = product?.ProductID ?? 0,
                             ProductName = product?.Name ?? "",
+                            ImageUrl = product?.ImageUrl ?? "",
                             OrderCount = g.Select(od => od.OrderID).Distinct().Count(),
                             TotalQuantity = g.Sum(od => od.Quantity),
                             Revenue = g.Sum(od => od.Quantity * (variant?.SellingPrice ?? 0))
@@ -769,6 +770,7 @@ namespace BUS.Services
                     {
                         ProductID = g.Key,
                         ProductName = g.First().ProductName,
+                        ImageUrl = g.First().ImageUrl,
                         OrderCount = g.Sum(x => x.OrderCount),
                         TotalQuantity = g.Sum(x => x.TotalQuantity),
                         Revenue = g.Sum(x => x.Revenue)
@@ -776,6 +778,48 @@ namespace BUS.Services
                     .OrderByDescending(p => p.Revenue)
                     .Take(10)
                     .ToList();
+
+                // Customer Growth statistics
+                var customerGrowth = new List<CustomerGrowthInfo>();
+                var allUsers = await _userRepository.AsNoTrackingQueryable()
+                    .Where(u => u.CreatedAt >= fromDate && u.CreatedAt <= toDate)
+                    .ToListAsync();
+
+                // Get all customer IDs who have placed orders
+                var customerIdsWithOrders = orders.Select(o => o.UserID).Distinct().ToList();
+                
+                // Group by date to calculate daily customer growth
+                var dailyStats = new List<CustomerGrowthInfo>();
+                var currentDate = fromDate.Value.Date;
+                var cumulativeCustomers = await _userRepository.AsNoTrackingQueryable()
+                    .Where(u => u.CreatedAt < fromDate)
+                    .CountAsync();
+
+                while (currentDate <= toDate.Value.Date)
+                {
+                    // New customers registered on this date
+                    var newCustomersOnDate = allUsers.Count(u => u.CreatedAt.Date == currentDate);
+                    
+                    // Returning customers (placed order on this date but registered before)
+                    var ordersOnDate = orders.Where(o => o.OrderDate.Date == currentDate).ToList();
+                    var customersOrderedOnDate = ordersOnDate.Select(o => o.UserID).Distinct().ToList();
+                    var returningCustomers = customersOrderedOnDate
+                        .Count(cId => cId.HasValue && allUsers.All(u => u.UserID != cId.Value || u.CreatedAt.Date < currentDate));
+                    
+                    cumulativeCustomers += newCustomersOnDate;
+                    
+                    dailyStats.Add(new CustomerGrowthInfo
+                    {
+                        Date = currentDate,
+                        NewCustomers = newCustomersOnDate,
+                        ReturningCustomers = returningCustomers,
+                        TotalCustomers = cumulativeCustomers
+                    });
+                    
+                    currentDate = currentDate.AddDays(1);
+                }
+
+                customerGrowth = dailyStats;
 
                 response.Success = true;
                 response.Message = "Lấy thống kê đơn hàng thành công";
@@ -791,7 +835,8 @@ namespace BUS.Services
                     AverageOrderValue = averageOrderValue,
                     PaymentStats = paymentStats,
                     DailyOrders = dailyOrders,
-                    TopProducts = topProducts
+                    TopProducts = topProducts,
+                    CustomerGrowth = customerGrowth
                 };
             }
             catch (Exception ex)

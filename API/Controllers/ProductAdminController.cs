@@ -7,21 +7,23 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]")] 
     [ApiController]
     public class ProductAdminController : ControllerBase
     {
         private readonly IProductAdminServices _productAdminServices;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ProductAdminController(IProductAdminServices productAdminServices)
+        public ProductAdminController(IProductAdminServices productAdminServices, IHttpContextAccessor httpContextAccessor)
         {
             _productAdminServices = productAdminServices;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         #region CRUD Product
 
         /// <summary>
-        /// L?y danh sách t?t c? s?n ph?m v?i phân trang và filter
+        /// L?y danh sï¿½ch t?t c? s?n ph?m v?i phï¿½n trang vï¿½ filter
         /// </summary>
         [HttpGet("GetAllProducts")]
         [BAuthorize]
@@ -38,7 +40,7 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// L?y chi ti?t s?n ph?m bao g?m variants và images
+        /// L?y chi ti?t s?n ph?m bao g?m variants vï¿½ images
         /// </summary>
         [HttpGet("GetProductDetail/{productId}")]
         [BAuthorize]
@@ -48,7 +50,7 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// Thêm s?n ph?m m?i v?i variants và images
+        /// Thï¿½m s?n ph?m m?i v?i variants vï¿½ images
         /// </summary>
         [HttpPost("AddProduct")]
         [BAuthorize]
@@ -58,7 +60,7 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// C?p nh?t thông tin s?n ph?m
+        /// C?p nh?t thï¿½ng tin s?n ph?m
         /// </summary>
         [HttpPut("UpdateProduct")]
         [BAuthorize]
@@ -68,7 +70,7 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// Xóa s?n ph?m
+        /// Xï¿½a s?n ph?m
         /// </summary>
         [HttpDelete("DeleteProduct/{productId}")]
         [BAuthorize]
@@ -92,7 +94,7 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// Thêm variant m?i cho s?n ph?m
+        /// Thï¿½m variant m?i cho s?n ph?m
         /// </summary>
         [HttpPost("AddVariant")]
         [BAuthorize]
@@ -102,7 +104,7 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// C?p nh?t variant (giá, stock)
+        /// C?p nh?t variant (giï¿½, stock)
         /// </summary>
         [HttpPut("UpdateVariant")]
         [BAuthorize]
@@ -112,7 +114,7 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// Xóa variant
+        /// Xï¿½a variant
         /// </summary>
         [HttpDelete("DeleteVariant/{variantId}")]
         [BAuthorize]
@@ -122,7 +124,7 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// C?p nh?t s? l??ng t?n kho hàng lo?t
+        /// C?p nh?t s? l??ng t?n kho hï¿½ng lo?t
         /// </summary>
         [HttpPut("UpdateStock")]
         [BAuthorize]
@@ -136,7 +138,7 @@ namespace API.Controllers
         #region Support APIs
 
         /// <summary>
-        /// L?y danh sách màu s?c (for dropdown)
+        /// L?y danh sï¿½ch mï¿½u s?c (for dropdown)
         /// </summary>
         [HttpGet("GetColors")]
         public async Task<CommonResponse<List<GetColorRes>>> GetColors()
@@ -145,7 +147,7 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// L?y danh sách size (for dropdown)
+        /// L?y danh sï¿½ch size (for dropdown)
         /// </summary>
         [HttpGet("GetSizes")]
         public async Task<CommonResponse<List<GetSizeRes>>> GetSizes()
@@ -154,7 +156,7 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// L?y danh sách gi?i tính (for dropdown)
+        /// L?y danh sï¿½ch gi?i tï¿½nh (for dropdown)
         /// </summary>
         [HttpGet("GetGenders")]
         public async Task<CommonResponse<List<GetGenderRes>>> GetGenders()
@@ -163,7 +165,7 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// L?y th?ng kê s?n ph?m
+        /// L?y th?ng kï¿½ s?n ph?m
         /// </summary>
         [HttpGet("GetProductStatistics")]
         [BAuthorize]
@@ -173,7 +175,7 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// L?y danh sách s?n ph?m s?p h?t hàng
+        /// L?y danh sï¿½ch s?n ph?m s?p h?t hï¿½ng
         /// </summary>
         [HttpGet("GetLowStockProducts")]
         [BAuthorize]
@@ -183,6 +185,74 @@ namespace API.Controllers
             [FromQuery] int threshold = 10)
         {
             return await _productAdminServices.GetLowStockProducts(pageIndex, pageSize, threshold);
+        }
+
+        /// <summary>
+        /// ThÃªm áº£nh má»›i cho sáº£n pháº©m
+        /// </summary>
+        [HttpPost("AddProductImage")]
+        [BAuthorize]
+        public async Task<CommonResponse<bool>> AddProductImage([FromBody] AddProductImageReq req)
+        {
+            return await _productAdminServices.AddProductImage(req);
+        }
+
+        /// <summary>
+        /// Upload áº£nh sáº£n pháº©m
+        /// </summary>
+        [HttpPost("UploadImage")]
+        [BAuthorize]
+        public async Task<IActionResult> UploadImage(IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    return BadRequest(new { success = false, message = "KhÃ´ng cÃ³ file Ä‘Æ°á»£c chá»n" });
+                }
+
+                // Validate file type
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                
+                if (!allowedExtensions.Contains(extension))
+                {
+                    return BadRequest(new { success = false, message = "Chá»‰ cháº¥p nháº­n file áº£nh (jpg, jpeg, png, gif, webp)" });
+                }
+
+                // Validate file size (max 5MB)
+                if (file.Length > 5 * 1024 * 1024)
+                {
+                    return BadRequest(new { success = false, message = "KÃ­ch thÆ°á»›c file khÃ´ng Ä‘Æ°á»£c vÆ°á»£t quÃ¡ 5MB" });
+                }
+
+                // Generate unique filename
+                var fileName = $"{Guid.NewGuid()}{extension}";
+                
+                // Create upload directory if not exists
+                var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "products");
+                if (!Directory.Exists(uploadPath))
+                {
+                    Directory.CreateDirectory(uploadPath);
+                }
+
+                // Save file
+                var filePath = Path.Combine(uploadPath, fileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Return full URL with protocol, host and port
+                var request = _httpContextAccessor.HttpContext?.Request;
+                var baseUrl = $"{request?.Scheme}://{request?.Host}";
+                var fileUrl = $"{baseUrl}/uploads/products/{fileName}";
+                return Ok(new { success = true, url = fileUrl, message = "Upload áº£nh thÃ nh cÃ´ng" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = $"Lá»—i khi upload: {ex.Message}" });
+            }
         }
 
         #endregion

@@ -7,7 +7,7 @@
 
 <PageTitle>Sản phẩm - Asion Shop</PageTitle>
 
-<link href="css/products.css" rel="stylesheet" />
+<link href="css/products.css?v=3" rel="stylesheet" />
 
 <div class="products-container">
     <!-- Header with Statistics -->
@@ -222,104 +222,293 @@
 <!-- View Detail Modal -->
 @if (showDetailModal && selectedProduct != null)
 {
-    <div class="modal show" @onclick="CloseDetailModal">
-        <div class="modal-dialog modal-xl" @onclick:stopPropagation="true">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 class="modal-title">
-                        <i class="fas fa-info-circle"></i>
+    <div class="modal show" style="display: flex !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; padding: 20px; overflow-y: auto;" @onclick="CloseDetailModal">
+        <div class="modal-dialog" style="max-width: 1200px; width: 100%; margin: auto;" @onclick:stopPropagation="true">
+            <div class="modal-content" style="background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+                <div class="modal-header" style="padding: 24px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);">
+                    <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #111827; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-box-open" style="color: #3b82f6;"></i>
                         Chi tiết sản phẩm
                     </h3>
-                    <button class="modal-close" @onclick="CloseDetailModal">
+                    <button class="modal-close" @onclick="CloseDetailModal" style="width: 32px; height: 32px; border: none; background: white; color: #6b7280; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="padding: 0;">
                     @if (isLoadingDetail)
                     {
-                        <div class="loading-container">
-                            <div class="spinner"></div>
-                            <p>Đang tải chi tiết...</p>
+                        <div style="padding: 60px; text-align: center;">
+                            <div style="display: inline-block; width: 40px; height: 40px; border: 3px solid #f3f4f6; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                            <p style="margin-top: 16px; color: #6b7280; font-size: 14px;">Đang tải chi tiết...</p>
                         </div>
                     }
                     else if (productDetail != null)
                     {
-                        <div class="detail-grid">
-                            <div class="detail-section">
-                                <h4>Thông tin cơ bản</h4>
-                                <div class="detail-row">
-                                    <span class="detail-label">Tên sản phẩm:</span>
-                                    <span class="detail-value">@productDetail.Name</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Mô tả:</span>
-                                    <span class="detail-value">@productDetail.Description</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Danh mục:</span>
-                                    <span class="detail-value">@productDetail.CategoryName</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Thương hiệu:</span>
-                                    <span class="detail-value">@productDetail.BrandName</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Giới tính:</span>
-                                    <span class="detail-value">@productDetail.GenderName</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Ngày tạo:</span>
-                                    <span class="detail-value">@productDetail.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                        <!-- Product Header with Image -->
+                        <div style="display: grid; grid-template-columns: 300px 1fr; gap: 24px; padding: 24px; background: white; border-bottom: 1px solid #e5e7eb;">
+                            <div style="position: relative;">
+                                <img src="@GetImageUrl(productDetail.ImageUrl)" alt="@productDetail.Name" 
+                                     style="width: 100%; height: 300px; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" 
+                                     onerror="this.src='https://via.placeholder.com/300x300?text=No+Image'" />
+                                <div style="position: absolute; top: 12px; right: 12px; background: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; color: #3b82f6; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                    @productDetail.Variants.Count biến thể
                                 </div>
                             </div>
-
-                            <div class="detail-section">
-                                <h4>Hình ảnh chính</h4>
-                                <img src="@productDetail.ImageUrl" alt="@productDetail.Name" class="detail-image" />
+                            <div style="display: flex; flex-direction: column; gap: 16px;">
+                                <div>
+                                    <h2 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 700; color: #111827;">@productDetail.Name</h2>
+                                    <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.6;">@productDetail.Description</p>
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                                    <div style="background: #f9fafb; padding: 12px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                        <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Danh mục</div>
+                                        <div style="font-size: 14px; font-weight: 600; color: #111827;">@productDetail.CategoryName</div>
+                                    </div>
+                                    <div style="background: #f9fafb; padding: 12px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                        <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Thương hiệu</div>
+                                        <div style="font-size: 14px; font-weight: 600; color: #111827;">@productDetail.BrandName</div>
+                                    </div>
+                                    <div style="background: #f9fafb; padding: 12px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                        <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Giới tính</div>
+                                        <div style="font-size: 14px; font-weight: 600; color: #111827;">@productDetail.GenderName</div>
+                                    </div>
+                                </div>
+                                <div style="background: #eff6ff; padding: 12px 16px; border-radius: 8px; border-left: 3px solid #3b82f6;">
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #1e40af;">
+                                        <i class="fas fa-clock"></i>
+                                        <span>Ngày tạo: <strong>@productDetail.CreatedAt.ToString("dd/MM/yyyy HH:mm")</strong></span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="detail-section">
-                            <h4>Danh sách Variants (@productDetail.Variants.Count)</h4>
-                            <div class="variants-grid">
-                                @foreach (var variant in productDetail.Variants)
+                        <!-- Variants Section Grouped by Color -->
+                        <div style="padding: 24px; background: #f9fafb;">
+                            <h4 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 700; color: #111827; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-boxes" style="color: #f59e0b;"></i>
+                                Biến thể sản phẩm (@productDetail.Variants.Count)
+                            </h4>
+                            <div style="display: grid; gap: 16px;">
+                                @foreach (var colorGroup in productDetail.Variants.GroupBy(v => new { v.ColorID, v.ColorName, v.ColorHex }))
                                 {
-                                    <div class="variant-card">
-                                        <div class="variant-color">
-                                            <span class="color-box" style="background-color: @variant.ColorHex"></span>
-                                            @variant.ColorName
+                                    <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid #e5e7eb;">
+                                        <!-- Color Header -->
+                                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid #f3f4f6;">
+                                            <div style="width: 32px; height: 32px; border-radius: 50%; background: @colorGroup.Key.ColorHex; border: 3px solid #e5e7eb; box-shadow: 0 2px 6px rgba(0,0,0,0.15);"></div>
+                                            <div style="flex: 1;">
+                                                <div style="font-weight: 700; color: #111827; font-size: 16px;">@colorGroup.Key.ColorName</div>
+                                                <div style="font-size: 13px; color: #6b7280;">@colorGroup.Count() size</div>
+                                            </div>
                                         </div>
-                                        <div class="variant-size">Size: <strong>@variant.SizeValue</strong></div>
-                                        <div class="variant-price">
-                                            <div>Giá nhập: <strong>@variant.ImportPrice.ToString("N0") đ</strong></div>
-                                            <div>Giá bán: <strong class="text-red">@variant.SellingPrice.ToString("N0") đ</strong></div>
-                                        </div>
-                                        <div class="variant-stock">
-                                            Tồn kho: <span class="stock-badge @(variant.StockQuantity == 0 ? "stock-out" : variant.StockQuantity < 10 ? "stock-low" : "stock-good")">
-                                                @variant.StockQuantity
-                                            </span>
-                                        </div>
-                                        <div class="variant-status">
-                                            Trạng thái: <span class="badge @(variant.Status == "Active" ? "badge-success" : "badge-danger")">@variant.Status</span>
+                                        
+                                        <!-- Size Variants -->
+                                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px;">
+                                            @foreach (var variant in colorGroup.OrderBy(v => v.SizeValue))
+                                            {
+                                                var isEditing = editingVariantId == variant.VariantID;
+                                                <div style="background: #f9fafb; padding: 14px; border-radius: 8px; border: 1px solid @(isEditing ? "#3b82f6" : "#e5e7eb"); box-shadow: @(isEditing ? "0 0 0 2px rgba(59, 130, 246, 0.1)" : "none"); transition: all 0.2s;">
+                                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                                        <span style="padding: 6px 14px; background: white; color: #374151; border-radius: 6px; font-size: 14px; font-weight: 700; border: 1px solid #d1d5db;">
+                                                            Size @variant.SizeValue
+                                                        </span>
+                                                        <button type="button" @onclick="() => ToggleEditVariant(variant)" 
+                                                                style="padding: 4px 10px; background: @(isEditing ? "#3b82f6" : "#6b7280"); color: white; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                                                            @(isEditing ? "Đóng" : "Sửa")
+                                                        </button>
+                                                    </div>
+                                                    
+                                                    @if (isEditing)
+                                                    {
+                                                        <div style="display: grid; gap: 8px; margin-bottom: 8px;">
+                                                            <div>
+                                                                <label style="font-size: 11px; color: #6b7280; display: block; margin-bottom: 4px;">Giá nhập</label>
+                                                                <input type="number" @bind="editVariantForm.ImportPrice" 
+                                                                       style="width: 100%; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" />
+                                                            </div>
+                                                            <div>
+                                                                <label style="font-size: 11px; color: #6b7280; display: block; margin-bottom: 4px;">Giá bán</label>
+                                                                <input type="number" @bind="editVariantForm.SellingPrice" 
+                                                                       style="width: 100%; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" />
+                                                            </div>
+                                                            <div>
+                                                                <label style="font-size: 11px; color: #6b7280; display: block; margin-bottom: 4px;">Tồn kho</label>
+                                                                <input type="number" @bind="editVariantForm.StockQuantity" 
+                                                                       style="width: 100%; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" />
+                                                            </div>
+                                                            <div>
+                                                                <label style="font-size: 11px; color: #6b7280; display: block; margin-bottom: 4px;">Trạng thái</label>
+                                                                <select @bind="editVariantForm.Status" 
+                                                                        style="width: 100%; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;">
+                                                                    <option value="Active">Active</option>
+                                                                    <option value="Inactive">Inactive</option>
+                                                                </select>
+                                                            </div>
+                                                            <button type="button" @onclick="SaveVariant" disabled="@isSaving"
+                                                                    style="width: 100%; padding: 8px; background: #10b981; color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; margin-top: 4px;">
+                                                                @(isSaving ? "Đang lưu..." : "Lưu")
+                                                            </button>
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div style="display: grid; gap: 6px; font-size: 13px;">
+                                                            <div style="display: flex; justify-content: space-between;">
+                                                                <span style="color: #6b7280;">Giá nhập</span>
+                                                                <span style="font-weight: 600; color: #374151;">@variant.ImportPrice.ToString("N0")₫</span>
+                                                            </div>
+                                                            <div style="display: flex; justify-content: space-between;">
+                                                                <span style="color: #6b7280;">Giá bán</span>
+                                                                <span style="font-weight: 700; color: #10b981;">@variant.SellingPrice.ToString("N0")₫</span>
+                                                            </div>
+                                                            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 6px; border-top: 1px solid #e5e7eb;">
+                                                                <span style="color: #6b7280;">Tồn kho</span>
+                                                                <span style="padding: 4px 10px; background: @(variant.StockQuantity == 0 ? "#fee2e2" : variant.StockQuantity < 10 ? "#fef3c7" : "#d1fae5"); color: @(variant.StockQuantity == 0 ? "#dc2626" : variant.StockQuantity < 10 ? "#b45309" : "#047857"); border-radius: 12px; font-size: 12px; font-weight: 700;">
+                                                                    @variant.StockQuantity
+                                                                </span>
+                                                            </div>
+                                                            <div style="padding-top: 6px; border-top: 1px solid #e5e7eb;">
+                                                                <span style="padding: 4px 10px; background: @(variant.Status == "Active" ? "#d1fae5" : "#fee2e2"); color: @(variant.Status == "Active" ? "#047857" : "#dc2626"); border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                                                    @variant.Status
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
                                         </div>
                                     </div>
                                 }
                             </div>
                         </div>
 
-                        <div class="detail-section">
-                            <h4>Thư viện ảnh (@productDetail.Images.Count)</h4>
-                            <div class="images-grid">
-                                @foreach (var image in productDetail.Images.OrderBy(i => i.DisplayOrder))
-                                {
-                                    <div class="image-item">
-                                        <img src="@image.ImageUrl" alt="@image.ColorName" />
-                                        <div class="image-info">
-                                            <div>@image.ColorName</div>
-                                            <div class="image-type">@image.ImageType</div>
-                                            @if (image.IsDefault)
+                        <!-- Images Gallery Grouped by Color -->
+                        <div style="padding: 24px; background: white; border-top: 1px solid #e5e7eb;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                                <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: #111827; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-images" style="color: #3b82f6;"></i>
+                                    Thư viện ảnh (@productDetail.Images.Count)
+                                </h4>
+                                <button type="button" @onclick="OpenAddImageForm" 
+                                        style="padding: 8px 16px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-plus"></i>
+                                    Thêm ảnh mới
+                                </button>
+                            </div>
+                            
+                            @if (showAddImageForm)
+                            {
+                                <div style="background: #f0fdf4; border: 2px solid #10b981; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                        <h5 style="margin: 0; font-size: 14px; font-weight: 600; color: #047857;">
+                                            <i class="fas fa-image"></i> Thêm ảnh mới
+                                        </h5>
+                                        <button type="button" @onclick="CloseAddImageForm" 
+                                                style="padding: 4px 8px; background: #dc2626; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr 80px 120px; gap: 12px; margin-bottom: 12px;">
+                                        <div>
+                                            <label style="display: block; font-size: 12px; font-weight: 500; color: #374151; margin-bottom: 4px;">Màu sắc</label>
+                                            <select @bind="newImageForm.ColorID" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;">
+                                                <option value="0">Chọn màu</option>
+                                                @{
+                                                    var productColors = productDetail.Variants
+                                                        .GroupBy(v => new { v.ColorID, v.ColorName })
+                                                        .Select(g => g.Key)
+                                                        .ToList();
+                                                    
+                                                    foreach (var color in productColors)
+                                                    {
+                                                        <option value="@color.ColorID">@color.ColorName</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label style="display: block; font-size: 12px; font-weight: 500; color: #374151; margin-bottom: 4px;">Loại ảnh</label>
+                                            <select @bind="newImageForm.ImageType" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;">
+                                                <option value="Main">Main</option>
+                                                <option value="Side">Side</option>
+                                                <option value="Back">Back</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label style="display: block; font-size: 12px; font-weight: 500; color: #374151; margin-bottom: 4px;">Thứ tự</label>
+                                            <input type="number" @bind="newImageForm.DisplayOrder" 
+                                                   style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" />
+                                        </div>
+                                        <div style="display: flex; align-items: end;">
+                                            <label>
+                                                <input type="checkbox" @bind="newImageForm.IsDefault" style="margin-right: 6px;" />
+                                                <span style="font-size: 12px; color: #374151;">Ảnh mặc định</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div style="margin-bottom: 12px;">
+                                        <label style="display: block; font-size: 12px; font-weight: 500; color: #374151; margin-bottom: 4px;">Chọn ảnh</label>
+                                        <div style="display: flex; gap: 10px; align-items: center;">
+                                            <InputFile OnChange="HandleNewImageUpload" accept="image/*" id="newImageFile" style="display: none;" />
+                                            <label for="newImageFile" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: #3b82f6; color: white; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500;">
+                                                @if (isUploadingNewImage)
+                                                {
+                                                    <i class="fas fa-spinner fa-spin"></i>
+                                                    <span>Đang tải...</span>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-upload"></i>
+                                                    <span>Upload ảnh</span>
+                                                }
+                                            </label>
+                                            @if (!string.IsNullOrEmpty(newImageForm.ImageUrl))
                                             {
-                                                <span class="badge badge-primary">Mặc định</span>
+                                                <div style="display: flex; align-items: center; gap: 8px;">
+                                                    <img src="@GetImageUrl(newImageForm.ImageUrl)" alt="Preview" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #e5e7eb;" />
+                                                    <span style="font-size: 11px; color: #6b7280;">✓ Đã chọn ảnh</span>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                    <button type="button" @onclick="SubmitAddImage" disabled="@(isSavingImage || newImageForm.ColorID == 0 || string.IsNullOrEmpty(newImageForm.ImageUrl))"
+                                            style="padding: 8px 20px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; width: 100%; opacity: @(isSavingImage || newImageForm.ColorID == 0 || string.IsNullOrEmpty(newImageForm.ImageUrl) ? "0.5" : "1");">
+                                        @if (isSavingImage)
+                                        {
+                                            <span>Đang lưu...</span>
+                                        }
+                                        else
+                                        {
+                                            <span><i class="fas fa-save"></i> Lưu ảnh</span>
+                                        }
+                                    </button>
+                                </div>
+                            }
+                            
+                            <div style="display: grid; gap: 20px;">
+                                @foreach (var colorGroup in productDetail.Images.GroupBy(i => new { i.ColorID, i.ColorName }))
+                                {
+                                    <div style="background: #f9fafb; padding: 16px; border-radius: 10px; border: 1px solid #e5e7eb;">
+                                        <div style="font-weight: 700; color: #111827; font-size: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-palette" style="color: #6366f1;"></i>
+                                            @colorGroup.Key.ColorName
+                                            <span style="background: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; color: #6b7280; font-weight: 500;">@colorGroup.Count() ảnh</span>
+                                        </div>
+                                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px;">
+                                            @foreach (var image in colorGroup.OrderBy(i => i.DisplayOrder))
+                                            {
+                                                <div style="position: relative; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.08); transition: transform 0.2s; background: white;">
+                                                    <img src="@GetImageUrl(image.ImageUrl)" alt="@image.ColorName" 
+                                                         style="width: 100%; height: 140px; object-fit: cover; display: block;" />
+                                                    <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.75), transparent); padding: 8px 8px 6px; color: white;">
+                                                        <div style="font-size: 11px; font-weight: 600;">@image.ImageType</div>
+                                                    </div>
+                                                    @if (image.IsDefault)
+                                                    {
+                                                        <div style="position: absolute; top: 6px; right: 6px; background: #3b82f6; color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                                            Mặc định
+                                                        </div>
+                                                    }
+                                                </div>
                                             }
                                         </div>
                                     </div>
@@ -328,8 +517,12 @@
                         </div>
                     }
                 </div>
-                <div class="modal-footer">
-                    <button class="btn-secondary" @onclick="CloseDetailModal">Đóng</button>
+                <div style="padding: 20px 24px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; background: #f9fafb;">
+                    <button @onclick="CloseDetailModal" 
+                            style="padding: 10px 24px; background: #3b82f6; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-check"></i>
+                        <span>Đóng</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -339,7 +532,7 @@
 <!-- Delete Confirm Modal -->
 @if (showDeleteConfirm && productToDelete != null)
 {
-    <div class="modal show" @onclick="CloseDeleteConfirm">
+    <div class="modal show" style="display: flex !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; padding: 20px;" @onclick="CloseDeleteConfirm">
         <div class="modal-dialog modal-sm" @onclick:stopPropagation="true">
             <div class="modal-content">
                 <div class="modal-header">
@@ -374,6 +567,455 @@
     </div>
 }
 
+    }
+}
+
+<!-- Add Product Modal -->
+@if (showAddModal)
+{
+    <div class="modal show" style="display: flex !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; padding: 20px; overflow-y: auto;" @onclick="CloseAddModal">
+        <div class="modal-dialog" style="max-width: 900px; width: 100%; margin: auto;" @onclick:stopPropagation="true">
+            <div class="modal-content" style="background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+                <div class="modal-header" style="padding: 24px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between;">
+                    <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #111827; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-plus-circle" style="color: #3b82f6;"></i>
+                        Thêm sản phẩm mới
+                    </h3>
+                    <button class="modal-close" @onclick="CloseAddModal" style="width: 32px; height: 32px; border: none; background: #f3f4f6; color: #6b7280; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body" style="padding: 24px;">
+                    <!-- Basic Info Section -->
+                    <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                        <h4 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #374151; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-info-circle" style="color: #3b82f6;"></i>
+                            Thông tin cơ bản
+                        </h4>
+                        
+                        <div style="display: grid; gap: 16px;">
+                            <div>
+                                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                    Tên sản phẩm <span style="color: #ef4444;">*</span>
+                                </label>
+                                <input type="text" @bind="addProductForm.Name" placeholder="VD: Nike Air Max 270" 
+                                       style="width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;" />
+                            </div>
+
+                            <div>
+                                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                    Mô tả
+                                </label>
+                                <textarea @bind="addProductForm.Description" rows="3" placeholder="Mô tả chi tiết về sản phẩm..."
+                                          style="width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; resize: vertical;"></textarea>
+                            </div>
+
+                            <div>
+                                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                    Hình ảnh chính <span style="color: #ef4444;">*</span>
+                                </label>
+                                <div style="display: grid; gap: 12px;">
+                                    <div style="display: flex; gap: 12px;">
+                                        <InputFile OnChange="HandleMainImageUpload" accept="image/*" 
+                                                   style="flex: 1; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; cursor: pointer;" />
+                                        @if (isUploadingMainImage)
+                                        {
+                                            <div style="display: flex; align-items: center; gap: 8px; color: #3b82f6;">
+                                                <div style="width: 16px; height: 16px; border: 2px solid #3b82f6; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                                                <span style="font-size: 13px;">Đang upload...</span>
+                                            </div>
+                                        }
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(addProductForm.ImageUrl))
+                                    {
+                                        <div style="display: flex; gap: 12px; align-items: center;">
+                                            <img src="@GetImageUrl(addProductForm.ImageUrl)" alt="Preview" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid #e5e7eb;" />
+                                            <input type="text" @bind="addProductForm.ImageUrl" placeholder="hoặc nhập URL"
+                                                   style="flex: 1; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;" />
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <input type="text" @bind="addProductForm.ImageUrl" placeholder="hoặc nhập URL trực tiếp"
+                                               style="width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;" />
+                                    }
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                                <div>
+                                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                        Danh mục <span style="color: #ef4444;">*</span>
+                                    </label>
+                                    <select @bind="addProductForm.CategoryId" style="width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                                        <option value="0">Chọn danh mục</option>
+                                        @foreach (var cat in categories)
+                                        {
+                                            <option value="@cat.CategoryID">@cat.CategoryName</option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                        Thương hiệu <span style="color: #ef4444;">*</span>
+                                    </label>
+                                    <select @bind="addProductForm.BrandId" style="width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                                        <option value="0">Chọn thương hiệu</option>
+                                        @foreach (var brand in brands)
+                                        {
+                                            <option value="@brand.BrandID">@brand.BrandName</option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                        Giới tính <span style="color: #ef4444;">*</span>
+                                    </label>
+                                    <select @bind="addProductForm.GenderId" style="width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                                        <option value="0">Chọn giới tính</option>
+                                        @foreach (var gender in genders)
+                                        {
+                                            <option value="@gender.GenderId">@gender.Name</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Variants Section -->
+                    <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                        <h4 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #374151; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-boxes" style="color: #f59e0b;"></i>
+                            Biến thể (Size/Màu/Giá/Kho)
+                        </h4>
+                        
+                        <div style="display: grid; gap: 12px; margin-bottom: 12px;">
+                            @for (int i = 0; i < addProductForm.Variants.Count; i++)
+                            {
+                                var index = i;
+                                var variant = addProductForm.Variants[index];
+                                
+                                <div style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 40px; gap: 10px; align-items: end;">
+                                        <div>
+                                            <label style="display: block; font-size: 13px; font-weight: 500; color: #6b7280; margin-bottom: 4px;">Màu</label>
+                                            <select @bind="variant.ColorID" style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;">
+                                                <option value="0">Chọn</option>
+                                                @foreach (var color in colors)
+                                                {
+                                                    <option value="@color.ColorID">@color.ColorName</option>
+                                                }
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label style="display: block; font-size: 13px; font-weight: 500; color: #6b7280; margin-bottom: 4px;">Size</label>
+                                            <select @bind="variant.SizeID" style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;">
+                                                <option value="0">Chọn</option>
+                                                @foreach (var size in sizes)
+                                                {
+                                                    <option value="@size.SizeID">@size.Value</option>
+                                                }
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label style="display: block; font-size: 13px; font-weight: 500; color: #6b7280; margin-bottom: 4px;">Giá nhập</label>
+                                            <input type="number" @bind="variant.ImportPrice" placeholder="0" 
+                                                   style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" />
+                                        </div>
+
+                                        <div>
+                                            <label style="display: block; font-size: 13px; font-weight: 500; color: #6b7280; margin-bottom: 4px;">Giá bán</label>
+                                            <input type="number" @bind="variant.SellingPrice" placeholder="0" 
+                                                   style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" />
+                                        </div>
+
+                                        <div>
+                                            <label style="display: block; font-size: 13px; font-weight: 500; color: #6b7280; margin-bottom: 4px;">Tồn kho</label>
+                                            <input type="number" @bind="variant.StockQuantity" placeholder="0" 
+                                                   style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" />
+                                        </div>
+
+                                        <button type="button" @onclick="() => RemoveVariantRow(index)" 
+                                                style="width: 36px; height: 36px; border: none; background: #fee2e2; color: #dc2626; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-trash" style="font-size: 12px;"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <button type="button" @onclick="AddVariantRow" 
+                                style="padding: 8px 16px; background: white; border: 1px dashed #d1d5db; color: #6b7280; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-plus"></i> Thêm biến thể
+                        </button>
+                    </div>
+
+                    <!-- Images Section -->
+                    <div style="background: #dbeafe; padding: 20px; border-radius: 8px;">
+                        <h4 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #374151; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-images" style="color: #3b82f6;"></i>
+                            Thư viện ảnh
+                        </h4>
+                        
+                        <div style="display: grid; gap: 12px; margin-bottom: 12px;">
+                            @for (int i = 0; i < addProductForm.Images.Count; i++)
+                            {
+                                var index = i;
+                                var image = addProductForm.Images[index];
+                                
+                                <div style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                    <div style="display: grid; gap: 12px;">
+                                        <div style="display: grid; grid-template-columns: 1fr 80px 100px 40px; gap: 10px; align-items: end;">
+                                            <div>
+                                                <label style="display: block; font-size: 13px; font-weight: 500; color: #6b7280; margin-bottom: 4px;">Màu</label>
+                                                <select @bind="image.ColorID" style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;">
+                                                    <option value="0">Chọn</option>
+                                                    @{
+                                                        var selectedColors = GetSelectedColorsFromVariants();
+                                                        if (selectedColors.Any())
+                                                        {
+                                                            foreach (var color in selectedColors)
+                                                            {
+                                                                <option value="@color.ColorID">@color.ColorName</option>
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <option value="0" disabled>Vui lòng thêm biến thể trước</option>
+                                                        }
+                                                    }
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <label style="display: block; font-size: 13px; font-weight: 500; color: #6b7280; margin-bottom: 4px;">Thứ tự</label>
+                                                <input type="number" @bind="image.DisplayOrder" 
+                                                       style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" />
+                                            </div>
+
+                                            <div>
+                                                <label style="display: block; font-size: 13px; font-weight: 500; color: #6b7280; margin-bottom: 4px;">Loại</label>
+                                                <select @bind="image.ImageType" style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;">
+                                                    <option value="Main">Main</option>
+                                                    <option value="Side">Side</option>
+                                                    <option value="Back">Back</option>
+                                                </select>
+                                            </div>
+
+                                            <button type="button" @onclick="() => RemoveImageRow(index)" 
+                                                    style="width: 36px; height: 36px; border: none; background: #fee2e2; color: #dc2626; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                                <i class="fas fa-trash" style="font-size: 12px;"></i>
+                                            </button>
+                                        </div>
+
+                                        <div style="display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center;">
+                                            <div>
+                                                <InputFile OnChange="@(e => HandleImageUpload(e, index))" accept="image/*" id="@($"imageFile{index}")" style="display: none;" />
+                                                <label for="@($"imageFile{index}")" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: #3b82f6; color: white; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; border: none;">
+                                                    @if (uploadingImageIndexes.Contains(index))
+                                                    {
+                                                        <i class="fas fa-spinner fa-spin"></i>
+                                                        <span>Đang tải...</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="fas fa-upload"></i>
+                                                        <span>Chọn ảnh</span>
+                                                    }
+                                                </label>
+                                            </div>
+                                            
+                                            @if (!string.IsNullOrEmpty(image.ImageUrl))
+                                            {
+                                                <div style="display: flex; align-items: center; gap: 8px;">
+                                                    <img src="@GetImageUrl(image.ImageUrl)" alt="Preview" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #e5e7eb;" />
+                                                    <span style="font-size: 12px; color: #6b7280; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@image.ImageUrl</span>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <button type="button" @onclick="AddImageRow" 
+                                style="padding: 8px 16px; background: white; border: 1px dashed #d1d5db; color: #6b7280; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-plus"></i> Thêm ảnh
+                        </button>
+                    </div>
+                </div>
+                <div style="padding: 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 12px; background: #f9fafb;">
+                    <button @onclick="CloseAddModal" 
+                            style="padding: 10px 20px; background: white; border: 1px solid #d1d5db; color: #374151; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">
+                        Hủy
+                    </button>
+                    <button @onclick="SubmitAddProduct" disabled="@isSaving"
+                            style="padding: 10px 24px; background: #3b82f6; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                        @if (isSaving)
+                        {
+                            <span>Đang lưu...</span>
+                        }
+                        else
+                        {
+                            <>
+                                <i class="fas fa-save"></i>
+                                <span>Lưu sản phẩm</span>
+                            </>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Edit Product Modal -->
+@if (showEditModal)
+{
+    <div class="modal show" style="display: flex !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; padding: 20px; overflow-y: auto;" @onclick="CloseEditModal">
+        <div class="modal-dialog" style="max-width: 600px; width: 100%; margin: auto;" @onclick:stopPropagation="true">
+            <div class="modal-content" style="background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+                <div class="modal-header" style="padding: 24px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between;">
+                    <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #111827; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-edit" style="color: #3b82f6;"></i>
+                        Chỉnh sửa sản phẩm
+                    </h3>
+                    <button class="modal-close" @onclick="CloseEditModal" style="width: 32px; height: 32px; border: none; background: #f3f4f6; color: #6b7280; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body" style="padding: 24px;">
+                    <div style="display: grid; gap: 16px;">
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                Tên sản phẩm <span style="color: #ef4444;">*</span>
+                            </label>
+                            <input type="text" @bind="editProductForm.Name" placeholder="Nhập tên sản phẩm"
+                                   style="width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;" />
+                        </div>
+
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                Mô tả
+                            </label>
+                            <textarea @bind="editProductForm.Description" rows="3" placeholder="Mô tả chi tiết về sản phẩm..."
+                                      style="width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; resize: vertical;"></textarea>
+                        </div>
+
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                Hình ảnh chính <span style="color: #ef4444;">*</span>
+                            </label>
+                            <div style="display: grid; gap: 10px;">
+                                <div>
+                                    <InputFile OnChange="HandleEditMainImageUpload" accept="image/*" id="editMainImageFile" style="display: none;" />
+                                    <label for="editMainImageFile" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #3b82f6; color: white; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; border: none;">
+                                        @if (isUploadingEditMainImage)
+                                        {
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                            <span>Đang tải...</span>
+                                        }
+                                        else
+                                        {
+                                            <i class="fas fa-upload"></i>
+                                            <span>Chọn ảnh từ máy</span>
+                                        }
+                                    </label>
+                                </div>
+                                
+                                @if (!string.IsNullOrEmpty(editProductForm.ImageUrl))
+                                {
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <img src="@GetImageUrl(editProductForm.ImageUrl)" alt="Preview" style="width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e7eb;" />
+                                        <input type="text" @bind="editProductForm.ImageUrl" placeholder="hoặc nhập URL"
+                                               style="flex: 1; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;" />
+                                    </div>
+                                }
+                                else
+                                {
+                                    <input type="text" @bind="editProductForm.ImageUrl" placeholder="hoặc nhập URL"
+                                           style="width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;" />
+                                }
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                            <div>
+                                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                    Danh mục <span style="color: #ef4444;">*</span>
+                                </label>
+                                <select @bind="editProductForm.CategoryId" style="width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                                    <option value="0">Chọn</option>
+                                    @foreach (var cat in categories)
+                                    {
+                                        <option value="@cat.CategoryID">@cat.CategoryName</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div>
+                                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                    Thương hiệu <span style="color: #ef4444;">*</span>
+                                </label>
+                                <select @bind="editProductForm.BrandId" style="width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                                    <option value="0">Chọn</option>
+                                    @foreach (var brand in brands)
+                                    {
+                                        <option value="@brand.BrandID">@brand.BrandName</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div>
+                                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                    Giới tính <span style="color: #ef4444;">*</span>
+                                </label>
+                                <select @bind="editProductForm.GenderId" style="width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                                    <option value="0">Chọn</option>
+                                    @foreach (var gender in genders)
+                                    {
+                                        <option value="@gender.GenderId">@gender.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="background: #dbeafe; padding: 12px; border-radius: 6px; border-left: 3px solid #3b82f6; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-info-circle" style="color: #3b82f6;"></i>
+                            <span style="font-size: 13px; color: #1e40af;">Để quản lý variants và ảnh, vui lòng xem chi tiết sản phẩm</span>
+                        </div>
+                    </div>
+                </div>
+                <div style="padding: 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 12px; background: #f9fafb;">
+                    <button @onclick="CloseEditModal" 
+                            style="padding: 10px 20px; background: white; border: 1px solid #d1d5db; color: #374151; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">
+                        Hủy
+                    </button>
+                    <button @onclick="SubmitEditProduct" disabled="@isSaving"
+                            style="padding: 10px 24px; background: #3b82f6; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                        @if (isSaving)
+                        {
+                            <span>Đang lưu...</span>
+                        }
+                        else
+                        {
+                            <>
+                                <i class="fas fa-save"></i>
+                                <span>Cập nhật</span>
+                            </>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 <Toast />
 
 @code {
@@ -381,6 +1023,9 @@
     private List<ProductDTO> products = new();
     private List<CategoryDto> categories = new();
     private List<BrandDto> brands = new();
+    private List<ColorDTO> colors = new();
+    private List<SizeDTO> sizes = new();
+    private List<GenderDTO> genders = new();
     private ProductStatisticsDTO? statistics;
     
     private bool isLoading = false;
@@ -398,32 +1043,197 @@
     // Modal states
     private bool showDetailModal = false;
     private bool showDeleteConfirm = false;
+    private bool showAddModal = false;
+    private bool showEditModal = false;
     private bool isLoadingDetail = false;
     private bool isDeleting = false;
+    private bool isSaving = false;
+    private bool isUploadingMainImage = false;
+    private bool isUploadingEditMainImage = false;
+    private List<int> uploadingImageIndexes = new List<int>();
+    
+    // Add image states
+    private bool showAddImageForm = false;
+    private bool isUploadingNewImage = false;
+    private bool isSavingImage = false;
+    private AddProductImageRequest newImageForm = new();
     
     private ProductDTO? selectedProduct = null;
     private ProductDetailDTO? productDetail = null;
     private ProductDTO? productToDelete = null;
+
+    // Add/Edit form models
+    private AddProductRequest addProductForm = new();
+    private UpdateProductRequest editProductForm = new();
+    private int editProductId = 0;
+
+    // Variant editing
+    private int? editingVariantId = null;
+    private UpdateVariantRequest editVariantForm = new();
+
+    // Helper method to get full image URL
+    private string GetImageUrl(string url)
+    {
+        if (string.IsNullOrEmpty(url)) return "";
+        if (url.StartsWith("http")) return url;
+        return $"https://localhost:7134{url}";
+    }
+
+    // Helper method to get selected colors from variants
+    private List<ColorDTO> GetSelectedColorsFromVariants()
+    {
+        var selectedColorIds = addProductForm.Variants
+            .Where(v => v.ColorID > 0)
+            .Select(v => v.ColorID)
+            .Distinct()
+            .ToList();
+        
+        return colors.Where(c => selectedColorIds.Contains(c.ColorID)).ToList();
+    }
+
+    // Handle main image upload
+    private async Task HandleMainImageUpload(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            isUploadingMainImage = true;
+            StateHasChanged();
+
+            var file = e.File;
+            if (file != null)
+            {
+                var response = await ProductService.UploadImageAsync(file);
+                if (response.Success)
+                {
+                    addProductForm.ImageUrl = response.Url;
+                    ToastService.Success("Upload ảnh thành công!");
+                }
+                else
+                {
+                    ToastService.Error(response.Message);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.Error($"Lỗi: {ex.Message}");
+        }
+        finally
+        {
+            isUploadingMainImage = false;
+            StateHasChanged();
+        }
+    }
+
+    // Handle gallery image upload
+    private async Task HandleImageUpload(InputFileChangeEventArgs e, int index)
+    {
+        try
+        {
+            uploadingImageIndexes.Add(index);
+            StateHasChanged();
+
+            var file = e.File;
+            if (file != null)
+            {
+                var response = await ProductService.UploadImageAsync(file);
+                if (response.Success)
+                {
+                    addProductForm.Images[index].ImageUrl = response.Url;
+                    ToastService.Success("Upload ảnh thành công!");
+                }
+                else
+                {
+                    ToastService.Error(response.Message);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.Error($"Lỗi: {ex.Message}");
+        }
+        finally
+        {
+            uploadingImageIndexes.Remove(index);
+            StateHasChanged();
+        }
+    }
+
+    // Handle edit main image upload
+    private async Task HandleEditMainImageUpload(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            isUploadingEditMainImage = true;
+            StateHasChanged();
+
+            var file = e.File;
+            if (file != null)
+            {
+                var response = await ProductService.UploadImageAsync(file);
+                if (response.Success)
+                {
+                    editProductForm.ImageUrl = response.Url;
+                    ToastService.Success("Upload ảnh thành công!");
+                }
+                else
+                {
+                    ToastService.Error(response.Message);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.Error($"Lỗi: {ex.Message}");
+        }
+        finally
+        {
+            isUploadingEditMainImage = false;
+            StateHasChanged();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
         await LoadDropdownData();
         await LoadStatistics();
         await LoadProducts();
+        await LoadFormDropdowns();
     }
 
     private async Task LoadDropdownData()
     {
         var categoriesResponse = await CategoryService.GetListCategoryAsync();
-        if (categoriesResponse.Success)
+        if (categoriesResponse.Success && categoriesResponse.Data != null)
         {
             categories = categoriesResponse.Data;
         }
 
         var brandsResponse = await BrandService.GetListBrandAsync();
-        if (brandsResponse.Success)
+        if (brandsResponse.Success && brandsResponse.Data != null)
         {
             brands = brandsResponse.Data;
+        }
+    }
+
+    private async Task LoadFormDropdowns()
+    {
+        var colorsResponse = await ProductService.GetColorsAsync();
+        if (colorsResponse.Success)
+        {
+            colors = colorsResponse.Data;
+        }
+
+        var sizesResponse = await ProductService.GetSizesAsync();
+        if (sizesResponse.Success)
+        {
+            sizes = sizesResponse.Data;
+        }
+
+        var gendersResponse = await ProductService.GetGendersAsync();
+        if (gendersResponse.Success)
+        {
+            genders = gendersResponse.Data;
         }
     }
 
@@ -432,28 +1242,27 @@
         var response = await ProductService.GetStatisticsAsync();
         if (response.Success && response.Data != null)
         {
-            var data = response.Data;
             statistics = new ProductStatisticsDTO
             {
-                TotalProducts = data.TotalProducts,
-                ActiveProducts = data.ActiveProducts,
-                OutOfStockProducts = data.OutOfStockProducts,
-                LowStockProducts = data.LowStockProducts,
-                TotalInventoryValue = data.TotalInventoryValue,
-                CategoryStats = data.CategoryStats?.Select(x => new ProductStatisticsDTO.CategoryStatistics
+                TotalProducts = response.Data.TotalProducts,
+                ActiveProducts = response.Data.ActiveProducts,
+                OutOfStockProducts = response.Data.OutOfStockProducts,
+                LowStockProducts = response.Data.LowStockProducts,
+                TotalInventoryValue = response.Data.TotalInventoryValue,
+                CategoryStats = response.Data.CategoryStats.Select(x => new ProductStatisticsDTO.CategoryStatistics
                 {
                     CategoryID = x.CategoryID,
                     CategoryName = x.CategoryName,
                     ProductCount = x.ProductCount,
                     TotalStock = x.TotalStock
-                }).ToList() ?? new List<ProductStatisticsDTO.CategoryStatistics>(),
-                BrandStats = data.BrandStats?.Select(x => new ProductStatisticsDTO.BrandStatistics
+                }).ToList(),
+                BrandStats = response.Data.BrandStats.Select(x => new ProductStatisticsDTO.BrandStatistics
                 {
                     BrandID = x.BrandID,
                     BrandName = x.BrandName,
                     ProductCount = x.ProductCount,
                     TotalStock = x.TotalStock
-                }).ToList() ?? new List<ProductStatisticsDTO.BrandStatistics>()
+                }).ToList()
             };
         }
     }
@@ -478,7 +1287,7 @@
         }
         else
         {
-            ToastService.ShowError(response.Message);
+            ToastService.Error(response.Message);
         }
 
         isLoading = false;
@@ -528,63 +1337,266 @@
         await LoadProducts();
     }
 
-    // Modal methods - TO BE IMPLEMENTED
-    private async Task OpenAddProductModal()
+    // Modal methods
+    private void OpenAddProductModal()
     {
-        ToastService.ShowInfo("Chức năng thêm sản phẩm đang phát triển...");
-        // TODO: Implement add product modal
+        try
+        {
+            addProductForm = new AddProductRequest
+            {
+                Variants = new List<AddVariantRequest> { new AddVariantRequest() },
+                Images = new List<AddImageRequest> { new AddImageRequest { DisplayOrder = 1, ImageType = "Main", IsDefault = true } }
+            };
+            showAddModal = true;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error opening modal: {ex.Message}");
+        }
+    }
+
+    private void CloseAddModal()
+    {
+        showAddModal = false;
+        addProductForm = new();
+        StateHasChanged();
+    }
+
+    private void AddVariantRow()
+    {
+        addProductForm.Variants.Add(new AddVariantRequest());
+    }
+
+    private void RemoveVariantRow(int index)
+    {
+        if (addProductForm.Variants.Count > 1)
+        {
+            addProductForm.Variants.RemoveAt(index);
+        }
+    }
+
+    private void AddImageRow()
+    {
+        addProductForm.Images.Add(new AddImageRequest 
+        { 
+            DisplayOrder = addProductForm.Images.Count + 1,
+            ImageType = "Side"
+        });
+    }
+
+    private void RemoveImageRow(int index)
+    {
+        if (addProductForm.Images.Count > 1)
+        {
+            addProductForm.Images.RemoveAt(index);
+        }
+    }
+
+    private async Task SubmitAddProduct()
+    {
+        isSaving = true;
+        StateHasChanged();
+
+        var response = await ProductService.AddProductAsync(addProductForm);
+        
+        if (response.Success)
+        {
+            ToastService.Success("Thêm sản phẩm thành công!");
+            CloseAddModal();
+            currentPage = 1;
+            await LoadProducts();
+            await LoadStatistics();
+        }
+        else
+        {
+            ToastService.Error(response.Message);
+        }
+
+        isSaving = false;
+        StateHasChanged();
     }
 
     private async Task ViewProductDetail(int productId)
     {
-        selectedProduct = products.FirstOrDefault(p => p.ProductID == productId);
-        if (selectedProduct == null) return;
-
-        showDetailModal = true;
-        isLoadingDetail = true;
-        await JSRuntime.InvokeVoidAsync("eval", "document.body.classList.add('modal-open')");
-        StateHasChanged();
-
-        var response = await ProductService.GetProductDetailAsync(productId);
-        if (response.Success && response.Data != null)
+        try
         {
-            productDetail = response.Data;
-        }
-        else
-        {
-            ToastService.ShowError(response.Message);
-        }
+            selectedProduct = products.FirstOrDefault(p => p.ProductID == productId);
+            if (selectedProduct == null) return;
 
-        isLoadingDetail = false;
-        StateHasChanged();
+            showDetailModal = true;
+            isLoadingDetail = true;
+            StateHasChanged();
+
+            var response = await ProductService.GetProductDetailAsync(productId);
+            if (response.Success && response.Data != null)
+            {
+                productDetail = response.Data;
+            }
+            else
+            {
+                ToastService.Error(response.Message);
+            }
+
+            isLoadingDetail = false;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            ToastService.Error($"Lỗi: {ex.Message}");
+            showDetailModal = false;
+        }
     }
 
-    private async Task CloseDetailModal()
+    private void CloseDetailModal()
     {
         showDetailModal = false;
         selectedProduct = null;
         productDetail = null;
-        await JSRuntime.InvokeVoidAsync("eval", "document.body.classList.remove('modal-open')");
+        editingVariantId = null;
+        StateHasChanged();
+    }
+
+    private void ToggleEditVariant(VariantDTO variant)
+    {
+        if (editingVariantId == variant.VariantID)
+        {
+            // Close editing
+            editingVariantId = null;
+        }
+        else
+        {
+            // Open editing for this variant
+            editingVariantId = variant.VariantID;
+            editVariantForm = new UpdateVariantRequest
+            {
+                ImportPrice = variant.ImportPrice,
+                SellingPrice = variant.SellingPrice,
+                StockQuantity = variant.StockQuantity,
+                Status = variant.Status
+            };
+        }
+        StateHasChanged();
+    }
+
+    private async Task SaveVariant()
+    {
+        if (editingVariantId == null) return;
+
+        try
+        {
+            isSaving = true;
+            StateHasChanged();
+
+            var response = await ProductService.UpdateVariantAsync(editingVariantId.Value, editVariantForm);
+            if (response.Success)
+            {
+                ToastService.Success("Cập nhật biến thể thành công!");
+                editingVariantId = null;
+                
+                // Reload product detail
+                if (selectedProduct != null)
+                {
+                    await ViewProductDetail(selectedProduct.ProductID);
+                }
+            }
+            else
+            {
+                ToastService.Error(response.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.Error($"Lỗi: {ex.Message}");
+        }
+        finally
+        {
+            isSaving = false;
+            StateHasChanged();
+        }
     }
 
     private async Task OpenEditModal(int productId)
     {
-        ToastService.ShowInfo("Chức năng chỉnh sửa đang phát triển...");
-        // TODO: Implement edit product modal
+        try
+        {
+            Console.WriteLine($"OpenEditModal called for product {productId}");
+            editProductId = productId;
+            var response = await ProductService.GetProductDetailAsync(productId);
+            
+            Console.WriteLine($"API Response: Success={response.Success}, Data={response.Data != null}");
+            
+            if (response.Success && response.Data != null)
+            {
+                editProductForm = new UpdateProductRequest
+                {
+                    ProductID = response.Data.ProductID,
+                    Name = response.Data.Name,
+                    Description = response.Data.Description,
+                    ImageUrl = response.Data.ImageUrl,
+                    BrandId = response.Data.BrandId,
+                    CategoryId = response.Data.CategoryId,
+                    GenderId = response.Data.GenderId
+                };
+                showEditModal = true;
+                Console.WriteLine($"showEditModal set to: {showEditModal}");
+                StateHasChanged();
+                Console.WriteLine("StateHasChanged called");
+            }
+            else
+            {
+                ToastService.Error(response.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.Error($"Lỗi: {ex.Message}");
+        }
     }
 
-    private async Task OpenDeleteConfirm(ProductDTO product)
+    private void CloseEditModal()
+    {
+        showEditModal = false;
+        editProductForm = new();
+        editProductId = 0;
+        StateHasChanged();
+    }
+
+    private async Task SubmitEditProduct()
+    {
+        isSaving = true;
+        StateHasChanged();
+
+        var response = await ProductService.UpdateProductAsync(editProductForm);
+        
+        if (response.Success)
+        {
+            ToastService.Success("Cập nhật sản phẩm thành công!");
+            CloseEditModal();
+            await LoadProducts();
+            await LoadStatistics();
+        }
+        else
+        {
+            ToastService.Error(response.Message);
+        }
+
+        isSaving = false;
+        StateHasChanged();
+    }
+
+    private void OpenDeleteConfirm(ProductDTO product)
     {
         productToDelete = product;
         showDeleteConfirm = true;
-        await JSRuntime.InvokeVoidAsync("eval", "document.body.classList.add('modal-open')");
+        StateHasChanged();
     }
 
-    private async Task CloseDeleteConfirm()
+    private void CloseDeleteConfirm()
     {
         showDeleteConfirm = false;
         productToDelete = null;
-        await JSRuntime.InvokeVoidAsync("eval", "document.body.classList.remove('modal-open')");
+        StateHasChanged();
     }
 
     private async Task ConfirmDelete()
@@ -598,19 +1610,118 @@
         
         if (response.Success)
         {
-            ToastService.ShowSuccess($"Đã xóa sản phẩm {productToDelete.Name} thành công!");
-            await CloseDeleteConfirm();
+            ToastService.Success($"Đã xóa sản phẩm {productToDelete.Name} thành công!");
+            CloseDeleteConfirm();
             currentPage = 1;
             await LoadProducts();
             await LoadStatistics();
         }
         else
         {
-            ToastService.ShowError(response.Message);
+            ToastService.Error(response.Message);
         }
 
         isDeleting = false;
         StateHasChanged();
+    }
+
+    // Add Image Methods
+    private void OpenAddImageForm()
+    {
+        if (selectedProduct == null) return;
+        
+        newImageForm = new AddProductImageRequest
+        {
+            ProductID = selectedProduct.ProductID,
+            ColorID = 0,
+            ImageUrl = "",
+            DisplayOrder = productDetail?.Images.Count ?? 0 + 1,
+            ImageType = "Main",
+            IsDefault = false
+        };
+        showAddImageForm = true;
+        StateHasChanged();
+    }
+
+    private void CloseAddImageForm()
+    {
+        showAddImageForm = false;
+        newImageForm = new();
+        StateHasChanged();
+    }
+
+    private async Task HandleNewImageUpload(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            isUploadingNewImage = true;
+            StateHasChanged();
+
+            var file = e.File;
+            if (file != null)
+            {
+                var response = await ProductService.UploadImageAsync(file);
+                if (response.Success)
+                {
+                    newImageForm.ImageUrl = response.Url;
+                    ToastService.Success("Upload ảnh thành công!");
+                }
+                else
+                {
+                    ToastService.Error(response.Message);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.Error($"Lỗi: {ex.Message}");
+        }
+        finally
+        {
+            isUploadingNewImage = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SubmitAddImage()
+    {
+        if (newImageForm.ColorID == 0 || string.IsNullOrEmpty(newImageForm.ImageUrl))
+        {
+            ToastService.Error("Vui lòng chọn màu và upload ảnh!");
+            return;
+        }
+
+        try
+        {
+            isSavingImage = true;
+            StateHasChanged();
+
+            var response = await ProductService.AddProductImageAsync(newImageForm);
+            if (response.Success)
+            {
+                ToastService.Success("Thêm ảnh thành công!");
+                CloseAddImageForm();
+                
+                // Reload product detail
+                if (selectedProduct != null)
+                {
+                    await ViewProductDetail(selectedProduct.ProductID);
+                }
+            }
+            else
+            {
+                ToastService.Error(response.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.Error($"Lỗi: {ex.Message}");
+        }
+        finally
+        {
+            isSavingImage = false;
+            StateHasChanged();
+        }
     }
 
     public void Dispose()

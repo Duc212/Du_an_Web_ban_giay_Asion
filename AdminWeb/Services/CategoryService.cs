@@ -1,4 +1,3 @@
-
 using DAL.DTOs.Categories.Req;
 using DAL.DTOs.Categories.Res;
 using System.Text.Json;
@@ -45,7 +44,7 @@ namespace AdminWeb.Services
             var result = await res.Content.ReadFromJsonAsync<CommonPagination<DAL.DTOs.Categories.Res.GetAllCategoryRes>>() ?? new CommonPagination<DAL.DTOs.Categories.Res.GetAllCategoryRes>();
             var list = result.Data.Select(x => new AdminWeb.Models.CategoryDto
             {
-                CategoryID = x.CategoryId,
+                CategoryID = x.CategoryID,
                 CategoryName = x.Name
             }).ToList();
             return new CommonResponse<List<AdminWeb.Models.CategoryDto>> { Success = true, Data = list };

@@ -20,6 +20,9 @@ namespace BUS.Services.Interfaces
         Task<CommonResponse<bool>> DeleteVariant(int variantId);
         Task<CommonResponse<bool>> UpdateStock(UpdateStockReq req);
 
+        // Image Management
+        Task<CommonResponse<bool>> AddProductImage(AddProductImageReq req);
+
         // Support APIs
         Task<CommonResponse<List<GetColorRes>>> GetColors();
         Task<CommonResponse<List<GetSizeRes>>> GetSizes();

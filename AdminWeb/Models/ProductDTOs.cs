@@ -250,12 +250,12 @@ namespace AdminWeb.Models
 
     public class CategoryDto {
         public int CategoryID { get; set; }
-        public string CategoryName { get; set; }
+        public string CategoryName { get; set; } = string.Empty;
     }
 
     public class BrandDto {
         public int BrandID { get; set; }
-        public string BrandName { get; set; }
+        public string BrandName { get; set; } = string.Empty;
     }
 
     public class ProductStatisticsDTO {
@@ -264,21 +264,38 @@ namespace AdminWeb.Models
         public int OutOfStockProducts { get; set; }
         public int LowStockProducts { get; set; }
         public decimal TotalInventoryValue { get; set; }
-        public List<CategoryStatistics> CategoryStats { get; set; }
-        public List<BrandStatistics> BrandStats { get; set; }
+        public List<CategoryStatistics> CategoryStats { get; set; } = new();
+        public List<BrandStatistics> BrandStats { get; set; } = new();
 
         public class CategoryStatistics {
             public int CategoryID { get; set; }
-            public string CategoryName { get; set; }
+            public string CategoryName { get; set; } = string.Empty;
             public int ProductCount { get; set; }
             public int TotalStock { get; set; }
         }
 
         public class BrandStatistics {
             public int BrandID { get; set; }
-            public string BrandName { get; set; }
+            public string BrandName { get; set; } = string.Empty;
             public int ProductCount { get; set; }
             public int TotalStock { get; set; }
         }
+    }
+
+    public class UploadImageResponse
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public string Url { get; set; } = string.Empty;
+    }
+
+    public class AddProductImageRequest
+    {
+        public int ProductID { get; set; }
+        public int ColorID { get; set; }
+        public string ImageUrl { get; set; } = string.Empty;
+        public int DisplayOrder { get; set; }
+        public string ImageType { get; set; } = "Main";
+        public bool IsDefault { get; set; }
     }
 }

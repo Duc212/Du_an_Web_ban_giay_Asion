@@ -1,25 +1,25 @@
-# API QU?N LÝ PRODUCT - DOCUMENTATION
+# API QU?N Lï¿½ PRODUCT - DOCUMENTATION
 
 ## ?? T?NG QUAN
 
-API này ???c thi?t k? cho trang admin ?? qu?n lý s?n ph?m, variants (size/color/stock) và hình ?nh.
+API nï¿½y ???c thi?t k? cho trang admin ?? qu?n lï¿½ s?n ph?m, variants (size/color/stock) vï¿½ hï¿½nh ?nh.
 
 **Base URL:** `/api/ProductAdmin`
 
-**Authorization:** T?t c? endpoint ??u yêu c?u Bearer Token (tr? Get Colors/Sizes/Genders)
+**Authorization:** T?t c? endpoint ??u yï¿½u c?u Bearer Token (tr? Get Colors/Sizes/Genders)
 
 ---
 
-## ?? PH?N 1: QU?N LÝ PRODUCT (CRUD)
+## ?? PH?N 1: QU?N Lï¿½ PRODUCT (CRUD)
 
-### 1. GET `/GetAllProducts` - L?y danh sách s?n ph?m
+### 1. GET `/GetAllProducts` - L?y danh sï¿½ch s?n ph?m
 
 **Query Parameters:**
 ```json
 {
   "pageIndex": 1,           // Trang hi?n t?i (default: 1)
   "pageSize": 10,          // S? item/trang (default: 10)
-  "keyword": "Nike",       // Tìm ki?m theo tên (optional)
+  "keyword": "Nike",       // Tï¿½m ki?m theo tï¿½n (optional)
   "categoryId": 1,         // L?c theo danh m?c (optional)
   "brandId": 1,            // L?c theo th??ng hi?u (optional)
   "sortBy": "name",        // name | createdat (optional)
@@ -31,12 +31,12 @@ API này ???c thi?t k? cho trang admin ?? qu?n lý s?n ph?m, variants (size/color/
 ```json
 {
   "success": true,
-  "message": "L?y danh sách s?n ph?m thành công",
+  "message": "L?y danh sï¿½ch s?n ph?m thï¿½nh cï¿½ng",
   "data": [
     {
       "productID": 1,
       "name": "Nike Air Max 270",
-      "description": "Giày th? thao...",
+      "description": "Giï¿½y th? thao...",
       "imageUrl": "https://...",
       "brandId": 1,
       "brandName": "Nike",
@@ -63,7 +63,7 @@ API này ???c thi?t k? cho trang admin ?? qu?n lý s?n ph?m, variants (size/color/
 ```json
 {
   "success": true,
-  "message": "L?y chi ti?t s?n ph?m thành công",
+  "message": "L?y chi ti?t s?n ph?m thï¿½nh cï¿½ng",
   "data": {
     "productID": 1,
     "name": "Nike Air Max 270",
@@ -108,13 +108,13 @@ API này ???c thi?t k? cho trang admin ?? qu?n lý s?n ph?m, variants (size/color/
 
 ---
 
-### 3. POST `/AddProduct` - Thêm s?n ph?m m?i
+### 3. POST `/AddProduct` - Thï¿½m s?n ph?m m?i
 
 **Request Body:**
 ```json
 {
   "name": "Nike Air Max 270 Black",
-  "description": "Giày th? thao cao c?p...",
+  "description": "Giï¿½y th? thao cao c?p...",
   "imageUrl": "https://...",
   "brandId": 1,
   "categoryId": 1,
@@ -158,21 +158,21 @@ API này ???c thi?t k? cho trang admin ?? qu?n lý s?n ph?m, variants (size/color/
 ```json
 {
   "success": true,
-  "message": "Thêm s?n ph?m thành công",
+  "message": "Thï¿½m s?n ph?m thï¿½nh cï¿½ng",
   "data": true
 }
 ```
 
 ---
 
-### 4. PUT `/UpdateProduct` - C?p nh?t thông tin s?n ph?m
+### 4. PUT `/UpdateProduct` - C?p nh?t thï¿½ng tin s?n ph?m
 
 **Request Body:**
 ```json
 {
   "productID": 1,
   "name": "Nike Air Max 270 Black",
-  "description": "Giày th? thao cao c?p...",
+  "description": "Giï¿½y th? thao cao c?p...",
   "imageUrl": "https://...",
   "brandId": 1,
   "categoryId": 1,
@@ -184,29 +184,29 @@ API này ???c thi?t k? cho trang admin ?? qu?n lý s?n ph?m, variants (size/color/
 ```json
 {
   "success": true,
-  "message": "C?p nh?t s?n ph?m thành công",
+  "message": "C?p nh?t s?n ph?m thï¿½nh cï¿½ng",
   "data": true
 }
 ```
 
 ---
 
-### 5. DELETE `/DeleteProduct/{productId}` - Xóa s?n ph?m
+### 5. DELETE `/DeleteProduct/{productId}` - Xï¿½a s?n ph?m
 
 **Response:**
 ```json
 {
   "success": true,
-  "message": "Xóa s?n ph?m thành công",
+  "message": "Xï¿½a s?n ph?m thï¿½nh cï¿½ng",
   "data": true
 }
 ```
 
-**L?u ý:** API này s? xóa luôn t?t c? variants và images c?a s?n ph?m.
+**L?u ï¿½:** API nï¿½y s? xï¿½a luï¿½n t?t c? variants vï¿½ images c?a s?n ph?m.
 
 ---
 
-## ?? PH?N 2: QU?N LÝ VARIANTS
+## ?? PH?N 2: QU?N Lï¿½ VARIANTS
 
 ### 6. GET `/GetProductVariants/{productId}` - L?y variants c?a s?n ph?m
 
@@ -214,7 +214,7 @@ API này ???c thi?t k? cho trang admin ?? qu?n lý s?n ph?m, variants (size/color/
 ```json
 {
   "success": true,
-  "message": "L?y danh sách variant thành công",
+  "message": "L?y danh sï¿½ch variant thï¿½nh cï¿½ng",
   "data": [
     {
       "variantID": 1,
@@ -234,7 +234,7 @@ API này ???c thi?t k? cho trang admin ?? qu?n lý s?n ph?m, variants (size/color/
 
 ---
 
-### 7. POST `/AddVariant` - Thêm variant m?i
+### 7. POST `/AddVariant` - Thï¿½m variant m?i
 
 **Request Body:**
 ```json
@@ -252,7 +252,7 @@ API này ???c thi?t k? cho trang admin ?? qu?n lý s?n ph?m, variants (size/color/
 ```json
 {
   "success": true,
-  "message": "Thêm variant thành công",
+  "message": "Thï¿½m variant thï¿½nh cï¿½ng",
   "data": true
 }
 ```
@@ -276,27 +276,27 @@ API này ???c thi?t k? cho trang admin ?? qu?n lý s?n ph?m, variants (size/color/
 ```json
 {
   "success": true,
-  "message": "C?p nh?t variant thành công",
+  "message": "C?p nh?t variant thï¿½nh cï¿½ng",
   "data": true
 }
 ```
 
 ---
 
-### 9. DELETE `/DeleteVariant/{variantId}` - Xóa variant
+### 9. DELETE `/DeleteVariant/{variantId}` - Xï¿½a variant
 
 **Response:**
 ```json
 {
   "success": true,
-  "message": "Xóa variant thành công",
+  "message": "Xï¿½a variant thï¿½nh cï¿½ng",
   "data": true
 }
 ```
 
 ---
 
-### 10. PUT `/UpdateStock` - C?p nh?t t?n kho hàng lo?t
+### 10. PUT `/UpdateStock` - C?p nh?t t?n kho hï¿½ng lo?t
 
 **Request Body:**
 ```json
@@ -322,7 +322,7 @@ API này ???c thi?t k? cho trang admin ?? qu?n lý s?n ph?m, variants (size/color/
 ```json
 {
   "success": true,
-  "message": "C?p nh?t t?n kho thành công",
+  "message": "C?p nh?t t?n kho thï¿½nh cï¿½ng",
   "data": true
 }
 ```
@@ -331,13 +331,13 @@ API này ???c thi?t k? cho trang admin ?? qu?n lý s?n ph?m, variants (size/color/
 
 ## ??? PH?N 3: API H? TR? (DROPDOWNS)
 
-### 11. GET `/GetColors` - L?y danh sách màu
+### 11. GET `/GetColors` - L?y danh sï¿½ch mï¿½u
 
 **Response:**
 ```json
 {
   "success": true,
-  "message": "L?y danh sách màu thành công",
+  "message": "L?y danh sï¿½ch mï¿½u thï¿½nh cï¿½ng",
   "data": [
     {
       "colorID": 1,
@@ -355,13 +355,13 @@ API này ???c thi?t k? cho trang admin ?? qu?n lý s?n ph?m, variants (size/color/
 
 ---
 
-### 12. GET `/GetSizes` - L?y danh sách size
+### 12. GET `/GetSizes` - L?y danh sï¿½ch size
 
 **Response:**
 ```json
 {
   "success": true,
-  "message": "L?y danh sách size thành công",
+  "message": "L?y danh sï¿½ch size thï¿½nh cï¿½ng",
   "data": [
     {
       "sizeID": 1,
@@ -377,13 +377,13 @@ API này ???c thi?t k? cho trang admin ?? qu?n lý s?n ph?m, variants (size/color/
 
 ---
 
-### 13. GET `/GetGenders` - L?y danh sách gi?i tính
+### 13. GET `/GetGenders` - L?y danh sï¿½ch gi?i tï¿½nh
 
 **Response:**
 ```json
 {
   "success": true,
-  "message": "L?y danh sách gi?i tính thành công",
+  "message": "L?y danh sï¿½ch gi?i tï¿½nh thï¿½nh cï¿½ng",
   "data": [
     {
       "genderId": 1,
@@ -403,15 +403,15 @@ API này ???c thi?t k? cho trang admin ?? qu?n lý s?n ph?m, variants (size/color/
 
 ---
 
-## ?? PH?N 4: TH?NG KÊ
+## ?? PH?N 4: TH?NG Kï¿½
 
-### 14. GET `/GetProductStatistics` - Th?ng kê s?n ph?m
+### 14. GET `/GetProductStatistics` - Th?ng kï¿½ s?n ph?m
 
 **Response:**
 ```json
 {
   "success": true,
-  "message": "L?y th?ng kê thành công",
+  "message": "L?y th?ng kï¿½ thï¿½nh cï¿½ng",
   "data": {
     "totalProducts": 100,
     "activeProducts": 85,
@@ -440,24 +440,24 @@ API này ???c thi?t k? cho trang admin ?? qu?n lý s?n ph?m, variants (size/color/
 
 ---
 
-### 15. GET `/GetLowStockProducts` - S?n ph?m s?p h?t hàng
+### 15. GET `/GetLowStockProducts` - S?n ph?m s?p h?t hï¿½ng
 
 **Query Parameters:**
 ```json
 {
   "pageIndex": 1,
   "pageSize": 10,
-  "threshold": 10  // Ng??ng c?nh báo (default: 10)
+  "threshold": 10  // Ng??ng c?nh bï¿½o (default: 10)
 }
 ```
 
-**Response:** Gi?ng nh? `GetAllProducts` nh?ng ch? tr? v? s?n ph?m có t?n kho < threshold
+**Response:** Gi?ng nh? `GetAllProducts` nh?ng ch? tr? v? s?n ph?m cï¿½ t?n kho < threshold
 
 ---
 
 ## ?? AUTHENTICATION
 
-T?t c? endpoint (tr? GetColors, GetSizes, GetGenders) yêu c?u Bearer Token:
+T?t c? endpoint (tr? GetColors, GetSizes, GetGenders) yï¿½u c?u Bearer Token:
 
 ```
 Authorization: Bearer <your_token_here>
@@ -467,7 +467,7 @@ Authorization: Bearer <your_token_here>
 
 ## ?? ERROR RESPONSES
 
-T?t c? API ??u tr? v? format th?ng nh?t khi có l?i:
+T?t c? API ??u tr? v? format th?ng nh?t khi cï¿½ l?i:
 
 ```json
 {
@@ -479,33 +479,33 @@ T?t c? API ??u tr? v? format th?ng nh?t khi có l?i:
 
 ---
 
-## ?? L?U Ý QUAN TR?NG
+## ?? L?U ï¿½ QUAN TR?NG
 
-1. **Pagination:** PageIndex b?t ??u t? 1 (không ph?i 0)
-2. **Soft Delete:** DeleteProduct s? xóa h?n product, variants và images
-3. **Stock Management:** UpdateStock cho phép c?p nh?t nhi?u variants cùng lúc
-4. **Variant Uniqueness:** M?i product không ???c có 2 variants gi?ng nhau (cùng color + size)
-5. **Sorting:** sortBy h? tr? "name" và "createdat", sortOrder h? tr? "asc" và "desc"
+1. **Pagination:** PageIndex b?t ??u t? 1 (khï¿½ng ph?i 0)
+2. **Soft Delete:** DeleteProduct s? xï¿½a h?n product, variants vï¿½ images
+3. **Stock Management:** UpdateStock cho phï¿½p c?p nh?t nhi?u variants cï¿½ng lï¿½c
+4. **Variant Uniqueness:** M?i product khï¿½ng ???c cï¿½ 2 variants gi?ng nhau (cï¿½ng color + size)
+5. **Sorting:** sortBy h? tr? "name" vï¿½ "createdat", sortOrder h? tr? "asc" vï¿½ "desc"
 
 ---
 
 ## ?? USE CASES
 
-### Use Case 1: Thêm s?n ph?m m?i hoàn ch?nh
+### Use Case 1: Thï¿½m s?n ph?m m?i hoï¿½n ch?nh
 1. G?i `GetColors`, `GetSizes`, `GetGenders` ?? l?y dropdown data
-2. G?i `GetListCategory` và `GetLisBrand` t? ProductLandingController
-3. T?o form thêm product v?i ??y ?? thông tin
-4. G?i `AddProduct` v?i variants và images
+2. G?i `GetListCategory` vï¿½ `GetLisBrand` t? ProductLandingController
+3. T?o form thï¿½m product v?i ??y ?? thï¿½ng tin
+4. G?i `AddProduct` v?i variants vï¿½ images
 
-### Use Case 2: Qu?n lý t?n kho
-1. G?i `GetAllProducts` ?? xem danh sách
+### Use Case 2: Qu?n lï¿½ t?n kho
+1. G?i `GetAllProducts` ?? xem danh sï¿½ch
 2. G?i `GetLowStockProducts` ?? xem s?n ph?m s?p h?t
 3. G?i `GetProductVariants/{id}` ?? xem chi ti?t variants
-4. G?i `UpdateStock` ?? c?p nh?t hàng lo?t
+4. G?i `UpdateStock` ?? c?p nh?t hï¿½ng lo?t
 
-### Use Case 3: Xem th?ng kê
+### Use Case 3: Xem th?ng kï¿½
 1. G?i `GetProductStatistics` ?? xem t?ng quan
-2. G?i `GetLowStockProducts` ?? xem s?n ph?m c?n nh?p hàng
+2. G?i `GetLowStockProducts` ?? xem s?n ph?m c?n nh?p hï¿½ng
 
 ---
 
@@ -513,4 +513,4 @@ T?t c? API ??u tr? v? format th?ng nh?t khi có l?i:
 
 S? d?ng Swagger UI ?? test: `https://localhost:<port>/swagger`
 
-T?t c? API ?ã ???c document ??y ?? v?i XML comments trong code.
+T?t c? API ?ï¿½ ???c document ??y ?? v?i XML comments trong code.

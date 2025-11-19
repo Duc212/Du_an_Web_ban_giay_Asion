@@ -67,6 +67,7 @@ builder.Services.AddScoped(typeof(IRepositoryAsync<>), typeof(RepositoryAsync<>)
 builder.Services.AddScoped(typeof(IUnitOfWork<>), typeof(UnitOfWork<>));
 
 builder.Services.AddTransient<IOrderServices, OrderServices>();
+builder.Services.AddTransient<IOrderAdminServices, OrderAdminServices>();
 builder.Services.AddTransient<IAuthServices, AuthServices>();
 builder.Services.AddTransient<ITokenUtils, TokenUtils>();
 builder.Services.AddTransient<IMailServices, MailServices>();
@@ -120,6 +121,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Serve static files from wwwroot
+app.UseStaticFiles();
+
 app.UseCors("AllowAll");
 app.UseSession(); 
 app.UseAuthorization();

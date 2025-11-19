@@ -9,6 +9,7 @@ namespace BUS.Services.Interfaces
     public interface IAuthServices
     {
         Task<CommonResponse<LoginRes>> Login(LoginReq req);
+        Task<CommonResponse<LoginRes>> StaffLogin(LoginReq req); 
         Task<CommonResponse<string>> Register(RegisterReq req);
         Task<CommonResponse<bool>> VerifyRegister(VerifyRegisterReq req);
         Task<CommonResponse<bool>> CreateUserFromAdmin(CreateUserReq req);

@@ -1,7 +1,3 @@
-    // Aliases for compatibility with Products.razor usage
-    public void ShowError(string message) => Error(message);
-    public void ShowInfo(string message) => Info(message);
-    public void ShowSuccess(string message) => Success(message);
 namespace AdminWeb.Services;
 
 public class ToastService

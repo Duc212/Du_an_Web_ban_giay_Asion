@@ -4,6 +4,8 @@ using DAL.DTOs.Products.Res;
 using DAL.Entities;
 using DAL.Models;
 using DAL.RepositoryAsyns;
+using DAL.UnitOfWork;
+using DAL;
 using Microsoft.EntityFrameworkCore;
 
 namespace BUS.Services
@@ -18,6 +20,7 @@ namespace BUS.Services
         private readonly IRepositoryAsync<Brand> _brandRepository;
         private readonly IRepositoryAsync<Category> _categoryRepository;
         private readonly IRepositoryAsync<Gender> _genderRepository;
+        private readonly IUnitOfWork<AppDbContext> _unitOfWork;
 
         public ProductAdminServices(
             IRepositoryAsync<Product> productRepository,
@@ -27,7 +30,8 @@ namespace BUS.Services
             IRepositoryAsync<Size> sizeRepository,
             IRepositoryAsync<Brand> brandRepository,
             IRepositoryAsync<Category> categoryRepository,
-            IRepositoryAsync<Gender> genderRepository)
+            IRepositoryAsync<Gender> genderRepository,
+            IUnitOfWork<AppDbContext> unitOfWork)
         {
             _productRepository = productRepository;
             _productVariantRepository = productVariantRepository;
@@ -37,6 +41,7 @@ namespace BUS.Services
             _brandRepository = brandRepository;
             _categoryRepository = categoryRepository;
             _genderRepository = genderRepository;
+            _unitOfWork = unitOfWork;
         }
 
         #region CRUD Product
@@ -134,7 +139,7 @@ namespace BUS.Services
                 return new CommonPagination<GetProductAdminRes>
                 {
                     Success = true,
-                    Message = "L?y danh sách s?n ph?m thành công",
+                    Message = "L?y danh sï¿½ch s?n ph?m thï¿½nh cï¿½ng",
                     Data = result,
                     TotalRecords = totalRecords
                 };
@@ -163,7 +168,7 @@ namespace BUS.Services
                 if (product == null)
                 {
                     response.Success = false;
-                    response.Message = "Không tìm th?y s?n ph?m";
+                    response.Message = "Khï¿½ng tï¿½m th?y s?n ph?m";
                     return response;
                 }
 
@@ -213,7 +218,7 @@ namespace BUS.Services
                     .ToListAsync();
 
                 response.Success = true;
-                response.Message = "L?y chi ti?t s?n ph?m thành công";
+                response.Message = "L?y chi ti?t s?n ph?m thï¿½nh cï¿½ng";
                 response.Data = new GetProductDetailAdminRes
                 {
                     ProductID = product.ProductID,
@@ -250,7 +255,7 @@ namespace BUS.Services
                 if (string.IsNullOrWhiteSpace(req.Name))
                 {
                     response.Success = false;
-                    response.Message = "Tên s?n ph?m không ???c tr?ng";
+                    response.Message = "Tï¿½n s?n ph?m khï¿½ng ???c tr?ng";
                     response.Data = false;
                     return response;
                 }
@@ -262,7 +267,7 @@ namespace BUS.Services
                 if (existingProduct != null)
                 {
                     response.Success = false;
-                    response.Message = "Tên s?n ph?m ?ã t?n t?i";
+                    response.Message = "Tï¿½n s?n ph?m ?ï¿½ t?n t?i";
                     response.Data = false;
                     return response;
                 }
@@ -324,7 +329,7 @@ namespace BUS.Services
                 }
 
                 response.Success = true;
-                response.Message = "Thêm s?n ph?m thành công";
+                response.Message = "Thï¿½m s?n ph?m thï¿½nh cï¿½ng";
                 response.Data = true;
             }
             catch (Exception ex)
@@ -349,7 +354,7 @@ namespace BUS.Services
                 if (product == null)
                 {
                     response.Success = false;
-                    response.Message = "Không tìm th?y s?n ph?m";
+                    response.Message = "Khï¿½ng tï¿½m th?y s?n ph?m";
                     response.Data = false;
                     return response;
                 }
@@ -361,7 +366,7 @@ namespace BUS.Services
                 if (duplicate)
                 {
                     response.Success = false;
-                    response.Message = "Tên s?n ph?m ?ã ???c s? d?ng";
+                    response.Message = "Tï¿½n s?n ph?m ?ï¿½ ???c s? d?ng";
                     response.Data = false;
                     return response;
                 }
@@ -378,7 +383,7 @@ namespace BUS.Services
                 await _productRepository.SaveChangesAsync();
 
                 response.Success = true;
-                response.Message = "C?p nh?t s?n ph?m thành công";
+                response.Message = "C?p nh?t s?n ph?m thï¿½nh cï¿½ng";
                 response.Data = true;
             }
             catch (Exception ex)
@@ -403,7 +408,7 @@ namespace BUS.Services
                 if (product == null)
                 {
                     response.Success = false;
-                    response.Message = "Không tìm th?y s?n ph?m";
+                    response.Message = "Khï¿½ng tï¿½m th?y s?n ph?m";
                     response.Data = false;
                     return response;
                 }
@@ -436,7 +441,7 @@ namespace BUS.Services
                 await _productRepository.SaveChangesAsync();
 
                 response.Success = true;
-                response.Message = "Xóa s?n ph?m thành công";
+                response.Message = "Xï¿½a s?n ph?m thï¿½nh cï¿½ng";
                 response.Data = true;
             }
             catch (Exception ex)
@@ -479,7 +484,7 @@ namespace BUS.Services
                     .ToListAsync();
 
                 response.Success = true;
-                response.Message = "L?y danh sách variant thành công";
+                response.Message = "L?y danh sï¿½ch variant thï¿½nh cï¿½ng";
                 response.Data = variants;
             }
             catch (Exception ex)
@@ -507,7 +512,7 @@ namespace BUS.Services
                 if (existingVariant != null)
                 {
                     response.Success = false;
-                    response.Message = "Variant này ?ã t?n t?i (trùng màu và size)";
+                    response.Message = "Variant nï¿½y ?ï¿½ t?n t?i (trï¿½ng mï¿½u vï¿½ size)";
                     response.Data = false;
                     return response;
                 }
@@ -527,7 +532,7 @@ namespace BUS.Services
                 await _productVariantRepository.SaveChangesAsync();
 
                 response.Success = true;
-                response.Message = "Thêm variant thành công";
+                response.Message = "Thï¿½m variant thï¿½nh cï¿½ng";
                 response.Data = true;
             }
             catch (Exception ex)
@@ -552,7 +557,7 @@ namespace BUS.Services
                 if (variant == null)
                 {
                     response.Success = false;
-                    response.Message = "Không tìm th?y variant";
+                    response.Message = "Khï¿½ng tï¿½m th?y variant";
                     response.Data = false;
                     return response;
                 }
@@ -566,7 +571,7 @@ namespace BUS.Services
                 await _productVariantRepository.SaveChangesAsync();
 
                 response.Success = true;
-                response.Message = "C?p nh?t variant thành công";
+                response.Message = "C?p nh?t variant thï¿½nh cï¿½ng";
                 response.Data = true;
             }
             catch (Exception ex)
@@ -591,7 +596,7 @@ namespace BUS.Services
                 if (variant == null)
                 {
                     response.Success = false;
-                    response.Message = "Không tìm th?y variant";
+                    response.Message = "Khï¿½ng tï¿½m th?y variant";
                     response.Data = false;
                     return response;
                 }
@@ -600,7 +605,7 @@ namespace BUS.Services
                 await _productVariantRepository.SaveChangesAsync();
 
                 response.Success = true;
-                response.Message = "Xóa variant thành công";
+                response.Message = "Xï¿½a variant thï¿½nh cï¿½ng";
                 response.Data = true;
             }
             catch (Exception ex)
@@ -622,7 +627,7 @@ namespace BUS.Services
                 if (req.Items == null || !req.Items.Any())
                 {
                     response.Success = false;
-                    response.Message = "Danh sách c?p nh?t tr?ng";
+                    response.Message = "Danh sï¿½ch c?p nh?t tr?ng";
                     response.Data = false;
                     return response;
                 }
@@ -645,7 +650,7 @@ namespace BUS.Services
                 await _productVariantRepository.SaveChangesAsync();
 
                 response.Success = true;
-                response.Message = "C?p nh?t t?n kho thành công";
+                response.Message = "C?p nh?t t?n kho thï¿½nh cï¿½ng";
                 response.Data = true;
             }
             catch (Exception ex)
@@ -678,7 +683,7 @@ namespace BUS.Services
                     .ToListAsync();
 
                 response.Success = true;
-                response.Message = "L?y danh sách màu thành công";
+                response.Message = "L?y danh sï¿½ch mï¿½u thï¿½nh cï¿½ng";
                 response.Data = colors;
             }
             catch (Exception ex)
@@ -707,7 +712,7 @@ namespace BUS.Services
                     .ToListAsync();
 
                 response.Success = true;
-                response.Message = "L?y danh sách size thành công";
+                response.Message = "L?y danh sï¿½ch size thï¿½nh cï¿½ng";
                 response.Data = sizes;
             }
             catch (Exception ex)
@@ -735,7 +740,7 @@ namespace BUS.Services
                     .ToListAsync();
 
                 response.Success = true;
-                response.Message = "L?y danh sách gi?i tính thành công";
+                response.Message = "L?y danh sï¿½ch gi?i tï¿½nh thï¿½nh cï¿½ng";
                 response.Data = genders;
             }
             catch (Exception ex)
@@ -789,7 +794,7 @@ namespace BUS.Services
                                         }).ToListAsync();
 
                 response.Success = true;
-                response.Message = "L?y th?ng kê thành công";
+                response.Message = "L?y th?ng kï¿½ thï¿½nh cï¿½ng";
                 response.Data = new GetProductStatisticsRes
                 {
                     TotalProducts = totalProducts,
@@ -876,7 +881,7 @@ namespace BUS.Services
                 return new CommonPagination<GetProductAdminRes>
                 {
                     Success = true,
-                    Message = "L?y danh sách s?n ph?m s?p h?t hàng thành công",
+                    Message = "L?y danh sï¿½ch s?n ph?m s?p h?t hï¿½ng thï¿½nh cï¿½ng",
                     Data = result,
                     TotalRecords = totalRecords
                 };
@@ -889,6 +894,67 @@ namespace BUS.Services
                     Message = $"L?i: {ex.Message}",
                     Data = new List<GetProductAdminRes>(),
                     TotalRecords = 0
+                };
+            }
+        }
+
+        public async Task<CommonResponse<bool>> AddProductImage(AddProductImageReq req)
+        {
+            try
+            {
+                // Validate product exists
+                var product = await _productRepository.AsNoTrackingQueryable()
+                    .FirstOrDefaultAsync(p => p.ProductID == req.ProductID);
+                if (product == null)
+                {
+                    return new CommonResponse<bool>
+                    {
+                        Success = false,
+                        Message = "KhÃ´ng tÃ¬m tháº¥y sáº£n pháº©m"
+                    };
+                }
+
+                // Validate color exists
+                var color = await _colorRepository.AsNoTrackingQueryable()
+                    .FirstOrDefaultAsync(c => c.ColorID == req.ColorID);
+                if (color == null)
+                {
+                    return new CommonResponse<bool>
+                    {
+                        Success = false,
+                        Message = "KhÃ´ng tÃ¬m tháº¥y mÃ u sáº¯c"
+                    };
+                }
+
+                // Create new product image
+                var productImage = new ProductImage
+                {
+                    ProductID = req.ProductID,
+                    ColorID = req.ColorID,
+                    ImageUrl = req.ImageUrl,
+                    DisplayOrder = req.DisplayOrder,
+                    ImageType = req.ImageType,
+                    IsDefault = req.IsDefault,
+                    CreatedAt = DateTime.Now
+                };
+
+                await _productImageRepository.AddAsync(productImage);
+                await _unitOfWork.SaveChangesAsync();
+
+                return new CommonResponse<bool>
+                {
+                    Success = true,
+                    Message = "ThÃªm áº£nh sáº£n pháº©m thÃ nh cÃ´ng",
+                    Data = true
+                };
+            }
+            catch (Exception ex)
+            {
+                return new CommonResponse<bool>
+                {
+                    Success = false,
+                    Message = $"Lá»—i: {ex.Message}",
+                    Data = false
                 };
             }
         }
