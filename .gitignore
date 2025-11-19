@@ -380,3 +380,4 @@ appsettings.Production.json
 *.db
 *.db-shm
 *.db-wal
+/API/wwwroot/uploads/products
