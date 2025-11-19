@@ -2,6 +2,8 @@
 using BUS.Services.Interfaces;
 using DAL.DTOs.Auths.Req;
 using DAL.DTOs.Auths.Res;
+using DAL.DTOs.Users.Req;
+using DAL.DTOs.Users.Res;
 using DAL.Entities;
 using Helper.Utils;
 using Microsoft.AspNetCore.Http;
@@ -55,6 +57,45 @@ namespace API.Controllers
         {
             var userId = HttpContextHelper.GetUserId();
             return await _authServices.GetUserWithAddress(userId);
+        }
+
+        [HttpPost]
+        [Route("AddUser")]
+        //[BAuthorize]
+        public async Task<CommonResponse<bool>> AddUser(AddUserReq req)
+        {
+            return await _authServices.AddUser(req);
+        }
+
+        [HttpGet]
+        [Route("GetListRole")]
+        public async Task<CommonResponse<List<GetListRoleRes>>> GetListRole()
+        {
+            return await _authServices.GetListRole();
+        }
+
+        [HttpPut]
+        [Route("UpdateUser")]
+        [BAuthorize]
+        public async Task<CommonResponse<bool>> UpdateUser(UpdateUserReq req)
+        {
+            return await _authServices.UpdateUser(req);
+        }
+
+        [HttpGet]
+        [Route("GetUserDetail/{userId}")]
+        [BAuthorize]
+        public async Task<CommonResponse<GetUserDetailRes>> GetUserDetail(int userId)
+        {
+            return await _authServices.GetUserDetail(userId);
+        }
+
+        [HttpDelete]
+        [Route("DeleteUser/{userId}")]
+        [BAuthorize]
+        public async Task<CommonResponse<bool>> DeleteUser(int userId)
+        {
+            return await _authServices.DeleteUser(userId);
         }
     }
 }

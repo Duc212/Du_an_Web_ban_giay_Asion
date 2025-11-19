@@ -1,6 +1,8 @@
 ﻿using BUS.Services.Interfaces;
 using DAL.DTOs.Auths.Req;
 using DAL.DTOs.Auths.Res;
+using DAL.DTOs.Users.Req;
+using DAL.DTOs.Users.Res;
 using DAL.Entities;
 using DAL.Enums;
 using DAL.Models;
@@ -423,6 +425,313 @@ namespace BUS.Services
                 Message = "Lấy thông tin user thành công.",
                 Data = result
             };
+        }
+
+        public async Task<CommonResponse<bool>> AddUser(AddUserReq req)
+        {
+            var response = new CommonResponse<bool>();
+
+            try
+            {
+                // 1. Kiểm tra username hoặc email đã tồn tại chưa
+                var existingUser = await _userRepository.AsNoTrackingQueryable()
+                    .FirstOrDefaultAsync(x => x.Username == req.Username || x.Email == req.Email);
+
+                if (existingUser != null)
+                {
+                    response.Success = false;
+                    response.Message = "Tên đăng nhập hoặc email đã tồn tại!";
+                    response.Data = false;
+                    return response;
+                }
+
+                // 2. Kiểm tra các role có tồn tại trong hệ thống không
+                if (req.Roles == null || req.Roles.Count == 0)
+                {
+                    response.Success = false;
+                    response.Message = "Vui lòng chọn ít nhất một quyền cho user!";
+                    response.Data = false;
+                    return response;
+                }
+
+                var roles = await _roleRepository.AsQueryable()
+                    .Where(r => req.Roles.Contains(r.Name))
+                    .ToListAsync();
+
+                if (roles.Count != req.Roles.Count)
+                {
+                    response.Success = false;
+                    response.Message = "Một hoặc nhiều quyền không hợp lệ!";
+                    response.Data = false;
+                    return response;
+                }
+
+                // 3. Mã hóa mật khẩu
+                var encryptedPassword = CryptoHelperUtil.Encrypt(req.Password);
+
+                var avatarUrl = _avatarUtils.GenerateAvatarUrl(req.FullName);
+
+                var user = new User
+                {
+                    FullName = req.FullName,
+                    Username = req.Username,
+                    Password = encryptedPassword,
+                    Email = req.Email,
+                    Phone = req.Phone,
+                    DateOfBirth = req.DateOfBirth,
+                    Picture = avatarUrl,
+                    Status = (int)UserStatusEnums.Active,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _userRepository.AddAsync(user);
+                await _userRepository.SaveChangesAsync();
+
+                foreach (var role in roles)
+                {
+                    var userRole = new UserRole
+                    {
+                        UserID = user.UserID,
+                        RoleID = role.RoleID
+                    };
+                    await _userRoleRepository.AddAsync(userRole);
+                }
+
+                await _userRoleRepository.SaveChangesAsync();
+
+                response.Success = true;
+                response.Message = "Thêm user thành công!";
+                response.Data = true;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = $"Lỗi khi thêm user: {ex.Message}";
+                response.Data = false;
+            }
+
+            return response;
+        }
+
+        public async Task<CommonResponse<List<GetListRoleRes>>> GetListRole()
+        {
+            var response = new CommonResponse<List<GetListRoleRes>>();
+
+            try
+            {
+                var roles = await _roleRepository.AsQueryable()
+                    .Select(r => new GetListRoleRes
+                    {
+                        RoleId = r.RoleID,
+                        RoleName = r.Name
+                    })
+                    .ToListAsync();
+
+                response.Success = true;
+                response.Message = "Lấy danh sách role thành công!";
+                response.Data = roles;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = $"Lỗi khi lấy danh sách role: {ex.Message}";
+                response.Data = null;
+            }
+
+            return response;
+        }
+
+        public async Task<CommonResponse<bool>> UpdateUser(UpdateUserReq req)
+        {
+            var response = new CommonResponse<bool>();
+
+            try
+            {
+                // 1. Kiểm tra user có tồn tại không
+                var user = await _userRepository.AsQueryable()
+                    .FirstOrDefaultAsync(x => x.UserID == req.UserID);
+
+                if (user == null)
+                {
+                    response.Success = false;
+                    response.Message = "User không tồn tại!";
+                    response.Data = false;
+                    return response;
+                }
+
+                // 2. Kiểm tra username hoặc email đã được sử dụng bởi user khác chưa
+                var existingUser = await _userRepository.AsNoTrackingQueryable()
+                    .FirstOrDefaultAsync(x => x.UserID != req.UserID && 
+                                            (x.Username == req.Username || x.Email == req.Email));
+
+                if (existingUser != null)
+                {
+                    response.Success = false;
+                    response.Message = "Tên đăng nhập hoặc email đã được sử dụng bởi user khác!";
+                    response.Data = false;
+                    return response;
+                }
+
+                // 3. Kiểm tra các role có tồn tại trong hệ thống không
+                if (req.Roles == null || req.Roles.Count == 0)
+                {
+                    response.Success = false;
+                    response.Message = "Vui lòng chọn ít nhất một quyền cho user!";
+                    response.Data = false;
+                    return response;
+                }
+
+                var roles = await _roleRepository.AsQueryable()
+                    .Where(r => req.Roles.Contains(r.Name))
+                    .ToListAsync();
+
+                if (roles.Count != req.Roles.Count)
+                {
+                    response.Success = false;
+                    response.Message = "Một hoặc nhiều quyền không hợp lệ!";
+                    response.Data = false;
+                    return response;
+                }
+
+                // 4. Cập nhật thông tin user
+                user.FullName = req.FullName;
+                user.Username = req.Username;
+                user.Email = req.Email;
+                user.Phone = req.Phone;
+                user.DateOfBirth = req.DateOfBirth;
+                user.Status = req.Status;
+
+                // Chỉ cập nhật password nếu có giá trị mới
+                if (!string.IsNullOrWhiteSpace(req.Password))
+                {
+                    user.Password = CryptoHelperUtil.Encrypt(req.Password);
+                }
+
+                await _userRepository.UpdateAsync(user);
+                await _userRepository.SaveChangesAsync();
+
+                // 5. Xóa tất cả role cũ của user
+                var oldUserRoles = await _userRoleRepository.AsQueryable()
+                    .Where(ur => ur.UserID == req.UserID)
+                    .ToListAsync();
+
+                foreach (var oldRole in oldUserRoles)
+                {
+                    await _userRoleRepository.RemoveAsync(oldRole);
+                }
+
+                // 6. Thêm role mới cho user
+                foreach (var role in roles)
+                {
+                    var userRole = new UserRole
+                    {
+                        UserID = user.UserID,
+                        RoleID = role.RoleID
+                    };
+                    await _userRoleRepository.AddAsync(userRole);
+                }
+
+                await _userRoleRepository.SaveChangesAsync();
+
+                response.Success = true;
+                response.Message = "Cập nhật user thành công!";
+                response.Data = true;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = $"Lỗi khi cập nhật user: {ex.Message}";
+                response.Data = false;
+            }
+
+            return response;
+        }
+
+        public async Task<CommonResponse<GetUserDetailRes>> GetUserDetail(int userId)
+        {
+            var response = new CommonResponse<GetUserDetailRes>();
+
+            try
+            {
+                var user = await _userRepository.AsNoTrackingQueryable()
+                    .FirstOrDefaultAsync(u => u.UserID == userId);
+
+                if (user == null)
+                {
+                    response.Success = false;
+                    response.Message = "User không tồn tại!";
+                    response.Data = null;
+                    return response;
+                }
+
+                // Lấy danh sách role của user
+                var roles = await (from ur in _userRoleRepository.AsQueryable()
+                                   join r in _roleRepository.AsQueryable() on ur.RoleID equals r.RoleID
+                                   where ur.UserID == userId
+                                   select r.Name)
+                    .ToListAsync();
+
+                var userDetail = new GetUserDetailRes
+                {
+                    UserID = user.UserID,
+                    FullName = user.FullName,
+                    Username = user.Username,
+                    Email = user.Email,
+                    Phone = user.Phone,
+                    DateOfBirth = user.DateOfBirth,
+                    Picture = user.Picture,
+                    Status = user.Status,
+                    Roles = roles,
+                    CreatedAt = user.CreatedAt
+                };
+
+                response.Success = true;
+                response.Message = "Lấy thông tin user thành công!";
+                response.Data = userDetail;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = $"Lỗi khi lấy thông tin user: {ex.Message}";
+                response.Data = null;
+            }
+
+            return response;
+        }
+
+        public async Task<CommonResponse<bool>> DeleteUser(int userId)
+        {
+            var response = new CommonResponse<bool>();
+
+            try
+            {
+                var user = await _userRepository.AsQueryable()
+                    .FirstOrDefaultAsync(u => u.UserID == userId);
+
+                if (user == null)
+                {
+                    response.Success = false;
+                    response.Message = "User không tồn tại!";
+                    response.Data = false;
+                    return response;
+                }
+
+                user.Status = (int)UserStatusEnums.Blocked;
+                await _userRepository.UpdateAsync(user);
+                await _userRepository.SaveChangesAsync();
+
+                response.Success = true;
+                response.Message = "Xóa user thành công!";
+                response.Data = true;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = $"Lỗi khi xóa user: {ex.Message}";
+                response.Data = false;
+            }
+
+            return response;
         }
     }
 }

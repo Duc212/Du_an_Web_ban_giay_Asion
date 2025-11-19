@@ -72,6 +72,7 @@ builder.Services.AddTransient<ITokenUtils, TokenUtils>();
 builder.Services.AddTransient<IMailServices, MailServices>();
 builder.Services.AddTransient<IAvatarUtils, AvatarUtils>();
 builder.Services.AddTransient<IProductServices, ProductServices>();
+builder.Services.AddTransient<IProductAdminServices, ProductAdminServices>();
 builder.Services.AddTransient<ICartServices, CartServices>();
 builder.Services.AddTransient<IPaymentServices, PaymentServices>();
 builder.Services.AddTransient<IUserServices, UserServices>(); // đã đăng ký

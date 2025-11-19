@@ -40,7 +40,8 @@ namespace DAL
             // Seed Role
             modelBuilder.Entity<Role>().HasData(
                       new Role { RoleID = 1, Name = "Admin" },
-             new Role { RoleID = 2, Name = "User" }
+             new Role { RoleID = 2, Name = "User" },
+             new Role { RoleID = 3, Name = "Employee" }
              );
             // Seed User
             modelBuilder.Entity<User>().HasData(

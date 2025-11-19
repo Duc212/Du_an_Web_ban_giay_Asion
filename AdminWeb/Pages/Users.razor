@@ -1,6 +1,7 @@
 @page "/users"
 @inject AdminWeb.Services.UserService UserService
 @inject AdminWeb.Services.ToastService Toast
+@inject IJSRuntime JSRuntime
 @using AdminWeb.Models
 
 <PageTitle>Người dùng - Asion Shop</PageTitle>
@@ -30,7 +31,7 @@
             </div>
             <div class="info">
                 <p>Đang hoạt động</p>
-                <h4>@users.Count(u => u.Status == 1)</h4>
+                <h4>@users.Count(u => u.Status == 0)</h4>
             </div>
         </div>
         <div class="stat-card locked">
@@ -41,7 +42,7 @@
             </div>
             <div class="info">
                 <p>Bị khóa</p>
-                <h4>@users.Count(u => u.Status == 0)</h4>
+                <h4>@users.Count(u => u.Status == 1)</h4>
             </div>
         </div>
     </div>
@@ -49,8 +50,10 @@
     <!-- Filter Bar -->
     <div class="filter-bar enhanced">
         <div class="filter-inner">
-            <h2 class="filter-title">Danh sách người dùng</h2>
-            <div class="flex items-center gap-3 flex-wrap">
+            <div class="filter-left">
+                <h2 class="filter-title">Danh sách người dùng</h2>
+            </div>
+            <div class="filter-right">
                 <div class="relative filter-input-wrapper">
                     <input type="text" @bind="searchKeyword" @bind:event="oninput" @onkeydown="HandleKeyDown" class="filter-input" placeholder="Tìm tên, email, SĐT..." />
                     <button type="button" @onclick="SearchUsers" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" aria-label="Tìm kiếm">
@@ -68,6 +71,12 @@
                     <option value="1">Hoạt động</option>
                     <option value="0">Đã khóa</option>
                 </select>
+                <button type="button" @onclick="OpenAddUserModal" class="btn btn-primary d-flex align-items-center gap-2" style="height:38px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="14" height="14" fill="currentColor">
+                        <path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/>
+                    </svg>
+                    Thêm người dùng
+                </button>
             </div>
         </div>
     </div>
@@ -137,6 +146,9 @@
                                             <div class="flex items-center justify-center gap-1">
                                                 <button @onclick="() => OpenDetailModal(user)" class="action-btn btn-view" title="Chi tiết">
                                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="16" height="16" fill="currentColor"><path d="M572.52 241.4C518.9 135.59 407.81 64 288 64 168.19 64 57.1 135.59 3.48 241.4a32.35 32.35 0 0 0 0 29.2C57.1 376.41 168.19 448 288 448c119.81 0 230.9-71.59 284.52-177.4a32.35 32.35 0 0 0 0-29.2zM288 400c-97 0-176-79-176-176S191 48 288 48s176 79 176 176-79 176-176 176zm0-304a128 128 0 1 0 128 128A128 128 0 0 0 288 96z"/></svg>
+                                                </button>
+                                                <button @onclick="() => OpenEditModal(user)" class="action-btn btn-edit" title="Chỉnh sửa">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="14" height="14" fill="currentColor"><path d="M362.7 19.3L314.3 67.7 444.3 197.7l48.4-48.4c25-25 25-65.5 0-90.5L453.3 19.3c-25-25-65.5-25-90.5 0zm-71 71L58.6 323.5c-10.4 10.4-18 23.3-22.2 37.4L1 481.2C-1.5 489.7 .8 498.8 7 505s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L421.7 220.3 291.7 90.3z"/></svg>
                                                 </button>
                                                 @if (user.Status == 1)
                                                 {
@@ -267,14 +279,14 @@
                     <button type="button" class="btn btn-secondary" @onclick="CloseDetailModal">Đóng</button>
                     @if (selectedUser.Status == 1)
                     {
-                        <button type="button" class="btn btn-danger" @onclick="() => { CloseDetailModal(); ConfirmStatusChange(selectedUser, 0); }">
+                        <button type="button" class="btn btn-danger" @onclick="() => CloseDetailAndConfirmStatus(selectedUser, 0)">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12" fill="currentColor"><path d="M144 144v48H304V144c0-44.2-35.8-80-80-80s-80 35.8-80 80zM80 192V144C80 64.5 144.5 0 224 0s144 64.5 144 144v48h16c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V256c0-35.3 28.7-64 64-64H80z"/></svg>
                             Khóa tài khoản
                         </button>
                     }
                     else
                     {
-                        <button type="button" class="btn btn-success" @onclick="() => { CloseDetailModal(); ConfirmStatusChange(selectedUser, 1); }">
+                        <button type="button" class="btn btn-success" @onclick="() => CloseDetailAndConfirmStatus(selectedUser, 1)">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="12" height="12" fill="currentColor"><path d="M352 144c0-44.2 35.8-80 80-80s80 35.8 80 80v48c0 17.7 14.3 32 32 32s32-14.3 32-32V144C576 64.5 511.5 0 432 0S288 64.5 288 144v48H64c-35.3 0-64 28.7-64 64V448c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V256c0-35.3-28.7-64-64-64H352V144z"/></svg>
                             Mở khóa
                         </button>
@@ -313,6 +325,204 @@
     </div>
 }
 
+<!-- Add User Modal -->
+@if (showAddUserModal)
+{
+    <div class="modal fade show d-flex align-items-center justify-content-center" tabindex="-1" role="dialog" aria-modal="true" style="display:flex !important; background:rgba(0,0,0,0.5);" @onclick="CloseAddUserModal">
+        <div class="modal-dialog modal-lg" role="document" @onclick:stopPropagation>
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" width="18" height="18" fill="currentColor" class="me-2">
+                            <path d="M96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3zM504 312V248H440c-13.3 0-24-10.7-24-24s10.7-24 24-24h64V136c0-13.3 10.7-24 24-24s24 10.7 24 24v64h64c13.3 0 24 10.7 24 24s-10.7 24-24 24H552v64c0 13.3-10.7 24-24 24s-24-10.7-24-24z"/>
+                        </svg>
+                        Thêm người dùng mới
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" aria-label="Đóng" @onclick="CloseAddUserModal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Họ và tên <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" @bind="newUser.FullName" placeholder="Nhập họ tên" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Tên đăng nhập <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" @bind="newUser.Username" placeholder="Nhập tên đăng nhập" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" @bind="newUser.Email" placeholder="Nhập email" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Số điện thoại <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" @bind="newUser.Phone" placeholder="Nhập số điện thoại" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Mật khẩu <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" @bind="newUser.Password" placeholder="Nhập mật khẩu" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Ngày sinh</label>
+                            <input type="date" class="form-control" @bind="newUser.DateOfBirth" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Vai trò <span class="text-danger">*</span></label>
+                            <div class="role-selection-group">
+                                @foreach (var role in roles)
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                               id="role_@role.RoleId" 
+                                               checked="@selectedRoles.Contains(role.RoleName)"
+                                               @onchange="() => ToggleRole(role.RoleName)" />
+                                        <label class="form-check-label" for="role_@role.RoleId">
+                                            @role.RoleName
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                            @if (selectedRoles.Count > 0)
+                            {
+                                <small class="text-muted mt-2 d-block">Đã chọn: @string.Join(", ", selectedRoles)</small>
+                            }
+                        </div>
+                    </div>
+                    
+                    @if (!string.IsNullOrWhiteSpace(addUserError))
+                    {
+                        <div class="alert alert-danger mt-3 mb-0">
+                            @addUserError
+                        </div>
+                    }
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseAddUserModal" disabled="@isAdding">Hủy</button>
+                    <button type="button" class="btn btn-primary" @onclick="AddUserAsync" disabled="@isAdding">
+                        @if (isAdding)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            <span>Đang thêm...</span>
+                        }
+                        else
+                        {
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="14" height="14" fill="currentColor" class="me-1">
+                                <path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+                            </svg>
+                            <span>Thêm người dùng</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Edit User Modal -->
+@if (showEditUserModal && editUser != null)
+{
+    <div class="modal fade show d-flex align-items-center justify-content-center" tabindex="-1" role="dialog" aria-modal="true" style="display:flex !important; background:rgba(0,0,0,0.5);" @onclick="CloseEditUserModal">
+        <div class="modal-dialog modal-lg" role="document" @onclick:stopPropagation>
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18" height="18" fill="currentColor" class="me-2">
+                            <path d="M362.7 19.3L314.3 67.7 444.3 197.7l48.4-48.4c25-25 25-65.5 0-90.5L453.3 19.3c-25-25-65.5-25-90.5 0zm-71 71L58.6 323.5c-10.4 10.4-18 23.3-22.2 37.4L1 481.2C-1.5 489.7 .8 498.8 7 505s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L421.7 220.3 291.7 90.3z"/>
+                        </svg>
+                        Chỉnh sửa người dùng
+                    </h5>
+                    <button type="button" class="btn-close" aria-label="Đóng" @onclick="CloseEditUserModal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Họ và tên <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" @bind="editUser.FullName" placeholder="Nhập họ tên" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Tên đăng nhập <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" @bind="editUser.Username" placeholder="Nhập tên đăng nhập" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" @bind="editUser.Email" placeholder="Nhập email" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Số điện thoại <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" @bind="editUser.Phone" placeholder="Nhập số điện thoại" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Mật khẩu mới</label>
+                            <input type="password" class="form-control" @bind="editUser.Password" placeholder="Để trống nếu không đổi" />
+                            <small class="text-muted">Để trống nếu không muốn thay đổi mật khẩu</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Ngày sinh <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" @bind="editUser.DateOfBirth" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Trạng thái <span class="text-danger">*</span></label>
+                            <select class="form-select" @bind="editUser.Status">
+                                <option value="1">Hoạt động</option>
+                                <option value="0">Đã khóa</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Vai trò <span class="text-danger">*</span></label>
+                            <div class="role-selection-group">
+                                @foreach (var role in roles)
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                               id="edit_role_@role.RoleId" 
+                                               checked="@editSelectedRoles.Contains(role.RoleName)"
+                                               @onchange="() => ToggleEditRole(role.RoleName)" />
+                                        <label class="form-check-label" for="edit_role_@role.RoleId">
+                                            @role.RoleName
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                            @if (editSelectedRoles.Count > 0)
+                            {
+                                <small class="text-muted mt-2 d-block">Đã chọn: @string.Join(", ", editSelectedRoles)</small>
+                            }
+                        </div>
+                    </div>
+                    
+                    @if (!string.IsNullOrWhiteSpace(editUserError))
+                    {
+                        <div class="alert alert-danger mt-3 mb-0">
+                            @editUserError
+                        </div>
+                    }
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseEditUserModal" disabled="@isEditing">Hủy</button>
+                    <button type="button" class="btn btn-warning text-dark" @onclick="UpdateUserAsync" disabled="@isEditing">
+                        @if (isEditing)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            <span>Đang cập nhật...</span>
+                        }
+                        else
+                        {
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="14" height="14" fill="currentColor" class="me-1">
+                                <path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+                            </svg>
+                            <span>Cập nhật</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private List<GetListUserRes> users = new();
     private int totalRecords = 0;
@@ -333,9 +543,25 @@
     private int newStatus = 0;
     private bool isChanging = false;
 
+    // Add user modal
+    private bool showAddUserModal = false;
+    private AddUserRequest newUser = new();
+    private List<RoleDTO> roles = new();
+    private List<string> selectedRoles = new();
+    private bool isAdding = false;
+    private string addUserError = string.Empty;
+
+    // Edit user modal
+    private bool showEditUserModal = false;
+    private UpdateUserRequest? editUser;
+    private List<string> editSelectedRoles = new();
+    private bool isEditing = false;
+    private string editUserError = string.Empty;
+
     protected override async Task OnInitializedAsync()
     {
         await LoadUsers();
+        await LoadRoles();
     }
 
     private async Task LoadUsers()
@@ -395,29 +621,40 @@
         }
     }
 
-    private void OpenDetailModal(GetListUserRes user)
+    private async Task OpenDetailModal(GetListUserRes user)
     {
         selectedUser = user;
         showDetailModal = true;
+        await JSRuntime.InvokeVoidAsync("eval", "document.body.classList.add('modal-open')");
     }
 
-    private void CloseDetailModal()
+    private async Task CloseDetailModal()
     {
         showDetailModal = false;
         selectedUser = null;
+        await JSRuntime.InvokeVoidAsync("eval", "document.body.classList.remove('modal-open')");
     }
 
-    private void ConfirmStatusChange(GetListUserRes user, int status)
+    private async Task ConfirmStatusChange(GetListUserRes user, int status)
     {
         userToChange = user;
         newStatus = status;
         showStatusConfirm = true;
+        await JSRuntime.InvokeVoidAsync("eval", "document.body.classList.add('modal-open')");
     }
 
-    private void CloseStatusConfirm()
+    private async Task CloseStatusConfirm()
     {
         showStatusConfirm = false;
         userToChange = null;
+        await JSRuntime.InvokeVoidAsync("eval", "document.body.classList.remove('modal-open')");
+    }
+
+    private async Task CloseDetailAndConfirmStatus(GetListUserRes user, int status)
+    {
+        await CloseDetailModal();
+        await Task.Delay(100); // Small delay for smooth transition
+        await ConfirmStatusChange(user, status);
     }
 
     private async Task ChangeStatusAsync()
@@ -430,7 +667,7 @@
         if (result.Success)
         {
             Toast.Success(result.Message);
-            CloseStatusConfirm();
+            await CloseStatusConfirm();
             await LoadUsers();
         }
         else
@@ -452,15 +689,15 @@
 
     private string GetStatusClass(int status) => status switch
     {
-        1 => "bg-emerald-100 text-emerald-600",
-        0 => "bg-red-100 text-red-600",
+        0 => "bg-emerald-100 text-emerald-600",
+        1 => "bg-red-100 text-red-600",
         _ => "bg-gray-100 text-gray-600"
     };
 
     private string GetStatusText(int status) => status switch
     {
-        1 => "Hoạt động",
-        0 => "Đã khóa",
+        0 => "Hoạt động",
+        1 => "Đã khóa",
         _ => "Không xác định"
     };
 
@@ -470,4 +707,219 @@
         "user" => "bg-blue-100 text-blue-700",
         _ => "bg-gray-100 text-gray-700"
     };
+
+    private async Task LoadRoles()
+    {
+        var response = await UserService.GetListRoleAsync();
+        if (response.Success)
+        {
+            roles = response.Data;
+        }
+    }
+
+    private async Task OpenAddUserModal()
+    {
+        newUser = new AddUserRequest();
+        selectedRoles = new List<string>();
+        addUserError = string.Empty;
+        showAddUserModal = true;
+        await JSRuntime.InvokeVoidAsync("eval", "document.body.classList.add('modal-open')");
+    }
+
+    private async Task CloseAddUserModal()
+    {
+        showAddUserModal = false;
+        newUser = new AddUserRequest();
+        selectedRoles = new List<string>();
+        addUserError = string.Empty;
+        await JSRuntime.InvokeVoidAsync("eval", "document.body.classList.remove('modal-open')");
+    }
+
+    private void ToggleRole(string roleName)
+    {
+        if (selectedRoles.Contains(roleName))
+        {
+            selectedRoles.Remove(roleName);
+        }
+        else
+        {
+            selectedRoles.Add(roleName);
+        }
+    }
+
+    private async Task AddUserAsync()
+    {
+        if (isAdding) return;
+
+        // Validation
+        addUserError = string.Empty;
+        
+        if (string.IsNullOrWhiteSpace(newUser.FullName))
+        {
+            addUserError = "Vui lòng nhập họ tên";
+            return;
+        }
+        
+        if (string.IsNullOrWhiteSpace(newUser.Username))
+        {
+            addUserError = "Vui lòng nhập tên đăng nhập";
+            return;
+        }
+        
+        if (string.IsNullOrWhiteSpace(newUser.Email))
+        {
+            addUserError = "Vui lòng nhập email";
+            return;
+        }
+        
+        if (string.IsNullOrWhiteSpace(newUser.Phone))
+        {
+            addUserError = "Vui lòng nhập số điện thoại";
+            return;
+        }
+        
+        if (string.IsNullOrWhiteSpace(newUser.Password))
+        {
+            addUserError = "Vui lòng nhập mật khẩu";
+            return;
+        }
+        
+        if (selectedRoles.Count == 0)
+        {
+            addUserError = "Vui lòng chọn ít nhất một vai trò";
+            return;
+        }
+
+        // Thêm roles vào list
+        newUser.Roles = new List<string>(selectedRoles);
+
+        isAdding = true;
+        StateHasChanged();
+        
+        var result = await UserService.AddUserAsync(newUser);
+        
+        if (result.Success)
+        {
+            Toast.Success(result.Message);
+            await CloseAddUserModal();
+            
+            // Reset về trang 1 và reload
+            currentPage = 1;
+            await LoadUsers();
+            StateHasChanged();
+        }
+        else
+        {
+            addUserError = result.Message;
+        }
+        
+        isAdding = false;
+        StateHasChanged();
+    }
+
+    private async Task OpenEditModal(GetListUserRes user)
+    {
+        editUser = new UpdateUserRequest
+        {
+            UserID = user.Id,
+            FullName = user.UserName,
+            Username = user.UserName,
+            Email = user.Email,
+            Phone = user.PhoneNumber,
+            DateOfBirth = user.DateOfBirth ?? DateTime.Now,
+            Status = user.Status,
+            Password = null
+        };
+        
+        // Parse roles từ RoleName (có thể là "Admin, User" hoặc "Admin")
+        editSelectedRoles = user.RoleName.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(r => r.Trim())
+            .ToList();
+        
+        editUserError = string.Empty;
+        showEditUserModal = true;
+        await JSRuntime.InvokeVoidAsync("eval", "document.body.classList.add('modal-open')");
+    }
+
+    private async Task CloseEditUserModal()
+    {
+        showEditUserModal = false;
+        editUser = null;
+        editSelectedRoles = new List<string>();
+        editUserError = string.Empty;
+        await JSRuntime.InvokeVoidAsync("eval", "document.body.classList.remove('modal-open')");
+    }
+
+    private void ToggleEditRole(string roleName)
+    {
+        if (editSelectedRoles.Contains(roleName))
+        {
+            editSelectedRoles.Remove(roleName);
+        }
+        else
+        {
+            editSelectedRoles.Add(roleName);
+        }
+    }
+
+    private async Task UpdateUserAsync()
+    {
+        if (isEditing || editUser == null) return;
+
+        // Validation
+        editUserError = string.Empty;
+        
+        if (string.IsNullOrWhiteSpace(editUser.FullName))
+        {
+            editUserError = "Vui lòng nhập họ tên";
+            return;
+        }
+        
+        if (string.IsNullOrWhiteSpace(editUser.Username))
+        {
+            editUserError = "Vui lòng nhập tên đăng nhập";
+            return;
+        }
+        
+        if (string.IsNullOrWhiteSpace(editUser.Email))
+        {
+            editUserError = "Vui lòng nhập email";
+            return;
+        }
+        
+        if (string.IsNullOrWhiteSpace(editUser.Phone))
+        {
+            editUserError = "Vui lòng nhập số điện thoại";
+            return;
+        }
+        
+        if (editSelectedRoles.Count == 0)
+        {
+            editUserError = "Vui lòng chọn ít nhất một vai trò";
+            return;
+        }
+
+        // Thêm roles vào list
+        editUser.Roles = new List<string>(editSelectedRoles);
+
+        isEditing = true;
+        StateHasChanged();
+        
+        var result = await UserService.UpdateUserAsync(editUser);
+        
+        if (result.Success)
+        {
+            Toast.Success(result.Message);
+            await CloseEditUserModal();
+            await LoadUsers();
+            StateHasChanged();
+        }
+        else
+        {
+            editUserError = result.Message;
+        }
+        
+        isEditing = false;
+        StateHasChanged();
+    }
 }

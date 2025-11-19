@@ -9,10 +9,11 @@ namespace BUS.Services.Interfaces
     {
         Task<CommonResponse<int>> CreateOrder(CreateOrderReq req);
         Task<CommonResponse<bool>> UpdateStatusOrder(UpdateStatusOrderReq req);
-        Task<CommonPagination<GetListOrderRes>> GetListOrder(string? FullName, string? OrderCode, int? Status,DateTime? CreatedDate,int CurrentPage, int RecordPerPage);
+        Task<CommonPagination<GetListOrderRes>> GetListOrder(string? FullName, string? OrderCode, int? Status, DateTime? CreatedDate, int CurrentPage, int RecordPerPage);
         Task<CommonResponse<GetOrderDetailRes>> GetOrderDetail(int OrderID);
         Task<CommonResponse<bool>> ConfirmOrderAsync(ConfirmOrderReq req);
         Task<CommonPagination<List<GetOrderRes>>> GetOrdersByUserId(int userId, int CurrentPage, int RecordPerPage);
         Task<CommonResponse<bool>> UpdateStatusPayment(UpdatePaymentReq req);
+        Task<CommonResponse<GetOrderStatisticsRes>> GetOrderStatistics(DateTime? fromDate = null, DateTime? toDate = null);
     }
 }

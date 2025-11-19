@@ -1,3 +1,15 @@
+        // Added for dropdown in Products.razor
+        public async Task<CommonResponse<List<AdminWeb.Models.BrandDto>>> GetListBrandAsync()
+        {
+            var res = await _httpClient.GetAsync($"{BaseUrl}/GetBrandAll?currentPage=1&recordPerPage=1000");
+            var result = await res.Content.ReadFromJsonAsync<CommonPagination<DAL.DTOs.Brands.Res.GetListBrandRes>>() ?? new CommonPagination<DAL.DTOs.Brands.Res.GetListBrandRes>();
+            var list = result.Data.Select(x => new AdminWeb.Models.BrandDto
+            {
+                BrandID = x.BrandId,
+                BrandName = x.Name
+            }).ToList();
+            return new CommonResponse<List<AdminWeb.Models.BrandDto>> { Success = true, Data = list };
+        }
 using DAL.DTOs.Brands.Req;
 using DAL.DTOs.Brands.Res;
 using DAL.Entities;

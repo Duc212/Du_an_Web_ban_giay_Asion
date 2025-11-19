@@ -31,4 +31,43 @@ namespace AdminWeb.Models
         public List<GetListUserRes> Data { get; set; } = new();
         public int TotalRecords { get; set; }
     }
+
+    // Request Models
+    public class AddUserRequest
+    {
+        public string FullName { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public DateTime? DateOfBirth { get; set; }
+        public List<string> Roles { get; set; } = new();
+    }
+
+    public class UpdateUserRequest
+    {
+        public int UserID { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
+        public string? Password { get; set; }
+        public string Email { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public DateTime DateOfBirth { get; set; }
+        public int Status { get; set; }
+        public List<string> Roles { get; set; } = new();
+    }
+
+    // Role Models
+    public class RoleDTO
+    {
+        public int RoleId { get; set; }
+        public string RoleName { get; set; } = string.Empty;
+    }
+
+    public class GetRoleListResponse
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public List<RoleDTO> Data { get; set; } = new();
+    }
 }

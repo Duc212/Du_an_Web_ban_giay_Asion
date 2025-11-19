@@ -1,8 +1,15 @@
 /* ===== MODERN MODAL STYLES ===== */
 
+/* Prevent body scroll when modal is open */
+body.modal-open {
+    overflow: hidden !important;
+    padding-right: 0 !important;
+}
+
 /* Modal Backdrop with smooth fade-in */
 .modal.show {
     animation: modalBackdropFadeIn 0.25s ease-out;
+    overflow-y: auto;
 }
 
 @keyframes modalBackdropFadeIn {

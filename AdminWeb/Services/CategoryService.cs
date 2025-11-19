@@ -1,3 +1,4 @@
+
 using DAL.DTOs.Categories.Req;
 using DAL.DTOs.Categories.Res;
 using System.Text.Json;
@@ -37,7 +38,18 @@ namespace AdminWeb.Services
             var res = await _http.GetAsync($"api/ProductLanding/GetAllCategory?currentPage={currentPage}&recordPerPage={recordPerPage}");
             return await res.Content.ReadFromJsonAsync<CommonPagination<GetAllCategoryRes>>() ?? new CommonPagination<GetAllCategoryRes>();
         }
-
+        // Added for dropdown in Products.razor
+        public async Task<CommonResponse<List<AdminWeb.Models.CategoryDto>>> GetListCategoryAsync()
+        {
+            var res = await _http.GetAsync("api/ProductLanding/GetAllCategory?currentPage=1&recordPerPage=1000");
+            var result = await res.Content.ReadFromJsonAsync<CommonPagination<DAL.DTOs.Categories.Res.GetAllCategoryRes>>() ?? new CommonPagination<DAL.DTOs.Categories.Res.GetAllCategoryRes>();
+            var list = result.Data.Select(x => new AdminWeb.Models.CategoryDto
+            {
+                CategoryID = x.CategoryId,
+                CategoryName = x.Name
+            }).ToList();
+            return new CommonResponse<List<AdminWeb.Models.CategoryDto>> { Success = true, Data = list };
+        }
         // Raw fetch to include fields not present in current DTO (e.g. totalProduct)
         public async Task<(List<AdminWeb.Models.CategoryExtended> Data, int TotalRecords, int TotalPages)> GetAllCategoryExtendedAsync(int currentPage = 1, int recordPerPage = 10)
         {

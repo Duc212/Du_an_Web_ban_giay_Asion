@@ -60,5 +60,15 @@ namespace API.Controllers
         {
             return await _orderServices.UpdateStatusPayment(req);
         }
+
+        [HttpGet]
+        [Route("GetOrderStatistics")]
+        [BAuthorize]
+        public async Task<CommonResponse<GetOrderStatisticsRes>> GetOrderStatistics(
+            [FromQuery] DateTime? fromDate = null,
+            [FromQuery] DateTime? toDate = null)
+        {
+            return await _orderServices.GetOrderStatistics(fromDate, toDate);
+        }
     }
 }

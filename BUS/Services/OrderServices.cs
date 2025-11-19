@@ -587,7 +587,7 @@ namespace BUS.Services
                     return new CommonResponse<bool>
                     {
                         Success = false,
-                        Message = $"Không tìm th?y don hàng v?i ID = {req.OrderId}.",
+                        Message = $"Không tìm thấy đơn hàng với ID = {req.OrderId}.",
                         Data = false
                     };
                 }
@@ -599,7 +599,7 @@ namespace BUS.Services
                     return new CommonResponse<bool>
                     {
                         Success = false,
-                        Message = $"Không tìm th?y thông tin thanh toán cho don hàng v?i ID = {req.OrderId}.",
+                        Message = $"Không tìm thấy thông tin thanh toán cho đơn hàng với ID = {req.OrderId}.",
                         Data = false
                     };
                 }
@@ -609,7 +609,7 @@ namespace BUS.Services
                     return new CommonResponse<bool>
                     {
                         Success = false,
-                        Message = "Tr?ng thái thanh toán không h?p l?.",
+                        Message = "Trạng thái thanh toán không hợp lệ.",
                         Data = false
                     };
                 }
@@ -621,7 +621,7 @@ namespace BUS.Services
                 return new CommonResponse<bool>
                 {
                     Success = true,
-                    Message = "C?p nh?t tr?ng thái thanh toán thành công.",
+                    Message = "Cập nhật trạng thái thanh toán thành công.",
                     Data = true
                 };
             }
@@ -630,10 +630,178 @@ namespace BUS.Services
                 return new CommonResponse<bool>
                 {
                     Success = false,
-                    Message = $"L?i khi c?p nh?t tr?ng thái thanh toán: {ex.Message}",
+                    Message = $"Lỗi khi cập nhật trạng thái thanh toán: {ex.Message}",
                     Data = false
                 };
             }
+        }
+
+        public async Task<CommonResponse<GetOrderStatisticsRes>> GetOrderStatistics(DateTime? fromDate = null, DateTime? toDate = null)
+        {
+            var response = new CommonResponse<GetOrderStatisticsRes>();
+
+            try
+            {
+                // Set default date range if not provided
+                if (!fromDate.HasValue)
+                    fromDate = DateTime.Now.AddMonths(-1);
+                if (!toDate.HasValue)
+                    toDate = DateTime.Now;
+
+                // Ensure fromDate is start of day and toDate is end of day
+                fromDate = fromDate.Value.Date;
+                toDate = toDate.Value.Date.AddDays(1).AddTicks(-1);
+
+                // Get all orders in date range
+                var orders = await _orderRepository.AsNoTrackingQueryable()
+                    .Where(o => o.OrderDate >= fromDate && o.OrderDate <= toDate)
+                    .ToListAsync();
+
+                var totalOrders = orders.Count;
+
+                // Count by status
+                var pendingOrders = orders.Count(o => o.Status == (int)OrderStatusEnums.Pending);
+                var confirmedOrders = orders.Count(o => o.Status == (int)OrderStatusEnums.Confirmed);
+                var shippingOrders = orders.Count(o => o.Status == (int)OrderStatusEnums.Shipped);
+                var deliveredOrders = orders.Count(o => o.Status == (int)OrderStatusEnums.Delivered);
+                var cancelledOrders = orders.Count(o => o.Status == (int)OrderStatusEnums.Cancelled);
+
+                // Calculate revenue (only from delivered orders)
+                var deliveredOrderIds = orders.Where(o => o.Status == (int)OrderStatusEnums.Delivered)
+                    .Select(o => o.OrderID)
+                    .ToList();
+
+                var totalRevenue = orders.Where(o => o.Status == (int)OrderStatusEnums.Delivered)
+                    .Sum(o => o.TotalAmount);
+
+                var averageOrderValue = deliveredOrders > 0 ? totalRevenue / deliveredOrders : 0;
+
+                // Payment statistics
+                var orderPayments = await _orderPaymentRepository.AsNoTrackingQueryable()
+                    .Where(op => deliveredOrderIds.Contains(op.OrderID))
+                    .ToListAsync();
+
+                var paymentIds = orderPayments.Select(op => op.PaymentID).Distinct().ToList();
+                var payments = await _paymentRepository.AsNoTrackingQueryable()
+                    .Where(p => paymentIds.Contains(p.PaymentID))
+                    .ToListAsync();
+
+                var paymentStats = new PaymentStatsInfo();
+
+                foreach (var op in orderPayments)
+                {
+                    var payment = payments.FirstOrDefault(p => p.PaymentID == op.PaymentID);
+                    if (payment != null)
+                    {
+                        var order = orders.FirstOrDefault(o => o.OrderID == op.OrderID);
+                        if (order != null && order.Status == (int)OrderStatusEnums.Delivered)
+                        {
+                            switch (payment.PaymentMethod.ToUpper())
+                            {
+                                case "COD":
+                                    paymentStats.COD.Count++;
+                                    paymentStats.COD.Total += order.TotalAmount;
+                                    break;
+                                case "VNPAY":
+                                    paymentStats.VNPAY.Count++;
+                                    paymentStats.VNPAY.Total += order.TotalAmount;
+                                    break;
+                                case "GPAY":
+                                    paymentStats.GPAY.Count++;
+                                    paymentStats.GPAY.Total += order.TotalAmount;
+                                    break;
+                                case "PAYPAL":
+                                    paymentStats.PAYPAL.Count++;
+                                    paymentStats.PAYPAL.Total += order.TotalAmount;
+                                    break;
+                            }
+                        }
+                    }
+                }
+
+                // Daily orders statistics
+                var dailyOrders = orders
+                    .Where(o => o.Status == (int)OrderStatusEnums.Delivered)
+                    .GroupBy(o => o.OrderDate.Date)
+                    .Select(g => new DailyOrderInfo
+                    {
+                        Date = g.Key,
+                        OrderCount = g.Count(),
+                        Revenue = g.Sum(o => o.TotalAmount)
+                    })
+                    .OrderBy(d => d.Date)
+                    .ToList();
+
+                // Top products statistics
+                var orderIds = orders.Select(o => o.OrderID).ToList();
+                var orderDetails = await _orderDetailRepository.AsNoTrackingQueryable()
+                    .Where(od => orderIds.Contains(od.OrderID))
+                    .ToListAsync();
+
+                var variantIds = orderDetails.Select(od => od.VariantID).Distinct().ToList();
+                var variants = await _variantRepository.AsNoTrackingQueryable()
+                    .Where(v => variantIds.Contains(v.VariantID))
+                    .ToListAsync();
+
+                var productIds = variants.Select(v => v.ProductID).Distinct().ToList();
+                var products = await _variantRepository.DbContext.Set<Product>()
+                    .Where(p => productIds.Contains(p.ProductID))
+                    .ToListAsync();
+
+                var topProducts = orderDetails
+                    .GroupBy(od => od.VariantID)
+                    .Select(g =>
+                    {
+                        var variant = variants.FirstOrDefault(v => v.VariantID == g.Key);
+                        var product = products.FirstOrDefault(p => p.ProductID == variant.ProductID);
+                        
+                        return new
+                        {
+                            ProductID = product?.ProductID ?? 0,
+                            ProductName = product?.Name ?? "",
+                            OrderCount = g.Select(od => od.OrderID).Distinct().Count(),
+                            TotalQuantity = g.Sum(od => od.Quantity),
+                            Revenue = g.Sum(od => od.Quantity * (variant?.SellingPrice ?? 0))
+                        };
+                    })
+                    .GroupBy(x => x.ProductID)
+                    .Select(g => new TopProductInfo
+                    {
+                        ProductID = g.Key,
+                        ProductName = g.First().ProductName,
+                        OrderCount = g.Sum(x => x.OrderCount),
+                        TotalQuantity = g.Sum(x => x.TotalQuantity),
+                        Revenue = g.Sum(x => x.Revenue)
+                    })
+                    .OrderByDescending(p => p.Revenue)
+                    .Take(10)
+                    .ToList();
+
+                response.Success = true;
+                response.Message = "Lấy thống kê đơn hàng thành công";
+                response.Data = new GetOrderStatisticsRes
+                {
+                    TotalOrders = totalOrders,
+                    PendingOrders = pendingOrders,
+                    ConfirmedOrders = confirmedOrders,
+                    ShippingOrders = shippingOrders,
+                    DeliveredOrders = deliveredOrders,
+                    CancelledOrders = cancelledOrders,
+                    TotalRevenue = totalRevenue,
+                    AverageOrderValue = averageOrderValue,
+                    PaymentStats = paymentStats,
+                    DailyOrders = dailyOrders,
+                    TopProducts = topProducts
+                };
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = $"Lỗi khi lấy thống kê: {ex.Message}";
+                response.Data = null;
+            }
+
+            return response;
         }
     }
 }
