@@ -1,20 +1,600 @@
 @page "/profile"
+@inject IJSRuntime JS
+@inject AdminWeb.Services.UserService UserService
+@inject AdminWeb.Services.AuthService AuthService
+@inject AdminWeb.Services.ToastService Toast
+@inject NavigationManager Nav
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>Hồ sơ - Asion Shop</PageTitle>
+<link href="css/categories.css" rel="stylesheet" />
 
-<div class="flex flex-wrap -mx-3">
-    <div class="w-full px-3">
-        <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl rounded-2xl bg-clip-border">
-            <div class="border-black/12.5 mb-0 rounded-t-2xl border-b-0 border-solid p-6 pb-0">
-                <h6 class="dark:text-white mb-0 text-xl font-bold">Hồ sơ cá nhân</h6>
+<div class="p-6 max-w-7xl mx-auto">
+    @if (loading)
+    {
+        <div class="flex items-center justify-center py-20">
+            <div class="animate-spin rounded-full h-14 w-14 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+    }
+    else if (user != null)
+    {
+        <!-- Main Profile Card -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
+            <!-- Header with gradient -->
+            <div class="h-32 bg-gradient-to-r from-blue-600 to-purple-600"></div>
+            
+            <!-- Profile Content -->
+            <div class="px-8 pb-8">
+                <div class="flex flex-col items-center -mt-16 gap-4">
+                    <!-- Avatar -->
+                    <div class="flex-shrink-0">
+                        @if (!string.IsNullOrEmpty(user.Avatar))
+                        {
+                            <img src="@user.Avatar" alt="@user.FullName" 
+                                 class="w-32 h-32 rounded-full border-4 border-white shadow-xl object-cover bg-white"
+                                 onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect fill=%27%234F46E5%27 width=%27100%27 height=%27100%27/%3E%3Ctext x=%2750%27 y=%2750%27 font-size=%2740%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27white%27 font-family=%27Arial%27%3E@GetInitials(user.FullName)%3C/text%3E%3C/svg%3E';" />
+                        }
+                        else
+                        {
+                            <div class="w-32 h-32 rounded-full border-4 border-white shadow-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                                <span class="text-white text-4xl font-bold">@GetInitials(user.FullName)</span>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- User Info -->
+                    <div class="text-center">
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">@user.FullName</h1>
+                        <p class="text-gray-600 text-lg mb-3">@user.Email</p>
+                        <div class="flex flex-wrap gap-2 justify-center">
+                            @foreach (var role in user.Roles)
+                            {
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold @GetRoleBadgeClass(role)">
+                                    <i class="fas fa-shield-alt mr-1"></i> @role
+                                </span>
+                            }
+                            @if (user.Status == 0)
+                            {
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-700">
+                                    <i class="fas fa-check-circle mr-1"></i> Đang hoạt động
+                                </span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-wrap gap-3 justify-center mt-2" style="display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin-top: 0.5rem;">
+                        <button @onclick="() => isEditing = true" 
+                                style="padding: 0.625rem 1.5rem; background-color: #2563eb; color: white; border-radius: 0.5rem; font-weight: 500; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; border: none; cursor: pointer; transition: all 0.2s;">
+                            <i class="fas fa-edit"></i>
+                            Chỉnh sửa
+                        </button>
+                        <button @onclick="() => isChangingPassword = true" 
+                                style="padding: 0.625rem 1.5rem; background-color: #9333ea; color: white; border-radius: 0.5rem; font-weight: 500; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; border: none; cursor: pointer; transition: all 0.2s;">
+                            <i class="fas fa-key"></i>
+                            Đổi mật khẩu
+                        </button>
+                        <button @onclick="HandleLogout" 
+                                style="padding: 0.625rem 1.5rem; background-color: #dc2626; color: white; border-radius: 0.5rem; font-weight: 500; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; border: none; cursor: pointer; transition: all 0.2s;">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Đăng xuất
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div class="flex-auto p-6">
-                <p class="text-gray-600">Trang hồ sơ cá nhân đang được phát triển...</p>
+        </div>
+
+        <!-- Information Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Personal Information -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 pb-3 border-b flex items-center gap-2">
+                    <i class="fas fa-user text-blue-600"></i>
+                    Thông tin cá nhân
+                </h3>
+                <div class="space-y-4">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-signature text-blue-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-500 mb-1">Họ và tên</p>
+                            <p class="text-gray-900 font-semibold">@user.FullName</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-envelope text-purple-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-500 mb-1">Email</p>
+                            <p class="text-gray-900 font-semibold break-all">@user.Email</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-phone text-green-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-500 mb-1">Số điện thoại</p>
+                            <p class="text-gray-900 font-semibold">@(user.Phone ?? "Chưa cập nhật")</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-pink-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-venus-mars text-pink-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-500 mb-1">Giới tính</p>
+                            <p class="text-gray-900 font-semibold">@(user.Gender == 1 ? "Nam" : user.Gender == 2 ? "Nữ" : "Khác")</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Information -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 pb-3 border-b flex items-center gap-2">
+                    <i class="fas fa-shield-alt text-green-600"></i>
+                    Thông tin tài khoản
+                </h3>
+                <div class="space-y-4">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-user-tag text-indigo-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-500 mb-1">Tên đăng nhập</p>
+                            <p class="text-gray-900 font-semibold">@user.Username</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-crown text-orange-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-500 mb-1">Vai trò</p>
+                            <div class="flex flex-wrap gap-2">
+                                @foreach (var role in user.Roles)
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-sm font-semibold @GetRoleBadgeClass(role)">
+                                        @role
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-toggle-on text-green-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-500 mb-1">Trạng thái</p>
+                            @if (user.Status == 0)
+                            {
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-sm font-semibold bg-green-100 text-green-700">
+                                    <i class="fas fa-check-circle mr-1"></i> Đang hoạt động
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-sm font-semibold bg-red-100 text-red-700">
+                                    <i class="fas fa-ban mr-1"></i> Đã khóa
+                                </span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-calendar-alt text-teal-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-500 mb-1">Ngày tham gia</p>
+                            <p class="text-gray-900 font-semibold">@user.CreatedAt.ToString("dd/MM/yyyy")</p>
+                            <p class="text-xs text-gray-500 mt-1">@((DateTime.Now - user.CreatedAt).Days) ngày hoạt động</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Edit Profile Modal -->
+@if (isEditing && user != null)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; background-color: rgba(0, 0, 0, 0.5);" @onclick="CloseEditModal">
+        <div class="bg-white rounded-xl shadow-2xl w-full overflow-y-auto" style="max-width: 600px; max-height: 85vh;" @onclick:stopPropagation="true">
+            <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4 text-white">
+                <h3 class="text-2xl font-bold flex items-center gap-2">
+                    <i class="fas fa-user-edit"></i>
+                    Chỉnh sửa hồ sơ
+                </h3>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Họ và tên *
+                    </label>
+                    <input type="text" @bind="editForm.FullName" 
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                           placeholder="Nhập họ và tên" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Email *
+                    </label>
+                    <input type="email" @bind="editForm.Email" 
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                           placeholder="Nhập email" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Số điện thoại
+                    </label>
+                    <input type="tel" @bind="editForm.Phone" 
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                           placeholder="Nhập số điện thoại" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Giới tính
+                    </label>
+                    <select @bind="editForm.Gender" 
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="0">Khác</option>
+                        <option value="1">Nam</option>
+                        <option value="2">Nữ</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        URL Avatar
+                    </label>
+                    <input type="text" @bind="editForm.Avatar" 
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                           placeholder="https://example.com/avatar.jpg" />
+                    @if (!string.IsNullOrEmpty(editForm.Avatar))
+                    {
+                        <div class="mt-3 p-3 bg-gray-50 rounded-lg flex items-center gap-3">
+                            <img src="@editForm.Avatar" alt="Preview" 
+                                 class="w-12 h-12 rounded-full object-cover border-2 border-gray-300"
+                                 onerror="this.style.display='none'" />
+                            <span class="text-sm text-gray-600">Xem trước avatar</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+                <button @onclick="CloseEditModal" 
+                        class="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 font-medium">
+                    Hủy
+                </button>
+                <button @onclick="SaveProfile" disabled="@saving" 
+                        class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium disabled:opacity-50">
+                    @if (saving)
+                    {
+                        <span><i class="fas fa-spinner fa-spin mr-2"></i>Đang lưu...</span>
+                    }
+                    else
+                    {
+                        <span>Lưu thay đổi</span>
+                    }
+                </button>
             </div>
         </div>
     </div>
-</div>
+}
+
+<!-- Change Password Modal -->
+@if (isChangingPassword)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; background-color: rgba(0, 0, 0, 0.5);" @onclick="ClosePasswordModal">
+        <div class="bg-white rounded-xl shadow-2xl w-full overflow-y-auto" style="max-width: 550px; max-height: 85vh;" @onclick:stopPropagation="true">
+            <div class="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4 text-white">
+                <h3 class="text-2xl font-bold flex items-center gap-2">
+                    <i class="fas fa-key"></i>
+                    Đổi mật khẩu
+                </h3>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Mật khẩu hiện tại *
+                    </label>
+                    <div class="relative">
+                        <input type="@(showCurrentPassword ? "text" : "password")" 
+                               @bind="passwordForm.CurrentPassword" 
+                               class="w-full px-4 py-2.5 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
+                               placeholder="Nhập mật khẩu hiện tại" />
+                        <button type="button" @onclick="() => showCurrentPassword = !showCurrentPassword" 
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                            <i class="fas @(showCurrentPassword ? "fa-eye-slash" : "fa-eye")"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Mật khẩu mới *
+                    </label>
+                    <div class="relative">
+                        <input type="@(showNewPassword ? "text" : "password")" 
+                               @bind="passwordForm.NewPassword" 
+                               class="w-full px-4 py-2.5 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
+                               placeholder="Nhập mật khẩu mới" />
+                        <button type="button" @onclick="() => showNewPassword = !showNewPassword" 
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                            <i class="fas @(showNewPassword ? "fa-eye-slash" : "fa-eye")"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Mật khẩu phải có ít nhất 6 ký tự</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Xác nhận mật khẩu mới *
+                    </label>
+                    <div class="relative">
+                        <input type="@(showConfirmPassword ? "text" : "password")" 
+                               @bind="passwordForm.ConfirmPassword" 
+                               class="w-full px-4 py-2.5 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
+                               placeholder="Nhập lại mật khẩu mới" />
+                        <button type="button" @onclick="() => showConfirmPassword = !showConfirmPassword" 
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                            <i class="fas @(showConfirmPassword ? "fa-eye-slash" : "fa-eye")"></i>
+                        </button>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(passwordError))
+                {
+                    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>@passwordError</span>
+                    </div>
+                }
+            </div>
+
+            <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+                <button @onclick="ClosePasswordModal" 
+                        class="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 font-medium">
+                    Hủy
+                </button>
+                <button @onclick="ChangePassword" disabled="@changingPassword" 
+                        class="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 rounded-lg text-white font-medium disabled:opacity-50">
+                    @if (changingPassword)
+                    {
+                        <span><i class="fas fa-spinner fa-spin mr-2"></i>Đang đổi...</span>
+                    }
+                    else
+                    {
+                        <span>Đổi mật khẩu</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
+    private GetUserDetailRes? user;
+    private bool loading = true;
+    private bool isEditing = false;
+    private bool isChangingPassword = false;
+    private bool saving = false;
+    private bool changingPassword = false;
+    private int currentUserId;
     
+    private bool showCurrentPassword = false;
+    private bool showNewPassword = false;
+    private bool showConfirmPassword = false;
+    private string passwordError = string.Empty;
+    
+    private UpdateUserReq editForm = new();
+    private ChangePasswordRequest passwordForm = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserProfile();
+    }
+
+    private async Task LoadUserProfile()
+    {
+        loading = true;
+        try
+        {
+            var userIdStr = await JS.InvokeAsync<string>("localStorage.getItem", "admin_user_id");
+            if (int.TryParse(userIdStr, out int userId))
+            {
+                currentUserId = userId;
+                user = await UserService.GetUserDetailAsync(userId);
+                
+                if (user != null)
+                {
+                    InitializeEditForm();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Lỗi tải thông tin: {ex.Message}");
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void InitializeEditForm()
+    {
+        if (user != null)
+        {
+            editForm = new UpdateUserReq
+            {
+                UserID = user.UserID,
+                FullName = user.FullName,
+                Email = user.Email,
+                Phone = user.Phone,
+                Gender = user.Gender,
+                Avatar = user.Avatar,
+                Username = user.Username,
+                Status = user.Status
+            };
+        }
+    }
+
+    private void CloseEditModal()
+    {
+        isEditing = false;
+        InitializeEditForm();
+    }
+
+    private void ClosePasswordModal()
+    {
+        isChangingPassword = false;
+        passwordForm = new ChangePasswordRequest();
+        passwordError = string.Empty;
+        showCurrentPassword = false;
+        showNewPassword = false;
+        showConfirmPassword = false;
+    }
+
+    private async Task SaveProfile()
+    {
+        saving = true;
+        try
+        {
+            var result = await UserService.UpdateUserAsync(editForm);
+            if (result)
+            {
+                Toast.Success("Cập nhật thông tin thành công!");
+                await LoadUserProfile();
+                isEditing = false;
+            }
+            else
+            {
+                Toast.Error("Cập nhật thông tin thất bại");
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Lỗi: {ex.Message}");
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+
+    private async Task ChangePassword()
+    {
+        passwordError = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(passwordForm.CurrentPassword))
+        {
+            passwordError = "Vui lòng nhập mật khẩu hiện tại";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(passwordForm.NewPassword))
+        {
+            passwordError = "Vui lòng nhập mật khẩu mới";
+            return;
+        }
+
+        if (passwordForm.NewPassword.Length < 6)
+        {
+            passwordError = "Mật khẩu mới phải có ít nhất 6 ký tự";
+            return;
+        }
+
+        if (passwordForm.NewPassword != passwordForm.ConfirmPassword)
+        {
+            passwordError = "Mật khẩu xác nhận không khớp";
+            return;
+        }
+
+        changingPassword = true;
+        try
+        {
+            // Call change password API here
+            Toast.Info("Chức năng đổi mật khẩu đang được phát triển");
+            ClosePasswordModal();
+        }
+        catch (Exception ex)
+        {
+            passwordError = $"Lỗi: {ex.Message}";
+        }
+        finally
+        {
+            changingPassword = false;
+        }
+    }
+
+    private async Task HandleLogout()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("localStorage.removeItem", "admin_access_token");
+            await JS.InvokeVoidAsync("localStorage.removeItem", "admin_refresh_token");
+            await JS.InvokeVoidAsync("localStorage.removeItem", "admin_user_id");
+            await JS.InvokeVoidAsync("localStorage.removeItem", "remember_login");
+            
+            if (AuthStateProvider is CustomAuthStateProvider customProvider)
+            {
+                await customProvider.NotifyUserLogout();
+            }
+            
+            Toast.Success("Đã đăng xuất thành công!");
+            Nav.NavigateTo("/login", forceLoad: true);
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Lỗi khi đăng xuất: {ex.Message}");
+        }
+    }
+
+    private string GetInitials(string fullName)
+    {
+        if (string.IsNullOrEmpty(fullName)) return "U";
+        var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+        {
+            return $"{parts[0][0]}{parts[^1][0]}".ToUpper();
+        }
+        return fullName[0].ToString().ToUpper();
+    }
+
+    private string GetRoleBadgeClass(string role)
+    {
+        return role switch
+        {
+            "Admin" => "bg-red-100 text-red-700",
+            "Employee" => "bg-blue-100 text-blue-700",
+            _ => "bg-gray-100 text-gray-700"
+        };
+    }
+
+    public class ChangePasswordRequest
+    {
+        public string CurrentPassword { get; set; } = string.Empty;
+        public string NewPassword { get; set; } = string.Empty;
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
 }
+

@@ -190,9 +190,10 @@
             
             if (result.Success && result.Data?.AccessToken != null)
             {
-                // Lưu token vào localStorage
+                // Lưu token và user ID vào localStorage
                 await JS.InvokeVoidAsync("localStorage.setItem", "admin_access_token", result.Data.AccessToken);
                 await JS.InvokeVoidAsync("localStorage.setItem", "admin_refresh_token", result.Data.RefreshToken ?? "");
+                await JS.InvokeVoidAsync("localStorage.setItem", "admin_user_id", result.Data.UserID.ToString());
                 
                 if (rememberMe)
                 {

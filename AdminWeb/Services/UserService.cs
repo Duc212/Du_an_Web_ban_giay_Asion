@@ -113,6 +113,25 @@ namespace AdminWeb.Services
             return new GetRoleListResponse { Success = false, Message = "Không thể tải danh sách vai trò" };
         }
 
+        public async Task<GetUserDetailRes?> GetUserDetailAsync(int userId)
+        {
+            try
+            {
+                var response = await _http.GetAsync($"api/Auth/GetUserDetail/{userId}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<UserDetailResponse>();
+                    return result?.Data;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting user detail: {ex.Message}");
+            }
+
+            return null;
+        }
+
         public async Task<(bool Success, string Message)> UpdateUserAsync(UpdateUserRequest request)
         {
             try
@@ -134,10 +153,31 @@ namespace AdminWeb.Services
             }
         }
 
+        public async Task<bool> UpdateUserAsync(UpdateUserReq request)
+        {
+            try
+            {
+                var response = await _http.PutAsJsonAsync("api/Auth/UpdateUser", request);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating user: {ex.Message}");
+                return false;
+            }
+        }
+
         private class ApiResponse
         {
             public bool Success { get; set; }
             public string Message { get; set; } = string.Empty;
+        }
+
+        private class UserDetailResponse
+        {
+            public int Status { get; set; }
+            public string Message { get; set; } = string.Empty;
+            public GetUserDetailRes? Data { get; set; }
         }
     }
 }

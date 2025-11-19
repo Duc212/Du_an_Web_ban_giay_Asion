@@ -124,3 +124,26 @@
     .categories-page { padding: 1rem; }
     .stat-row { grid-template-columns: 1fr; }
 }
+
+/* =============================
+   MODAL ANIMATIONS
+   ============================= */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}

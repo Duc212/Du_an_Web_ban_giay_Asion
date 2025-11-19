@@ -1,0 +1,445 @@
+@page "/vouchers"
+@inject AdminWeb.Services.VoucherService VoucherService
+@inject AdminWeb.Services.ToastService Toast
+@using AdminWeb.Models
+
+<PageTitle>Quản lý Voucher - Asion Shop</PageTitle>
+<link href="css/categories.css" rel="stylesheet" />
+<link href="css/modal-styles.css" rel="stylesheet" />
+
+<div class="categories-page space-y-8">
+    <!-- Stats Row -->
+    <div class="stat-row">
+        <div class="stat-card total">
+            <div class="icon">
+                <i class="fas fa-ticket-alt"></i>
+            </div>
+            <div class="info">
+                <p>Tổng voucher</p>
+                <h4>@vouchers.Count</h4>
+            </div>
+        </div>
+        <div class="stat-card pending">
+            <div class="icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="info">
+                <p>Đang hoạt động</p>
+                <h4>@vouchers.Count(v => v.Status == "Active" && v.StartDate <= DateTime.Now && v.EndDate >= DateTime.Now)</h4>
+            </div>
+        </div>
+        <div class="stat-card pending">
+            <div class="icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="info">
+                <p>Đã sử dụng</p>
+                <h4>@vouchers.Sum(v => v.UsedCount)</h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- Voucher List Table -->
+    <div class="bg-white rounded-2xl shadow-lg p-6">
+        <!-- Add Voucher Button -->
+        <div class="mb-4 flex justify-end">
+            <button class="px-4 py-2 btn-ocean text-sm font-medium rounded-lg flex items-center gap-2" @onclick="OpenCreateModal">
+                <i class="fas fa-plus"></i>
+                Thêm voucher
+            </button>
+        </div>
+
+        @if (loading)
+        {
+            <div class="flex items-center justify-center py-20">
+                <div class="animate-spin rounded-full h-14 w-14 border-t-2 border-b-2 border-red-500"></div>
+            </div>
+        }
+        else
+        {
+            <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+                <table class="min-w-full w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Mã voucher</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Tên</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Giảm giá</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Số lượng</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Đã dùng</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Thời gian</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Trạng thái</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 bg-white">
+                        @foreach (var voucher in vouchers)
+                        {
+                            var isExpired = voucher.EndDate < DateTime.Now;
+                            var isActive = voucher.Status == "Active" && voucher.StartDate <= DateTime.Now && voucher.EndDate >= DateTime.Now;
+                            
+                            <tr class="group hover:bg-gray-50 transition">
+                                <td class="px-6 py-4">
+                                    <span class="font-mono font-bold text-red-600">@voucher.VoucherCode</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <p class="font-semibold text-gray-900">@voucher.Name</p>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    @if (voucher.DiscountType == "Percentage")
+                                    {
+                                        <span class="text-red-600 font-bold">@voucher.DiscountValue%</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-red-600 font-bold">@voucher.DiscountValue.ToString("N0")₫</span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <span class="font-semibold">@voucher.Quantity</span>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-600">
+                                        @voucher.UsedCount
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-center text-sm">
+                                    <div>@voucher.StartDate.ToString("dd/MM/yyyy")</div>
+                                    <div class="text-gray-500">đến</div>
+                                    <div>@voucher.EndDate.ToString("dd/MM/yyyy")</div>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    @if (isExpired)
+                                    {
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                                            Hết hạn
+                                        </span>
+                                    }
+                                    else if (isActive)
+                                    {
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-600">
+                                            Hoạt động
+                                        </span>
+                                    }
+                                    else if (voucher.StartDate > DateTime.Now)
+                                    {
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-600">
+                                            Sắp diễn ra
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                                            @voucher.Status
+                                        </span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <button @onclick="() => OpenEditModal(voucher)" class="action-btn btn-accept" title="Sửa" style="background:#e6fbe8;color:#059669;border-radius:8px;padding:6px 10px;">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button @onclick="() => OpenDeleteConfirm(voucher)" class="action-btn btn-reject" title="Xóa" style="background:#ffeaea;color:#dc2626;border-radius:8px;padding:6px 10px;">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+@if (showModal)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; background-color: rgba(0, 0, 0, 0.5);" @onclick="CloseModal">
+        <div class="bg-white rounded-2xl shadow-2xl w-full overflow-y-auto" style="max-width: 600px; max-height: 85vh;" @onclick:stopPropagation="true">
+            <div class="bg-white px-6 pt-6 pb-4">
+                <h3 class="text-2xl font-bold text-gray-900 mb-6">
+                    @(isEditMode ? "Cập nhật voucher" : "Tạo voucher mới")
+                </h3>
+                
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Mã voucher *</label>
+                            <input type="text" @bind="formData.VoucherCode" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="VD: SUMMER2024" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Số lượng *</label>
+                            <input type="number" @bind="formData.Quantity" min="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500" />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tên voucher *</label>
+                        <input type="text" @bind="formData.Name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500" placeholder="VD: Giảm giá mùa hè" />
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Loại giảm giá *</label>
+                            <select @bind="formData.DiscountType" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                                <option value="Percentage">Phần trăm (%)</option>
+                                <option value="FixedAmount">Số tiền cố định (₫)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Giá trị giảm *</label>
+                            <input type="number" @bind="formData.DiscountValue" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500" />
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Đơn hàng tối thiểu</label>
+                            <input type="number" @bind="formData.MinOrderAmount" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500" placeholder="0" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Giảm tối đa</label>
+                            <input type="number" @bind="formData.MaxDiscountAmount" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500" placeholder="0" />
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Ngày bắt đầu *</label>
+                            <input type="datetime-local" @bind="formData.StartDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Ngày kết thúc *</label>
+                            <input type="datetime-local" @bind="formData.EndDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500" />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Trạng thái *</label>
+                        <select @bind="formData.Status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                            <option value="Active">Kích hoạt</option>
+                            <option value="Inactive">Tạm ngưng</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+                <button @onclick="CloseModal" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium">
+                    Hủy
+                </button>
+                <button @onclick="SaveVoucher" disabled="@saving" class="px-6 py-2 btn-ocean rounded-lg text-white font-medium disabled:opacity-50">
+                    @if (saving)
+                    {
+                        <span>Đang lưu...</span>
+                    }
+                    else
+                    {
+                        <span>@(isEditMode ? "Cập nhật" : "Tạo mới")</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Delete Confirmation Modal -->
+@if (showDeleteModal)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; background-color: rgba(0, 0, 0, 0.5);" @onclick="CloseDeleteModal">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6" @onclick:stopPropagation="true">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Xác nhận xóa</h3>
+                <p class="text-gray-600 mb-6">
+                    Bạn có chắc chắn muốn xóa voucher <strong>@deleteTarget?.VoucherCode</strong>?
+                    <br />Hành động này không thể hoàn tác.
+                </p>
+                <div class="flex justify-center gap-3">
+                    <button @onclick="CloseDeleteModal" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium">
+                        Hủy
+                    </button>
+                    <button @onclick="ConfirmDelete" disabled="@deleting" class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50">
+                        @if (deleting)
+                        {
+                            <span>Đang xóa...</span>
+                        }
+                        else
+                        {
+                            <span>Xóa</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<GetVoucherRes> vouchers = new();
+    private bool loading = true;
+    private bool showModal = false;
+    private bool showDeleteModal = false;
+    private bool isEditMode = false;
+    private bool saving = false;
+    private bool deleting = false;
+
+    private CreateVoucherReq formData = new();
+    private UpdateVoucherReq updateData = new();
+    private GetVoucherRes? deleteTarget;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadVouchers();
+    }
+
+    private async Task LoadVouchers()
+    {
+        loading = true;
+        vouchers = await VoucherService.GetAllVouchersAsync();
+        loading = false;
+    }
+
+    private void OpenCreateModal()
+    {
+        isEditMode = false;
+        formData = new CreateVoucherReq
+        {
+            DiscountType = "Percentage",
+            Status = "Active",
+            Quantity = 1,
+            StartDate = DateTime.Now,
+            EndDate = DateTime.Now.AddDays(30)
+        };
+        showModal = true;
+    }
+
+    private void OpenEditModal(GetVoucherRes voucher)
+    {
+        isEditMode = true;
+        updateData = new UpdateVoucherReq
+        {
+            VoucherID = voucher.VoucherID,
+            VoucherCode = voucher.VoucherCode,
+            Name = voucher.Name,
+            DiscountValue = voucher.DiscountValue,
+            DiscountType = voucher.DiscountType,
+            MinOrderAmount = voucher.MinOrderAmount,
+            MaxDiscountAmount = voucher.MaxDiscountAmount,
+            Quantity = voucher.Quantity,
+            StartDate = voucher.StartDate,
+            EndDate = voucher.EndDate,
+            Status = voucher.Status
+        };
+        formData = new CreateVoucherReq
+        {
+            VoucherCode = voucher.VoucherCode,
+            Name = voucher.Name,
+            DiscountValue = voucher.DiscountValue,
+            DiscountType = voucher.DiscountType,
+            MinOrderAmount = voucher.MinOrderAmount,
+            MaxDiscountAmount = voucher.MaxDiscountAmount,
+            Quantity = voucher.Quantity,
+            StartDate = voucher.StartDate,
+            EndDate = voucher.EndDate,
+            Status = voucher.Status
+        };
+        showModal = true;
+    }
+
+    private void OpenDeleteConfirm(GetVoucherRes voucher)
+    {
+        deleteTarget = voucher;
+        showDeleteModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        formData = new();
+        updateData = new();
+    }
+
+    private void CloseDeleteModal()
+    {
+        showDeleteModal = false;
+        deleteTarget = null;
+    }
+
+    private async Task SaveVoucher()
+    {
+        saving = true;
+        try
+        {
+            if (isEditMode)
+            {
+                updateData.VoucherCode = formData.VoucherCode;
+                updateData.Name = formData.Name;
+                updateData.DiscountValue = formData.DiscountValue;
+                updateData.DiscountType = formData.DiscountType;
+                updateData.MinOrderAmount = formData.MinOrderAmount;
+                updateData.MaxDiscountAmount = formData.MaxDiscountAmount;
+                updateData.Quantity = formData.Quantity;
+                updateData.StartDate = formData.StartDate;
+                updateData.EndDate = formData.EndDate;
+                updateData.Status = formData.Status;
+
+                var (success, message) = await VoucherService.UpdateVoucherAsync(updateData);
+                if (success)
+                {
+                    Toast.Success(message);
+                    await LoadVouchers();
+                    CloseModal();
+                }
+                else
+                {
+                    Toast.Error(message);
+                }
+            }
+            else
+            {
+                var (success, message) = await VoucherService.CreateVoucherAsync(formData);
+                if (success)
+                {
+                    Toast.Success(message);
+                    await LoadVouchers();
+                    CloseModal();
+                }
+                else
+                {
+                    Toast.Error(message);
+                }
+            }
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (deleteTarget == null) return;
+
+        deleting = true;
+        try
+        {
+            var (success, message) = await VoucherService.DeleteVoucherAsync(deleteTarget.VoucherID);
+            if (success)
+            {
+                Toast.Success(message);
+                await LoadVouchers();
+                CloseDeleteModal();
+            }
+            else
+            {
+                Toast.Error(message);
+            }
+        }
+        finally
+        {
+            deleting = false;
+        }
+    }
+}

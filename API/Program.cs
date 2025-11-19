@@ -77,8 +77,10 @@ builder.Services.AddTransient<IProductAdminServices, ProductAdminServices>();
 builder.Services.AddTransient<ICartServices, CartServices>();
 builder.Services.AddTransient<IPaymentServices, PaymentServices>();
 builder.Services.AddTransient<IUserServices, UserServices>(); // đã đăng ký
+builder.Services.AddTransient<IVoucherService, VoucherService>();
 
 builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<VoucherRepository>();
 
 builder.Services.AddMemoryCache(); 
 builder.Services.AddSingleton<IMemoryCacheSystem, MemoryCacheSystem>();

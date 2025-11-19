@@ -46,6 +46,18 @@ builder.Services.AddHttpClient<OrderService>(client =>
 })
 .AddHttpMessageHandler<AuthorizationMessageHandler>();
 
+builder.Services.AddHttpClient<VoucherService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7134/");
+})
+.AddHttpMessageHandler<AuthorizationMessageHandler>();
+
+builder.Services.AddHttpClient<AuthService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7134/");
+})
+.AddHttpMessageHandler<AuthorizationMessageHandler>();
+
 builder.Services.AddHttpClient<AuthService>(client =>
 {
     client.BaseAddress = new Uri("https://localhost:7134/");

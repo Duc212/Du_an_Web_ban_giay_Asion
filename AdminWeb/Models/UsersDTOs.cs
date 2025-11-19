@@ -15,6 +15,21 @@ namespace AdminWeb.Models
         public DateTime CreatedAt { get; set; }
     }
 
+    public class GetUserDetailRes
+    {
+        public int UserID { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public DateTime DateOfBirth { get; set; }
+        public string? Avatar { get; set; }
+        public int Gender { get; set; }
+        public int Status { get; set; }
+        public List<string> Roles { get; set; } = new();
+        public DateTime CreatedAt { get; set; }
+    }
+
     public class UserAddress
     {
         public string AddressDetail { get; set; } = string.Empty;
@@ -52,9 +67,24 @@ namespace AdminWeb.Models
         public string? Password { get; set; }
         public string Email { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
+        public string? Avatar { get; set; }
+        public int Gender { get; set; }
         public DateTime DateOfBirth { get; set; }
         public int Status { get; set; }
         public List<string> Roles { get; set; } = new();
+    }
+
+    public class UpdateUserReq
+    {
+        public int UserID { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
+        public string? Password { get; set; }
+        public string Email { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string? Avatar { get; set; }
+        public int Gender { get; set; }
+        public int Status { get; set; }
     }
 
     // Role Models
