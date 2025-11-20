@@ -89,5 +89,25 @@ namespace API.Controllers
         {
             return await _voucherService.DeleteVoucher(id);
         }
+
+        /// <summary>
+        /// Xác thực và tính toán giảm giá của voucher (Public - không cần đăng nhập)
+        /// </summary>
+        [HttpPost("ValidateVoucher")]
+        public async Task<CommonResponse<ValidateVoucherRes>> ValidateVoucher([FromBody] ValidateVoucherReq request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
+                return new CommonResponse<ValidateVoucherRes>
+                {
+                    Success = false,
+                    Message = string.Join(", ", errors),
+                    Data = new ValidateVoucherRes { IsValid = false, Message = "Dữ liệu không hợp lệ" }
+                };
+            }
+
+            return await _voucherService.ValidateVoucher(request);
+        }
     }
 }

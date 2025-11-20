@@ -1,6 +1,7 @@
 @page "/payment-success"
 @using Microsoft.AspNetCore.Components
 @inject NavigationManager Navigation
+@inject WebUI.Services.CartService CartService
 
 <PageTitle>Thanh toán</PageTitle>
 
@@ -9,7 +10,7 @@
     private string? rawAmount;
     private string amountDisplay = string.Empty;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         var uri = new Uri(Navigation.Uri);
         var queryParams = ParseQueryString(uri.Query);
@@ -26,6 +27,12 @@
         else
         {
             amountDisplay = rawAmount ?? string.Empty;
+        }
+
+        // Clear cart after successful payment
+        if (!string.IsNullOrWhiteSpace(transactionId))
+        {
+            await CartService.ClearCartAsync();
         }
     }
 

@@ -150,7 +150,7 @@ namespace BUS.Services
                     City = address?.City,
                     Status = o.Status,
                     PaymentMethod = paymentMethodInt,
-                    PaymentStatus = orderPayment?.Status ?? 0,
+                    PaymentStatus = payment != null ? GetPaymentStatusInt(payment.PaymentStatus) : 0,
                     SubTotal = subTotal,
                     ShippingFee = shippingFee,
                     Discount = discount,
@@ -242,6 +242,22 @@ namespace BUS.Services
                 _ => (int)PaymentMethodEnums.COD
             };
         }
+
+        private int GetPaymentStatusInt(string paymentStatus)
+        {
+            if (string.IsNullOrEmpty(paymentStatus))
+                return 0; // Unpaid
+
+            return paymentStatus.ToUpper() switch
+            {
+                "PAID" => 1,
+                "UNPAID" => 0,
+                "REFUNDED" => 2,
+                "FAILED" => 3,
+                _ => 0
+            };
+        }
+
         public async Task<CommonResponse<int>> CreateOrder(CreateOrderReq req)
         {
             try
@@ -511,59 +527,102 @@ namespace BUS.Services
                 };
             }
         }
-        public async Task<CommonResponse<bool>> ConfirmOrderAsync(ConfirmOrderReq req)
+        public async Task<CommonResponse<DAL.DTOs.Orders.Res.ConfirmOrderResponse>> ConfirmOrderAsync(ConfirmOrderReq req)
         {
-            var response = new CommonResponse<bool>();
-
             try
             {
                 var order = await _orderRepository.AsQueryable()
                     .FirstOrDefaultAsync(o => o.OrderID == req.OrderID);
 
                 if (order == null)
-                    return new CommonResponse<bool> { Success = false, Message = "Order not found", Data = false };
-
-                if (order.Status != (int)OrderStatusEnums.Pending)
-                    return new CommonResponse<bool> { Success = false, Message = "Order cannot be confirmed in current status", Data = false };
-
-                order.Status = (int)OrderStatusEnums.Confirmed;
-                order.OrderDate = DateTime.Now;
-
-                Shipment shipment;
-                if (order.ShipmentID.HasValue)
-                {
-                    shipment = order.Shipment!;
-                }
-                else
-                {
-                    shipment = new Shipment
-                    {
-                        ShippingProvider = "DefaultProvider", 
-                        TrackingNumber = GenerateTrackingNumber(),
-                        DeliveryStatus = 0, 
-                        ShippedDate = null
+                    return new CommonResponse<DAL.DTOs.Orders.Res.ConfirmOrderResponse> 
+                    { 
+                        Success = false, 
+                        Message = "Không tìm thấy đơn hàng", 
+                        Data = null 
                     };
 
-                    await _shipmentRepository.AddAsync(shipment);
+                if (order.Status != (int)OrderStatusEnums.Pending)
+                    return new CommonResponse<DAL.DTOs.Orders.Res.ConfirmOrderResponse> 
+                    { 
+                        Success = false, 
+                        Message = "Đơn hàng không ở trạng thái chờ xác nhận", 
+                        Data = null 
+                    };
+
+                await _unitOfWork.ExecuteInTransactionAsync(async () =>
+                {
+                    // Cập nhật trạng thái đơn hàng
+                    order.Status = (int)OrderStatusEnums.Confirmed;
+                    
+                    // Thêm ghi chú nếu có
+                    if (!string.IsNullOrEmpty(req.Note))
+                    {
+                        order.Note = string.IsNullOrEmpty(order.Note) 
+                            ? $"[{DateTime.Now:dd/MM/yyyy HH:mm}] {req.Note}" 
+                            : $"{order.Note}\n[{DateTime.Now:dd/MM/yyyy HH:mm}] {req.Note}";
+                    }
+
+                    Shipment shipment;
+                    if (order.ShipmentID.HasValue)
+                    {
+                        // Cập nhật shipment hiện tại
+                        shipment = await _shipmentRepository.AsQueryable()
+                            .FirstOrDefaultAsync(s => s.ShipmentID == order.ShipmentID.Value);
+                        
+                        if (shipment != null)
+                        {
+                            shipment.ShippingProvider = req.ShippingProvider ?? shipment.ShippingProvider;
+                            shipment.DeliveryStatus = 1; // Đã xác nhận
+                            await _shipmentRepository.UpdateAsync(shipment);
+                        }
+                    }
+                    else
+                    {
+                        // Tạo shipment mới
+                        shipment = new Shipment
+                        {
+                            ShippingProvider = req.ShippingProvider ?? "Default Provider",
+                            TrackingNumber = GenerateTrackingNumber(),
+                            DeliveryStatus = 1, // Đã xác nhận
+                            ShippedDate = null
+                        };
+
+                        await _shipmentRepository.AddAsync(shipment);
+                        await _shipmentRepository.SaveChangesAsync();
+
+                        order.ShipmentID = shipment.ShipmentID;
+                    }
+
+                    await _orderRepository.UpdateAsync(order);
+                    await _orderRepository.SaveChangesAsync();
                     await _shipmentRepository.SaveChangesAsync();
+                });
 
-                    order.ShipmentID = shipment.ShipmentID;
-                }
+                // Lấy lại shipment để trả về tracking number
+                var finalShipment = await _shipmentRepository.AsQueryable()
+                    .FirstOrDefaultAsync(s => s.ShipmentID == order.ShipmentID);
 
-                await _orderRepository.UpdateAsync(order);
-
-                response.Success = true;
-                response.Message = "Order confirmed successfully";
-                response.Data = true;
+                return new CommonResponse<DAL.DTOs.Orders.Res.ConfirmOrderResponse>
+                {
+                    Success = true,
+                    Message = "Xác nhận đơn hàng thành công",
+                    Data = new DAL.DTOs.Orders.Res.ConfirmOrderResponse
+                    {
+                        TrackingNumber = finalShipment?.TrackingNumber ?? "",
+                        ShipmentID = finalShipment?.ShipmentID ?? 0
+                    }
+                };
             }
             catch (Exception ex)
             {
-                response.Success = false;
-                response.Message = $"Error: {ex.Message}";
-                response.Data = false;
+                return new CommonResponse<DAL.DTOs.Orders.Res.ConfirmOrderResponse>
+                {
+                    Success = false,
+                    Message = $"Lỗi: {ex.Message}",
+                    Data = null
+                };
             }
-
-            return response;
         }
 
         private string GenerateTrackingNumber()

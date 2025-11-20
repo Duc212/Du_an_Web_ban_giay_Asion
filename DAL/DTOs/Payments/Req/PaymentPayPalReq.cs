@@ -7,6 +7,7 @@
     }
     public class CaptureReq
     {
+        public int SystemOrderID { get; set; }
         public string OrderId { get; set; }
     }
 

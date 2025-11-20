@@ -15,6 +15,7 @@ namespace BUS.Services
         Task<CommonResponse<string>> CreateVoucher(CreateVoucherReq request);
         Task<CommonResponse<string>> UpdateVoucher(UpdateVoucherReq request);
         Task<CommonResponse<string>> DeleteVoucher(int id);
+        Task<CommonResponse<ValidateVoucherRes>> ValidateVoucher(ValidateVoucherReq request);
     }
 
     public class VoucherService : IVoucherService
@@ -352,6 +353,137 @@ namespace BUS.Services
                     Success = false,
                     Message = $"Lỗi: {ex.Message}",
                     Data = null
+                };
+            }
+        }
+
+        public async Task<CommonResponse<ValidateVoucherRes>> ValidateVoucher(ValidateVoucherReq request)
+        {
+            try
+            {
+                var voucherCode = request.VoucherCode.ToUpper().Trim();
+                var voucher = await _voucherRepository.AsNoTrackingQueryable()
+                    .FirstOrDefaultAsync(v => v.VoucherCode == voucherCode);
+
+                if (voucher == null)
+                {
+                    return new CommonResponse<ValidateVoucherRes>
+                    {
+                        Success = false,
+                        Message = "Mã voucher không tồn tại",
+                        Data = new ValidateVoucherRes { IsValid = false, Message = "Mã voucher không tồn tại" }
+                    };
+                }
+
+                // Check if voucher is active
+                if (voucher.Status != "Active")
+                {
+                    return new CommonResponse<ValidateVoucherRes>
+                    {
+                        Success = false,
+                        Message = "Voucher không còn hiệu lực",
+                        Data = new ValidateVoucherRes { IsValid = false, Message = "Voucher không còn hiệu lực" }
+                    };
+                }
+
+                // Check date validity
+                var now = DateTime.Now;
+                if (now < voucher.StartDate)
+                {
+                    return new CommonResponse<ValidateVoucherRes>
+                    {
+                        Success = false,
+                        Message = "Voucher chưa đến ngày sử dụng",
+                        Data = new ValidateVoucherRes { IsValid = false, Message = $"Voucher có hiệu lực từ {voucher.StartDate:dd/MM/yyyy}" }
+                    };
+                }
+
+                if (now > voucher.EndDate)
+                {
+                    return new CommonResponse<ValidateVoucherRes>
+                    {
+                        Success = false,
+                        Message = "Voucher đã hết hạn",
+                        Data = new ValidateVoucherRes { IsValid = false, Message = "Voucher đã hết hạn sử dụng" }
+                    };
+                }
+
+                // Check quantity
+                var usedCount = await _voucherHelper.GetUsedCountAsync(voucher.VoucherID);
+                if (usedCount >= voucher.Quantity)
+                {
+                    return new CommonResponse<ValidateVoucherRes>
+                    {
+                        Success = false,
+                        Message = "Voucher đã hết lượt sử dụng",
+                        Data = new ValidateVoucherRes { IsValid = false, Message = "Voucher đã hết lượt sử dụng" }
+                    };
+                }
+
+                // Check minimum order amount
+                if (voucher.MinOrderAmount.HasValue && request.OrderAmount < voucher.MinOrderAmount.Value)
+                {
+                    return new CommonResponse<ValidateVoucherRes>
+                    {
+                        Success = false,
+                        Message = $"Đơn hàng tối thiểu {voucher.MinOrderAmount.Value:N0}đ để sử dụng voucher này",
+                        Data = new ValidateVoucherRes 
+                        { 
+                            IsValid = false, 
+                            Message = $"Đơn hàng tối thiểu {voucher.MinOrderAmount.Value:N0}đ",
+                            MinOrderAmount = voucher.MinOrderAmount
+                        }
+                    };
+                }
+
+                // Calculate discount
+                decimal calculatedDiscount = 0;
+                if (voucher.DiscountType == "Percentage")
+                {
+                    calculatedDiscount = request.OrderAmount * (voucher.DiscountValue / 100);
+                    // Apply max discount limit if specified
+                    if (voucher.MaxDiscountAmount.HasValue && calculatedDiscount > voucher.MaxDiscountAmount.Value)
+                    {
+                        calculatedDiscount = voucher.MaxDiscountAmount.Value;
+                    }
+                }
+                else if (voucher.DiscountType == "FixedAmount")
+                {
+                    calculatedDiscount = voucher.DiscountValue;
+                }
+
+                // Ensure discount doesn't exceed order amount
+                if (calculatedDiscount > request.OrderAmount)
+                {
+                    calculatedDiscount = request.OrderAmount;
+                }
+
+                return new CommonResponse<ValidateVoucherRes>
+                {
+                    Success = true,
+                    Message = "Áp dụng voucher thành công",
+                    Data = new ValidateVoucherRes
+                    {
+                        IsValid = true,
+                        Message = $"Giảm giá {calculatedDiscount:N0}đ",
+                        VoucherID = voucher.VoucherID,
+                        VoucherCode = voucher.VoucherCode,
+                        Name = voucher.Name,
+                        DiscountValue = voucher.DiscountValue,
+                        DiscountType = voucher.DiscountType,
+                        CalculatedDiscount = calculatedDiscount,
+                        MinOrderAmount = voucher.MinOrderAmount,
+                        MaxDiscountAmount = voucher.MaxDiscountAmount
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new CommonResponse<ValidateVoucherRes>
+                {
+                    Success = false,
+                    Message = $"Lỗi: {ex.Message}",
+                    Data = new ValidateVoucherRes { IsValid = false, Message = "Có lỗi xảy ra khi kiểm tra voucher" }
                 };
             }
         }

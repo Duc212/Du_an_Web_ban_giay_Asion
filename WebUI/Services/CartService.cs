@@ -527,5 +527,8 @@ namespace WebUI.Services
         public decimal Total { get; set; }
         public List<Models.Cart.CartItemResponse>? SelectedApiItems { get; set; }
         public List<CartItem>? SelectedLocalItems { get; set; }
+        public int? VoucherID { get; set; }
+        public string? VoucherCode { get; set; }
+        public decimal Discount { get; set; }
     }
 }

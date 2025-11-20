@@ -11,7 +11,13 @@
 <!-- Product Card Component -->
 <div class="product-card" @onclick="OnProductClick">
     <div class="card-media">
-        @if (Product.HasBadge)
+        @if (!IsInStock())
+        {
+            <span class="product-badge product-badge--out-of-stock">
+                Hết hàng
+            </span>
+        }
+        else if (Product.HasBadge)
         {
             <span class="product-badge @(Product.IsSale ? "product-badge--sale" : "product-badge--highlight")">
                 @Product.Badge
@@ -133,6 +139,16 @@
         }
     }
 
+    private bool IsInStock()
+    {
+        // Check if any color has stock available
+        if (Product?.Colors != null && Product.Colors.Any())
+        {
+            return Product.Colors.Any(c => c.AvailableStock > 0);
+        }
+        return Product?.InStock ?? true;
+    }
+
     private async Task OnWishlistClick()
     {
         // Check if user is logged in
@@ -183,3 +199,54 @@
         }
     }
 }
+
+<style>
+    .card-media {
+        position: relative;
+    }
+
+    .product-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        z-index: 10;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .product-badge--sale {
+        background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+        color: white;
+    }
+
+    .product-badge--highlight {
+        background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
+        color: white;
+    }
+
+    .product-badge--out-of-stock {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+        color: white !important;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 0.8px;
+        padding: 8px 16px;
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+        border: 2px solid rgba(255, 255, 255, 0.9);
+    }
+
+    .product-card:has(.product-badge--out-of-stock) {
+        opacity: 0.85;
+    }
+
+    .product-card:has(.product-badge--out-of-stock) .card-actions {
+        pointer-events: none;
+        opacity: 0.5;
+    }
+</style>

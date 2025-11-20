@@ -5,6 +5,7 @@
 @inject NavigationManager Navigation
 @inject CartService CartService
 @inject IToastService ToastService
+@inject VoucherService VoucherService
 
 <div class="checkout-page">
     <div class="checkout-container">
@@ -50,6 +51,54 @@
                             <textarea class="bw-textarea" rows="3" @bind="Shipping.Note" placeholder="Yêu cầu giao hàng, ghi chú bổ sung..."></textarea>
                         </div>
                     </div>
+                </div>
+
+                <div class="shipping-card" style="margin-top: 24px;">
+                    <h3>Mã giảm giá</h3>
+                    <div style="display: flex; gap: 12px; margin-top: 16px;">
+                        <input 
+                            class="bw-input" 
+                            style="flex: 1;" 
+                            @bind="VoucherCode" 
+                            placeholder="Nhập mã giảm giá" 
+                            disabled="@(AppliedVoucher != null)" />
+                        @if (AppliedVoucher == null)
+                        {
+                            <button 
+                                style="padding: 12px 24px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;"
+                                @onclick="ApplyVoucher" 
+                                disabled="@(string.IsNullOrWhiteSpace(VoucherCode) || IsApplyingVoucher)">
+                                @if (IsApplyingVoucher)
+                                {
+                                    <span>Đang kiểm tra...</span>
+                                }
+                                else
+                                {
+                                    <span>Áp dụng</span>
+                                }
+                            </button>
+                        }
+                        else
+                        {
+                            <button 
+                                style="padding: 12px 24px; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;"
+                                @onclick="RemoveVoucher">
+                                <i class="fas fa-times"></i> Xóa
+                            </button>
+                        }
+                    </div>
+                    @if (AppliedVoucher != null)
+                    {
+                        <div style="margin-top: 12px; padding: 12px; background: #dcfce7; border-radius: 8px; border: 1px solid #86efac;">
+                            <div style="display: flex; align-items: center; gap: 8px; color: #166534; font-weight: 600;">
+                                <i class="fas fa-check-circle"></i>
+                                <span>@AppliedVoucher.Name</span>
+                            </div>
+                            <div style="color: #166534; font-size: 14px; margin-top: 4px;">
+                                Giảm @AppliedVoucher.CalculatedDiscount.ToString("N0")đ
+                            </div>
+                        </div>
+                    }
                 </div>
 
                 <div class="shipping-card" style="margin-top: 24px;">
@@ -125,6 +174,15 @@
                     <span class="summary-label">Phí vận chuyển</span>
                     <span class="summary-value">@ShippingFeeFormatted</span>
                 </div>
+                @if (AppliedVoucher != null)
+                {
+                    <div class="summary-row" style="color: #16a34a;">
+                        <span class="summary-label">
+                            <i class="fas fa-tag"></i> Giảm giá
+                        </span>
+                        <span class="summary-value">-@AppliedVoucher.CalculatedDiscount.ToString("N0")đ</span>
+                    </div>
+                }
                 <div class="summary-divider"></div>
                 <div class="summary-row total">
                     <span class="summary-label">Tổng cộng</span>
@@ -160,6 +218,11 @@
     private List<WebUI.Models.Cart.CartItemResponse>? SelectedApiItems;
     private List<WebUI.Services.CartItem>? SelectedLocalItems;
 
+    // Voucher fields
+    private string VoucherCode = "";
+    private ValidateVoucherResponse? AppliedVoucher = null;
+    private bool IsApplyingVoucher = false;
+
     private bool HasAnySelection => (SelectedApiItems?.Any() == true) || (SelectedLocalItems?.Any() == true);
 
     private decimal Subtotal =>
@@ -183,7 +246,8 @@
         }
     }
 
-    private decimal Total => Subtotal + ShippingFee;
+    private decimal Discount => AppliedVoucher?.CalculatedDiscount ?? 0;
+    private decimal Total => Math.Max(0, Subtotal + ShippingFee - Discount);
     private string SubtotalFormatted => $"{Subtotal:N0}đ";
     private string ShippingFeeFormatted => ShippingFee == 0 ? "Miễn phí" : $"{ShippingFee:N0}đ";
     private string TotalFormatted => $"{Total:N0}đ";
@@ -266,6 +330,51 @@
         StateHasChanged();
     }
 
+    private async Task ApplyVoucher()
+    {
+        if (string.IsNullOrWhiteSpace(VoucherCode))
+        {
+            ToastService.ShowWarning("Vui lòng nhập mã giảm giá");
+            return;
+        }
+
+        IsApplyingVoucher = true;
+        StateHasChanged();
+
+        try
+        {
+            var orderAmountBeforeDiscount = Subtotal + ShippingFee;
+            var result = await VoucherService.ValidateVoucherAsync(VoucherCode, orderAmountBeforeDiscount);
+
+            if (result != null && result.IsValid)
+            {
+                AppliedVoucher = result;
+                ToastService.ShowSuccess(result.Message);
+            }
+            else
+            {
+                ToastService.ShowWarning(result?.Message ?? "Mã giảm giá không hợp lệ");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Lỗi khi áp dụng mã giảm giá: {ex.Message}");
+        }
+        finally
+        {
+            IsApplyingVoucher = false;
+            StateHasChanged();
+        }
+    }
+
+    private void RemoveVoucher()
+    {
+        AppliedVoucher = null;
+        VoucherCode = "";
+        ToastService.ShowInfo("Đã xóa mã giảm giá");
+        StateHasChanged();
+    }
+
     private void GoToPayment()
     {
         if (!HasAnySelection)
@@ -285,7 +394,7 @@
         }
 
         // Lưu thông tin checkout vào CartService
-    CartService.CheckoutInfo = new CheckoutInfo
+        CartService.CheckoutInfo = new CheckoutInfo
         {
             FullName = Shipping.FullName,
             Email = Shipping.Email,
@@ -298,7 +407,10 @@
             Subtotal = Subtotal,
             Total = Total,
             SelectedApiItems = SelectedApiItems,
-            SelectedLocalItems = SelectedLocalItems
+            SelectedLocalItems = SelectedLocalItems,
+            VoucherID = AppliedVoucher?.VoucherID,
+            VoucherCode = AppliedVoucher?.VoucherCode,
+            Discount = Discount
         };
 
         Navigation.NavigateTo("/payment");

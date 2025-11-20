@@ -21,6 +21,12 @@
                     <div class="row g-4 align-items-center mb-1">
                         <div class="col-md-5">
                             <div class="product-preview">
+                                @if (IsCurrentSelectionOutOfStock())
+                                {
+                                    <span class="modal-out-of-stock-badge">
+                                        Hết hàng
+                                    </span>
+                                }
                                 <img src="@CurrentImageUrl"
                                      alt="@Product.Name"
                                      class="product-preview__image"
@@ -46,6 +52,22 @@
                         <label class="selector-label">
                             <i class="fas fa-ruler"></i>
                             Chọn size
+                            @if (!string.IsNullOrEmpty(SelectedSize) && !string.IsNullOrEmpty(SelectedColor))
+                            {
+                                var stock = GetStockForSizeAndColor(SelectedSize, SelectedColor);
+                                if (stock > 0)
+                                {
+                                    <span style="color: #059669; font-size: 0.85em; font-weight: 600; margin-left: 8px;">
+                                        (@stock còn lại)
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span style="color: #dc3545; font-size: 0.85em; font-weight: 600; margin-left: 8px;">
+                                        (Hết hàng)
+                                    </span>
+                                }
+                            }
                         </label>
                         <div class="selector-grid">
                             @foreach (var size in AvailableSizes)
@@ -63,22 +85,44 @@
                         <label class="selector-label">
                             <i class="fas fa-palette"></i>
                             Chọn màu
+                            @if (!string.IsNullOrEmpty(SelectedColor))
+                            {
+                                var selectedColorInfo = AvailableColors.FirstOrDefault(c => c.HexColor.Equals(SelectedColor, StringComparison.OrdinalIgnoreCase));
+                                if (selectedColorInfo != null)
+                                {
+                                    <span style="color: #059669; font-size: 0.85em; font-weight: 600; margin-left: 8px;">
+                                        (@selectedColorInfo.AvailableStock tổng có sẵn)
+                                    </span>
+                                }
+                            }
                         </label>
                         <div class="color-grid">
                             @foreach (var color in AvailableColors)
                             {
-                                <div class="color-item">
+                                var isOutOfStock = color.AvailableStock <= 0;
+                                var opacity = isOutOfStock ? "0.4" : "1";
+                                var cursor = isOutOfStock ? "not-allowed" : "pointer";
+                                <div class="color-item @(isOutOfStock ? "out-of-stock" : "")">
                                     <button type="button"
-                                            class="color-swatch @(SelectedColor == color.HexColor ? "color-swatch--active" : null)"
-                                            style="background-color: @color.HexColor; @(color.HexColor.ToUpper() == "#FFFFFF" ? "border: 1px solid #cbd5e1;" : string.Empty)"
-                                            @onclick="() => SelectColor(color.HexColor)"
-                                            title="@color.ColorName">
+                                            class="color-swatch @(SelectedColor == color.HexColor ? "color-swatch--active" : null) @(isOutOfStock ? "disabled" : "")"
+                                            style="background-color: @color.HexColor; @(color.HexColor.ToUpper() == "#FFFFFF" ? "border: 1px solid #cbd5e1;" : string.Empty) opacity: @opacity; cursor: @cursor;"
+                                            @onclick="@(() => { if (!isOutOfStock) SelectColor(color.HexColor); })"
+                                            disabled="@isOutOfStock"
+                                            title="@(isOutOfStock ? $"{color.ColorName} - Hết hàng" : color.ColorName)">
                                         @if (SelectedColor == color.HexColor)
                                         {
                                             <i class="fas fa-check"></i>
                                         }
+                                        @if (isOutOfStock)
+                                        {
+                                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(45deg); width: 100%; height: 2px; background: #dc3545;"></div>
+                                        }
                                     </button>
-                                    <span class="color-label">@color.ColorName</span>
+                                    <span class="color-label" style="color: @(isOutOfStock ? "#dc3545" : "inherit")">@color.ColorName</span>
+                                    @if (isOutOfStock)
+                                    {
+                                        <span class="out-of-stock-badge">Hết hàng</span>
+                                    }
                                 </div>
                             }
                         </div>
@@ -288,6 +332,29 @@
         }
     }
 
+    private int GetStockForSizeAndColor(string size, string colorHex)
+    {
+        if (string.IsNullOrEmpty(size) || string.IsNullOrEmpty(colorHex))
+            return 0;
+
+        var colorInfo = AvailableColors.FirstOrDefault(c => c.HexColor.Equals(colorHex, StringComparison.OrdinalIgnoreCase));
+        if (colorInfo?.SizeStock != null && colorInfo.SizeStock.TryGetValue(size, out int stock))
+        {
+            return stock;
+        }
+        return 0;
+    }
+
+    private bool IsCurrentSelectionOutOfStock()
+    {
+        // Kiểm tra nếu cả màu và size đều đã được chọn
+        if (string.IsNullOrEmpty(SelectedColor) || string.IsNullOrEmpty(SelectedSize))
+            return false;
+
+        // Kiểm tra stock của combo màu + size
+        return GetStockForSizeAndColor(SelectedSize, SelectedColor) <= 0;
+    }
+
     private async Task AddToCart()
     {
         if (Product != null && !string.IsNullOrEmpty(SelectedSize) && !string.IsNullOrEmpty(SelectedColor))
@@ -319,3 +386,38 @@
         await CloseModal();
     }
 }
+
+<style>
+    .product-preview {
+        position: relative;
+    }
+
+    .modal-out-of-stock-badge {
+        position: absolute !important;
+        top: 12px !important;
+        left: 12px !important;
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+        color: white !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        font-size: 12px !important;
+        letter-spacing: 0.8px !important;
+        padding: 8px 16px !important;
+        border-radius: 6px !important;
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.5) !important;
+        border: 2px solid rgba(255, 255, 255, 0.9) !important;
+        z-index: 10 !important;
+        animation: pulseModalOutOfStock 2s ease-in-out infinite;
+    }
+
+    @@keyframes pulseModalOutOfStock {
+        0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.5);
+        }
+        50% {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(220, 53, 69, 0.7);
+        }
+    }
+</style>

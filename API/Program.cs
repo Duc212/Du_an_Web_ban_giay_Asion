@@ -1,4 +1,5 @@
 ﻿using API.Extensions;
+using API.Services;
 using BUS.Services;
 using BUS.Services.Interfaces;
 using DAL;
@@ -81,6 +82,9 @@ builder.Services.AddTransient<IVoucherService, VoucherService>();
 
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<VoucherRepository>();
+
+// Register background services
+builder.Services.AddHostedService<OrderCancellationService>();
 
 builder.Services.AddMemoryCache(); 
 builder.Services.AddSingleton<IMemoryCacheSystem, MemoryCacheSystem>();

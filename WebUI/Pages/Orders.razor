@@ -22,6 +22,12 @@
             </button>
         </li>
         <li class="nav-item" role="presentation">
+            <button class="nav-link @(activeTab == "unpaid" ? "active" : "")" 
+                    @onclick='() => SetActiveTab("unpaid")'>
+                Chưa thanh toán <span class="badge bg-danger ms-1">@unpaidOrders.Count</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
             <button class="nav-link @(activeTab == "pending" ? "active" : "")" 
                     @onclick='() => SetActiveTab("pending")'>
                 Chờ xử lý <span class="badge bg-warning text-dark ms-1">@pendingOrders.Count</span>
@@ -187,26 +193,35 @@
 
                                             <!-- Actions -->
                                             <div class="mt-3 d-grid gap-2">
+                                                @if (activeTab == "unpaid" && order.Status == 0 && order.PaymentMethod != 1)
+                                                {
+                                                    var timeRemaining = GetTimeRemaining(order.CreatedAt);
+                                                    var isUrgent = timeRemaining.TotalHours < 2;
+                                                    <div class="alert @(isUrgent ? "alert-danger" : "alert-warning") p-2 mb-2">
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="bi bi-clock me-2"></i>
+                                                            <div class="flex-grow-1">
+                                                                <small class="fw-bold">Thời gian còn lại:</small>
+                                                                <div class="@(isUrgent ? "text-danger" : "") fw-bold">
+                                                                    @FormatTimeRemaining(timeRemaining)
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <button class="btn btn-danger btn-sm" 
+                                                            @onclick="() => PayNowOrder(order.OrderId)">
+                                                        <i class="bi bi-credit-card me-1"></i>Thanh toán ngay
+                                                    </button>
+                                                }
                                                 <button class="btn btn-outline-primary btn-sm" 
                                                         @onclick="() => ViewOrderDetail(order.OrderId)">
                                                     <i class="bi bi-eye me-1"></i>Chi tiết
                                                 </button>
                                                 @if (order.Status == 0)
                                                 {
-                                                    <button class="btn btn-success btn-sm" 
-                                                            @onclick="() => ConfirmOrder(order.OrderId)">
-                                                        <i class="bi bi-check-circle me-1"></i>Xác nhận
-                                                    </button>
-                                                    <button class="btn btn-danger btn-sm" 
+                                                    <button class="btn btn-outline-danger btn-sm" 
                                                             @onclick="() => CancelOrder(order.OrderId)">
                                                         <i class="bi bi-x-circle me-1"></i>Hủy đơn
-                                                    </button>
-                                                }
-                                                @if (order.Status == 2)
-                                                {
-                                                    <button class="btn btn-success btn-sm" 
-                                                            @onclick="() => CompleteOrder(order.OrderId)">
-                                                        <i class="bi bi-check-circle me-1"></i>Đã giao hàng
                                                     </button>
                                                 }
                                             </div>
@@ -241,10 +256,15 @@
     private int totalRecords = 0;
 
     private List<GetOrderRes> allOrders = new();
+    private List<GetOrderRes> unpaidOrders => allOrders.Where(o => 
+        o.Status == 0 && 
+        o.PaymentMethod != 1 && // Not COD
+        (DateTime.Now - o.CreatedAt).TotalHours < 24 // Within 24 hours
+    ).ToList();
     private List<GetOrderRes> pendingOrders => allOrders.Where(o => o.Status == 0).ToList();
-    private List<GetOrderRes> shippingOrders => allOrders.Where(o => o.Status == 2).ToList();
-    private List<GetOrderRes> deliveredOrders => allOrders.Where(o => o.Status == 3).ToList();
-    private List<GetOrderRes> cancelledOrders => allOrders.Where(o => o.Status == 4).ToList();
+    private List<GetOrderRes> shippingOrders => allOrders.Where(o => o.Status == 2 || o.Status == 3).ToList(); // Processing or Shipped
+    private List<GetOrderRes> deliveredOrders => allOrders.Where(o => o.Status == 4).ToList();
+    private List<GetOrderRes> cancelledOrders => allOrders.Where(o => o.Status == 5).ToList();
 
     private List<GetOrderRes> FilteredOrders
     {
@@ -252,6 +272,7 @@
         {
             var orders = activeTab switch
             {
+                "unpaid" => unpaidOrders,
                 "pending" => pendingOrders,
                 "shipping" => shippingOrders,
                 "delivered" => deliveredOrders,
@@ -342,9 +363,10 @@
         {
             0 => new MarkupString("<span class='badge bg-warning text-dark'><i class='bi bi-clock me-1'></i>Chờ xử lý</span>"),
             1 => new MarkupString("<span class='badge bg-primary'><i class='bi bi-check-circle me-1'></i>Đã xác nhận</span>"),
-            2 => new MarkupString("<span class='badge bg-info'><i class='bi bi-truck me-1'></i>Đang giao</span>"),
-            3 => new MarkupString("<span class='badge bg-success'><i class='bi bi-box-seam me-1'></i>Đã giao</span>"),
-            4 => new MarkupString("<span class='badge bg-danger'><i class='bi bi-x-circle me-1'></i>Đã hủy</span>"),
+            2 => new MarkupString("<span class='badge bg-info'><i class='bi bi-box-seam me-1'></i>Đang chuẩn bị</span>"),
+            3 => new MarkupString("<span class='badge bg-info'><i class='bi bi-truck me-1'></i>Đang giao</span>"),
+            4 => new MarkupString("<span class='badge bg-success'><i class='bi bi-check-circle-fill me-1'></i>Đã giao</span>"),
+            5 => new MarkupString("<span class='badge bg-danger'><i class='bi bi-x-circle me-1'></i>Đã hủy</span>"),
             _ => new MarkupString("<span class='badge bg-secondary'>Không xác định</span>")
         };
     }
@@ -378,33 +400,62 @@
         NavigationManager.NavigateTo($"/order-detail/{orderId}");
     }
 
-    private async Task ConfirmOrder(string orderId)
-    {
-        var order = allOrders.FirstOrDefault(o => o.OrderId == orderId);
-        if (order != null)
-        {
-            order.Status = 1; // confirmed
-            StateHasChanged();
-        }
-    }
-
     private async Task CancelOrder(string orderId)
     {
-        var order = allOrders.FirstOrDefault(o => o.OrderId == orderId);
-        if (order != null)
+        isLoading = true;
+        StateHasChanged();
+
+        try
         {
-            order.Status = 4; // cancelled
+            var order = allOrders.FirstOrDefault(o => o.OrderId == orderId);
+            if (order == null) return;
+
+            if (!int.TryParse(orderId, out int orderIdInt))
+            {
+                Console.WriteLine($"Invalid OrderId: {orderId}");
+                return;
+            }
+
+            // Call API to update status to Cancelled (5)
+            var result = await OrderService.UpdateOrderStatusAsync(orderIdInt, 5);
+
+            if (result.Success)
+            {
+                order.Status = 5; // Update local state
+                StateHasChanged();
+            }
+            else
+            {
+                Console.WriteLine($"Failed to cancel order: {result.Message}");
+            }
+        }
+        finally
+        {
+            isLoading = false;
             StateHasChanged();
         }
     }
 
-    private async Task CompleteOrder(string orderId)
+    private TimeSpan GetTimeRemaining(DateTime createdAt)
     {
-        var order = allOrders.FirstOrDefault(o => o.OrderId == orderId);
-        if (order != null)
-        {
-            order.Status = 3; // delivered
-            StateHasChanged();
-        }
+        var elapsed = DateTime.Now - createdAt;
+        var remaining = TimeSpan.FromHours(24) - elapsed;
+        return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
+    }
+
+    private string FormatTimeRemaining(TimeSpan timeRemaining)
+    {
+        if (timeRemaining.TotalSeconds <= 0)
+            return "Đã hết hạn";
+        
+        if (timeRemaining.TotalHours >= 1)
+            return $"{(int)timeRemaining.TotalHours} giờ {timeRemaining.Minutes} phút";
+        
+        return $"{timeRemaining.Minutes} phút";
+    }
+
+    private void PayNowOrder(string orderId)
+    {
+        NavigationManager.NavigateTo($"/payment/{orderId}");
     }
 }

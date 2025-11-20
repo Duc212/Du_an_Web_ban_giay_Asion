@@ -23,7 +23,7 @@ namespace BUS.Services.Interfaces
         
         Task<CommonResponse<bool>> UpdateOrderStatus(int orderId, int newStatus, string? note, int? updatedBy);
         
-        Task<CommonResponse<ConfirmOrderResponse>> ConfirmOrder(int orderId, string shippingProvider, DateTime estimatedDelivery, string? note);
+        Task<CommonResponse<DAL.DTOs.Orders.Res.ConfirmOrderResponse>> ConfirmOrder(int orderId, string shippingProvider, DateTime estimatedDelivery, string? note);
         
         Task<CommonResponse<bool>> CancelOrder(int orderId, string cancelReason, bool refundRequired);
         
@@ -44,12 +44,6 @@ namespace BUS.Services.Interfaces
         Task<CommonResponse<List<AdminOrderListItem>>> GetOrdersByDateRange(DateTime fromDate, DateTime toDate, int pageIndex, int pageSize);
         
         Task<CommonResponse<BulkUpdateResult>> BulkUpdateStatus(List<int> orderIds, int newStatus, string? note);
-    }
-
-    public class ConfirmOrderResponse
-    {
-        public string TrackingNumber { get; set; } = string.Empty;
-        public DateTime EstimatedDelivery { get; set; }
     }
 
     public class RevenueReportRes

@@ -155,6 +155,26 @@ body:has(.modal-overlay) main {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+/* Out of Stock Styles */
+.color-item.out-of-stock {
+    opacity: 0.6;
+}
+
+.color-item .color-swatch.disabled {
+    cursor: not-allowed !important;
+    position: relative;
+}
+
+.color-item .out-of-stock-badge {
+    display: block;
+    font-size: 10px;
+    color: #dc3545;
+    font-weight: 600;
+    margin-top: 2px;
+    text-align: center;
+}
+
 .size-color-modal {
     position: fixed;
     top: 0;

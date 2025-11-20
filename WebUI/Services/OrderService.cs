@@ -11,8 +11,9 @@ namespace WebUI.Services
         Task<CommonResponse<int>> CreateOrderAsync(CreateOrderRequest request);
         Task<Order?> GetOrderByIdAsync(string orderId);
         Task<List<Order>> GetOrderHistoryAsync();
-        Task<bool> UpdatePaymentStatusAsync(int orderId, PaymentStatus status);
+        Task<CommonResponse<bool>> UpdatePaymentStatusAsync(int orderId, PaymentStatus status);
         Task<CommonPagination<GetOrderRes>> GetListOrderByUserAsync(int currentPage, int recordPerPage);
+        Task<CommonResponse<bool>> UpdateOrderStatusAsync(int orderId, int status);
     }
 
     public class OrderService : IOrderService
@@ -152,14 +153,23 @@ namespace WebUI.Services
         /// POST /api/Orders/UpdateStatusPayment { orderId, status }
         /// status: 1 = Paid (giả định), các giá trị khác tùy backend.
         /// </summary>
-        public async Task<bool> UpdatePaymentStatusAsync(int orderId, PaymentStatus status)
+        public async Task<CommonResponse<bool>> UpdatePaymentStatusAsync(int orderId, PaymentStatus status)
         {
             try
             {
-                if (orderId <= 0) return false;
+                if (orderId <= 0) 
+                {
+                    return new CommonResponse<bool> 
+                    { 
+                        Success = false, 
+                        Message = "OrderID không hợp lệ",
+                        Data = false
+                    };
+                }
+                
                 var apiBaseUrl = await _configService.GetApiBaseUrlAsync();
-                // Backend expects status as int
-                var payload = new { orderId, status = (int)status };
+                // Backend expects OrderId (PascalCase) and Status as PaymentStatus enum value
+                var payload = new { OrderId = orderId, Status = status };
                 var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{apiBaseUrl}/api/Orders/UpdateStatusPayment")
                 {
                     Content = JsonContent.Create(payload)
@@ -176,12 +186,36 @@ namespace WebUI.Services
                 var response = await _httpClient.SendAsync(httpRequest);
                 var body = await response.Content.ReadAsStringAsync();
                 Console.WriteLine($"[OrderService] UpdatePaymentStatus Response: {response.StatusCode} Body: {body}");
-                return response.IsSuccessStatusCode;
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<CommonResponse<bool>>();
+                    return result ?? new CommonResponse<bool> 
+                    { 
+                        Success = true, 
+                        Message = "Cập nhật thành công",
+                        Data = true
+                    };
+                }
+                else
+                {
+                    return new CommonResponse<bool> 
+                    { 
+                        Success = false, 
+                        Message = $"API trả về lỗi: {response.StatusCode}",
+                        Data = false
+                    };
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[OrderService] Exception in UpdatePaymentStatusAsync: {ex.Message}");
-                return false;
+                return new CommonResponse<bool> 
+                { 
+                    Success = false, 
+                    Message = $"Lỗi: {ex.Message}",
+                    Data = false
+                };
             }
         }
 
@@ -252,6 +286,51 @@ namespace WebUI.Services
                     Success = false,
                     Message = "Error loading orders",
                     Data = new List<GetOrderRes>()
+                };
+            }
+        }
+
+        public async Task<CommonResponse<bool>> UpdateOrderStatusAsync(int orderId, int status)
+        {
+            try
+            {
+                var apiBaseUrl = await _configService.GetApiBaseUrlAsync();
+                var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{apiBaseUrl}/api/Orders/UpdateStatusOrder")
+                {
+                    Content = JsonContent.Create(new { OrderID = orderId, Status = status })
+                };
+
+                if (_authService.IsAuthenticated && !string.IsNullOrEmpty(_authService.CurrentToken))
+                {
+                    httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                        "Bearer",
+                        _authService.CurrentToken
+                    );
+                }
+
+                var response = await _httpClient.SendAsync(httpRequest);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<CommonResponse<bool>>();
+                    return result ?? new CommonResponse<bool> { Success = false, Message = "Không nhận được phản hồi từ API" };
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    return new CommonResponse<bool>
+                    {
+                        Success = false,
+                        Message = $"Cập nhật trạng thái thất bại: {errorContent}"
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new CommonResponse<bool>
+                {
+                    Success = false,
+                    Message = $"Lỗi khi cập nhật trạng thái: {ex.Message}"
                 };
             }
         }

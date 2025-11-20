@@ -507,6 +507,8 @@
         if (trackingNumber != null)
         {
             Toast.Success($"Đã xác nhận đơn hàng. Mã vận đơn: {trackingNumber}");
+            // Delay nhỏ để backend cập nhật stats
+            await Task.Delay(300);
             await LoadData();
         }
         else
@@ -528,6 +530,8 @@
         if (success)
         {
             Toast.Success("Đã hủy đơn hàng");
+            // Delay nhỏ để backend cập nhật stats
+            await Task.Delay(300);
             await LoadData();
         }
         else
@@ -549,6 +553,8 @@
         if (success)
         {
             Toast.Success("Đơn hàng đang được giao");
+            // Delay nhỏ để backend cập nhật stats
+            await Task.Delay(300);
             await LoadData();
         }
         else

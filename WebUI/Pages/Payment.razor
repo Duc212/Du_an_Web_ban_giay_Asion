@@ -326,7 +326,7 @@
     private int? CreatedOrderId;
     private decimal SubTotal => CartService.CheckoutInfo?.Subtotal ?? 0;
     private decimal ShippingFee => CartService.CheckoutInfo?.ShippingFee ?? 0;
-    private decimal Discount => 0;
+    private decimal Discount => CartService.CheckoutInfo?.Discount ?? 0;
 
     protected override void OnInitialized()
     {
@@ -379,6 +379,7 @@
         {
             UserID = AuthService.IsAuthenticated ? GetUserId() : 0,
             PaymentID = GetPaymentId(paymentMethod) ?? 0,
+            VoucherID = checkoutInfo.VoucherID, // Apply voucher if selected
             OrderType = "online",
             Address = $"{checkoutInfo.Address}, {checkoutInfo.City}",
             Note = checkoutInfo.Note,
@@ -461,6 +462,7 @@
             {
                 UserID = AuthService.IsAuthenticated ? GetUserId() : 0,
                 PaymentID = GetPaymentId(SelectedPaymentMethod) ?? 0, // Map payment method to PaymentID
+                VoucherID = checkoutInfo.VoucherID, // Apply voucher if selected
                 OrderType = "online",
                 Address = $"{checkoutInfo.Address}, {checkoutInfo.City}",
                 Note = checkoutInfo.Note,
@@ -511,6 +513,10 @@
                 // COD hoặc các phương thức khác - chỉ cần tạo order
                 PaymentStatus = "success";
                 IsProcessing = false;
+                
+                // Clear cart after successful order
+                await CartService.ClearCartAsync();
+                
                 await ScrollToTop();
                 await ToastService.ShowSuccess("Đặt hàng thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.");
                 StateHasChanged();
@@ -661,8 +667,7 @@
             IsProcessing = false;
             await ScrollToTop();
             await ToastService.ShowSuccess("Đặt hàng thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.");
-            // Cập nhật trạng thái thanh toán (1 = đã thanh toán COD khi xác nhận - giả định)
-            try { await OrderService.UpdatePaymentStatusAsync(orderId.Value, WebUI.Models.PaymentStatus.Paid); } catch { }
+            // COD: Không cập nhật payment status, đơn hàng sẽ ở trạng thái Pending cho đến khi giao hàng thành công
             StateHasChanged();
         }
         catch (Exception ex)
@@ -896,7 +901,21 @@
         if (gpayResult != null && gpayResult.Success && !string.IsNullOrEmpty(gpayResult.TransactionId))
         {
             // Cập nhật trạng thái thanh toán (1 = đã thanh toán)
-            try { if (orderId > 0 && orderService != null) await orderService.UpdatePaymentStatusAsync(orderId, WebUI.Models.PaymentStatus.Paid); } catch { }
+            try 
+            { 
+                if (orderId > 0 && orderService != null) 
+                {
+                    var updateResult = await orderService.UpdatePaymentStatusAsync(orderId, WebUI.Models.PaymentStatus.Paid);
+                    if (!updateResult.Success)
+                    {
+                        Console.WriteLine($"Failed to update payment status: {updateResult.Message}");
+                    }
+                }
+            } 
+            catch (Exception ex) 
+            { 
+                Console.WriteLine($"Error updating payment status: {ex.Message}");
+            }
             navSafe.NavigateTo($"/payment-success?transactionId={gpayResult.TransactionId}&amount={gpayRequest.Amount}&orderId={orderId}");
         }
     }

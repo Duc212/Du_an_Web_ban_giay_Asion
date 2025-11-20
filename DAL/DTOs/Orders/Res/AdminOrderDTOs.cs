@@ -129,6 +129,12 @@ public class UpdateOrderStatusRequest
     public string? Note { get; set; }
 }
 
+public class ConfirmOrderResponse
+{
+    public string TrackingNumber { get; set; } = string.Empty;
+    public int ShipmentID { get; set; }
+}
+
 public class ConfirmOrderRequest
 {
     public int OrderID { get; set; }

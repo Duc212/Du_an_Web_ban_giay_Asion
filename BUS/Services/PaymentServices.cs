@@ -23,14 +23,17 @@ namespace BUS.Services
         private readonly IConfiguration _configuration;
         private readonly IRepositoryAsync<DAL.Models.Order> _orderRepository;
         private readonly IRepositoryAsync<Payment> _paymentRepository;
+        private readonly IRepositoryAsync<OrderPayment> _orderPaymentRepository;
         private readonly PayPalHttpClient _client;
         public PaymentServices(
       IConfiguration configuration,
        IRepositoryAsync<DAL.Models.Order> orderRepository,
-         IRepositoryAsync<Payment> paymentRepository)
+         IRepositoryAsync<Payment> paymentRepository,
+         IRepositoryAsync<OrderPayment> orderPaymentRepository)
         {
             _configuration = configuration;
             _orderRepository = orderRepository;
+            _orderPaymentRepository = orderPaymentRepository;
             var environment = new SandboxEnvironment(
  _configuration["PayPal:ClientId"], // lấy từ appsettings
  _configuration["PayPal:ClientSecret"] // lấy từ appsettings
@@ -129,12 +132,42 @@ namespace BUS.Services
 
                 if (charge.Status == "succeeded")
                 {
+                    // CẬP NHẬT ORDERPAYMENT KHI GPAY THÀNH CÔNG
+                    if (request.OrderID > 0)
+                    {
+                        var orderPayment = await _orderPaymentRepository
+                            .AsQueryable()
+                            .Include(op => op.Payment)
+                            .FirstOrDefaultAsync(op => op.OrderID == request.OrderID);
+
+                        if (orderPayment != null && orderPayment.Payment != null)
+                        {
+                            orderPayment.Payment.PaymentStatus = "Đã thanh toán";
+                            await _orderPaymentRepository.UpdateAsync(orderPayment);
+                        }
+                    }
+
                     response.Success = true;
                     response.Message = "Thanh toán thành công";
                     response.Data = charge.Id;
                 }
                 else
                 {
+                    // CẬP NHẬT ORDERPAYMENT KHI GPAY THẤT BẠI
+                    if (request.OrderID > 0)
+                    {
+                        var orderPayment = await _orderPaymentRepository
+                            .AsQueryable()
+                            .Include(op => op.Payment)
+                            .FirstOrDefaultAsync(op => op.OrderID == request.OrderID);
+
+                        if (orderPayment != null && orderPayment.Payment != null)
+                        {
+                            orderPayment.Payment.PaymentStatus = "Thất bại";
+                            await _orderPaymentRepository.UpdateAsync(orderPayment);
+                        }
+                    }
+
                     response.Success = false;
                     response.Message = $"Thanh toán thất bại: {charge.Status}";
                 }
@@ -263,6 +296,31 @@ namespace BUS.Services
                         break;
                 }
 
+                // CẬP NHẬT TRẠNG THÁI ORDERPAYMENT
+                if (!string.IsNullOrEmpty(vnpTxnRef) && int.TryParse(vnpTxnRef, out int orderId))
+                {
+                    // Tìm OrderPayment dựa trên OrderID
+                    var orderPayment = await _orderPaymentRepository
+                        .AsQueryable()
+                        .Include(op => op.Payment)
+                        .FirstOrDefaultAsync(op => op.OrderID == orderId);
+
+                    if (orderPayment != null && orderPayment.Payment != null)
+                    {
+                        // Cập nhật trạng thái Payment
+                        if (isSuccess)
+                        {
+                            orderPayment.Payment.PaymentStatus = "Đã thanh toán";
+                        }
+                        else
+                        {
+                            orderPayment.Payment.PaymentStatus = "Thất bại";
+                        }
+
+                        await _orderPaymentRepository.UpdateAsync(orderPayment);
+                    }
+                }
+
              
 
                 return new CommonResponse<VNPayReturnRes>
@@ -343,6 +401,58 @@ namespace BUS.Services
                 request.RequestBody(new OrderActionRequest());
                 var response = await _client.Execute(request);
                 var result = response.Result<PayPalOrder>();
+
+                var dto = new PayPalOrderRes
+                {
+                    Id = result.Id,
+                    Status = result.Status,
+                    CheckoutPaymentIntent = result.CheckoutPaymentIntent,
+                    CreateTime = result.CreateTime,
+                    ExpirationTime = result.ExpirationTime,
+                    UpdateTime = result.UpdateTime
+                };
+
+                return new CommonResponse<PayPalOrderRes>
+                {
+                    Success = true,
+                    Message = "Thanh toán thành công",
+                    Data = dto
+                };
+            }
+            catch (Exception ex)
+            {
+                return new CommonResponse<PayPalOrderRes>
+                {
+                    Success = false,
+                    Message = $"Lỗi khi xác nhận đơn hàng: {ex.Message}",
+                    Data = null
+                };
+            }
+        }
+
+        public async Task<CommonResponse<PayPalOrderRes>> CaptureOrderWithUpdate(CaptureReq captureReq)
+        {
+            try
+            {
+                var request = new OrdersCaptureRequest(captureReq.OrderId);
+                request.RequestBody(new OrderActionRequest());
+                var response = await _client.Execute(request);
+                var result = response.Result<PayPalOrder>();
+
+                // CẬP NHẬT ORDERPAYMENT KHI PAYPAL THÀNH CÔNG
+                if (captureReq.SystemOrderID > 0 && result.Status == "COMPLETED")
+                {
+                    var orderPayment = await _orderPaymentRepository
+                        .AsQueryable()
+                        .Include(op => op.Payment)
+                        .FirstOrDefaultAsync(op => op.OrderID == captureReq.SystemOrderID);
+
+                    if (orderPayment != null && orderPayment.Payment != null)
+                    {
+                        orderPayment.Payment.PaymentStatus = "Đã thanh toán";
+                        await _orderPaymentRepository.UpdateAsync(orderPayment);
+                    }
+                }
 
                 var dto = new PayPalOrderRes
                 {

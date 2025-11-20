@@ -59,6 +59,22 @@
                     {
                         <span style="color: red; font-size: 0.85em;">(Required)</span>
                     }
+                    else if (!string.IsNullOrEmpty(SelectedColor))
+                    {
+                        var stock = GetStockForSizeAndColor(SelectedSize, SelectedColor);
+                        if (stock > 0)
+                        {
+                            <span style="color: #059669; font-size: 0.85em; font-weight: 600; margin-left: 8px;">
+                                (@stock còn lại)
+                            </span>
+                        }
+                        else
+                        {
+                            <span style="color: #dc3545; font-size: 0.85em; font-weight: 600; margin-left: 8px;">
+                                (Hết hàng)
+                            </span>
+                        }
+                    }
                 </label>
                 <div class="size-options">
                     @foreach (var size in AvailableSizes)
@@ -99,11 +115,23 @@
                     {
                         <span style="color: red; font-size: 0.85em;">(Required)</span>
                     }
+                    else
+                    {
+                        var selectedColorInfo = Product.Colors?.FirstOrDefault(c => c.HexColor.Equals(SelectedColor, StringComparison.OrdinalIgnoreCase));
+                        if (selectedColorInfo != null)
+                        {
+                            <span style="color: #059669; font-size: 0.85em; font-weight: 600; margin-left: 8px;">
+                                (@selectedColorInfo.AvailableStock có sẵn)
+                            </span>
+                        }
+                    }
                 </label>
                 <div class="color-options">
                     @foreach (var color in AvailableColors)
                     {
                         var colorHex = color.Value;
+                        var colorStock = color.Stock;
+                        var isOutOfStock = colorStock <= 0;
                         var isSelected = !string.IsNullOrEmpty(SelectedColor) && SelectedColor.Equals(colorHex, StringComparison.OrdinalIgnoreCase);
                         var borderStyle = isSelected 
                             ? "4px solid rgb(37, 99, 235)"
@@ -112,19 +140,30 @@
                             ? "rgba(37, 99, 235, 0.4) 0px 6px 20px"
                             : "rgba(0, 0, 0, 0.1) 0px 2px 8px";
                         var transformStyle = isSelected ? "scale(1.15)" : "scale(1)";
-                        var buttonStyle = $"width: 44px; height: 44px; border-radius: 50%; cursor: pointer; transition: all 0.3s ease; position: relative; display: flex; align-items: center; justify-content: center; background-color: {colorHex}; border: {borderStyle}; box-shadow: {boxShadowStyle}; transform: {transformStyle};";
+                        var opacity = isOutOfStock ? "0.4" : "1";
+                        var cursor = isOutOfStock ? "not-allowed" : "pointer";
+                        var buttonStyle = $"width: 44px; height: 44px; border-radius: 50%; cursor: {cursor}; transition: all 0.3s ease; position: relative; display: flex; align-items: center; justify-content: center; background-color: {colorHex}; border: {borderStyle}; box-shadow: {boxShadowStyle}; transform: {transformStyle}; opacity: {opacity};";
                         
-                        <div class="color-item">
+                        <div class="color-item" style="position: relative; display: flex; flex-direction: column; align-items: center;">
                             <button type="button"
                                     style="@buttonStyle"
-                                    title="@color.Name"
-                                    @onclick="@(() => SelectColor(colorHex))">
+                                    title="@(isOutOfStock ? $"{color.Name} - Hết hàng" : color.Name)"
+                                    @onclick="@(() => !isOutOfStock ? SelectColor(colorHex) : Task.CompletedTask)"
+                                    disabled="@isOutOfStock">
                                 @if (isSelected)
                                 {
                                     <i class="fas fa-check" 
                                        style="color: @(colorHex.ToUpper() == "#FFFFFF" || colorHex.ToUpper() == "#FFFF00" ? "#000" : "#fff"); font-size: 14px; font-weight: bold;"></i>
                                 }
+                                @if (isOutOfStock)
+                                {
+                                    <div style="position: absolute; width: 100%; height: 2px; background: #dc3545; transform: rotate(-45deg);"></div>
+                                }
                             </button>
+                            @if (isOutOfStock)
+                            {
+                                <span style="font-size: 10px; color: #dc3545; margin-top: 4px; font-weight: 600;">Hết hàng</span>
+                            }
                         </div>
                     }
                 </div>
@@ -293,7 +332,7 @@
 
     // Available Options (will be populated from Product data)
     private List<string> AvailableSizes { get; set; } = new();
-    private List<(string Name, string Value)> AvailableColors { get; set; } = new();
+    private List<(string Name, string Value, int Stock)> AvailableColors { get; set; } = new();
 
     protected override void OnParametersSet()
     {
@@ -301,7 +340,7 @@
         {
             AvailableSizes = Product.Sizes ?? new List<string>();
             AvailableColors = (Product.Colors ?? new List<ColorInfo>())
-                .Select(c => (c.ColorName, c.HexColor))
+                .Select(c => (c.ColorName, c.HexColor, c.AvailableStock))
                 .ToList();
             
             // Only set initial values on first load, don't reset user selections
@@ -378,6 +417,19 @@
                 await OnQuantityChanged.InvokeAsync(Quantity);
             }
         }
+    }
+
+    private int GetStockForSizeAndColor(string size, string colorHex)
+    {
+        if (string.IsNullOrEmpty(size) || string.IsNullOrEmpty(colorHex))
+            return 0;
+
+        var colorInfo = Product.Colors?.FirstOrDefault(c => c.HexColor.Equals(colorHex, StringComparison.OrdinalIgnoreCase));
+        if (colorInfo?.SizeStock != null && colorInfo.SizeStock.TryGetValue(size, out int stock))
+        {
+            return stock;
+        }
+        return 0;
     }
 
     private async Task HandleAddToCart()

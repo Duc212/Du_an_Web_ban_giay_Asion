@@ -42,7 +42,7 @@ namespace API.Controllers
         }
         [HttpPost]
         [Route("ConfirmOrder")]
-        public async Task<CommonResponse<bool>> ConfirmOrderAsync(ConfirmOrderReq req)
+        public async Task<CommonResponse<DAL.DTOs.Orders.Res.ConfirmOrderResponse>> ConfirmOrderAsync(ConfirmOrderReq req)
         {
             return await _orderServices.ConfirmOrderAsync(req);
         }

@@ -435,7 +435,7 @@ namespace BUS.Services
             return await UpdateOrderStatus(orderId, newStatus, note, updatedBy?.ToString());
         }
 
-        public async Task<CommonResponse<ConfirmOrderResponse>> ConfirmOrder(int orderId, string shippingProvider, DateTime estimatedDelivery, string? note)
+        public async Task<CommonResponse<DAL.DTOs.Orders.Res.ConfirmOrderResponse>> ConfirmOrder(int orderId, string shippingProvider, DateTime estimatedDelivery, string? note)
         {
             try
             {
@@ -444,7 +444,7 @@ namespace BUS.Services
 
                 if (order == null)
                 {
-                    return new CommonResponse<ConfirmOrderResponse>
+                    return new CommonResponse<DAL.DTOs.Orders.Res.ConfirmOrderResponse>
                     {
                         Success = false,
                         Message = "Không tìm thấy đơn hàng"
@@ -453,7 +453,7 @@ namespace BUS.Services
 
                 if (order.Status != (int)OrderStatusEnums.Pending)
                 {
-                    return new CommonResponse<ConfirmOrderResponse>
+                    return new CommonResponse<DAL.DTOs.Orders.Res.ConfirmOrderResponse>
                     {
                         Success = false,
                         Message = "Chỉ có thể xác nhận đơn hàng ở trạng thái 'Chờ xác nhận'"
@@ -509,20 +509,20 @@ namespace BUS.Services
                     await _shipmentRepository.SaveChangesAsync();
                 });
 
-                return new CommonResponse<ConfirmOrderResponse>
+                return new CommonResponse<DAL.DTOs.Orders.Res.ConfirmOrderResponse>
                 {
                     Success = true,
                     Message = "Xác nhận đơn hàng thành công",
-                    Data = new ConfirmOrderResponse
+                    Data = new DAL.DTOs.Orders.Res.ConfirmOrderResponse
                     {
                         TrackingNumber = trackingNumber,
-                        EstimatedDelivery = estimatedDelivery
+                        ShipmentID = order.ShipmentID ?? 0
                     }
                 };
             }
             catch (Exception ex)
             {
-                return new CommonResponse<ConfirmOrderResponse>
+                return new CommonResponse<DAL.DTOs.Orders.Res.ConfirmOrderResponse>
                 {
                     Success = false,
                     Message = $"Lỗi: {ex.Message}"

@@ -589,11 +589,22 @@ namespace BUS.Services
             var colorImages = BuildColorImages(variants, images, mainImages);
             var sizes = GetAvailableSizes(variants);
 
+            // Tính AvailableStock cho mỗi màu (tổng stock của tất cả size với màu đó)
             var colors = variants
-                .Where(v => v.Color != null && v.StockQuantity >0)
-                .Select(v => new GetColorRes { ColorName = v.Color.Name, HexColor = v.Color.HexCode, ColorID = v.Color.ColorID })
-                .GroupBy(c => new { c.ColorName, c.HexColor })
-                .Select(g => g.First())
+                .Where(v => v.Color != null)
+                .GroupBy(v => new { v.Color.ColorID, v.Color.Name, v.Color.HexCode })
+                .Select(g => new GetColorRes 
+                { 
+                    ColorID = g.Key.ColorID,
+                    ColorName = g.Key.Name, 
+                    HexColor = g.Key.HexCode,
+                    AvailableStock = g.Sum(v => v.StockQuantity), // Tổng stock của màu này
+                    SizeStock = g.Where(v => v.Size != null)
+                                 .ToDictionary(
+                                     v => v.Size.Value, 
+                                     v => v.StockQuantity
+                                 ) // Stock theo từng size của màu này
+                })
                 .ToList();
 
             var minSelling = variants.Any() ? variants.Min(v => v.SellingPrice) :0;
