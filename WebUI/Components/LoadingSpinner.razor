@@ -1,39 +1,65 @@
 @* Loading Spinner Component *@
 
 <div class="loading-overlay @(IsVisible ? "show" : "")">
+    <div class="loading-backdrop"></div>
     <div class="loading-container">
-        <div class="loading-spinner">
-            @if (!string.IsNullOrEmpty(IconClass))
-            {
-                <i class="@IconClass"></i>
-            }
-            else
-            {
-                <div class="spinner-border" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            }
+        <!-- Decorative particles -->
+        <div class="particles">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
         </div>
-        
-        @if (!string.IsNullOrEmpty(Title))
-        {
-            <h3 class="loading-title">@Title</h3>
-        }
-        
-        @if (!string.IsNullOrEmpty(Message))
-        {
-            <p class="loading-message">@Message</p>
-        }
-        
-        @if (ShowProgress && ProgressValue.HasValue)
-        {
-            <div class="progress-container">
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: @(ProgressValue)%"></div>
-                </div>
-                <span class="progress-text">@(ProgressValue)%</span>
+
+        <div class="loading-content">
+            <div class="loading-spinner">
+                @if (!string.IsNullOrEmpty(IconClass))
+                {
+                    <div class="spinner-icon-wrapper">
+                        <i class="@IconClass"></i>
+                    </div>
+                }
+                else
+                {
+                    <div class="modern-spinner">
+                        <div class="spinner-ring"></div>
+                        <div class="spinner-ring"></div>
+                        <div class="spinner-ring"></div>
+                        <div class="spinner-core"></div>
+                    </div>
+                }
             </div>
-        }
+            
+            @if (!string.IsNullOrEmpty(Title))
+            {
+                <h3 class="loading-title">@Title</h3>
+            }
+            
+            @if (!string.IsNullOrEmpty(Message))
+            {
+                <p class="loading-message">@Message</p>
+            }
+            
+            @if (ShowProgress && ProgressValue.HasValue)
+            {
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: @(ProgressValue)%">
+                            <div class="progress-shine"></div>
+                        </div>
+                    </div>
+                    <span class="progress-text">@(ProgressValue)%</span>
+                </div>
+            }
+            
+            <!-- Loading dots animation -->
+            <div class="loading-dots">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
+        </div>
     </div>
 </div>
 

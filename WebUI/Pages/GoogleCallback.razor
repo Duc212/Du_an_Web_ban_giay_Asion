@@ -13,26 +13,59 @@
         <div class="callback-content">
             @if (isProcessing)
             {
-                <div class="loading-spinner">
-                    <i class="fas fa-spinner fa-spin fa-3x"></i>
+                <div class="google-auth-loading">
+                    <!-- Google Logo Animation -->
+                    <div class="google-logo-wrapper">
+                        <svg class="google-logo" viewBox="0 0 48 48">
+                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                            <path fill="none" d="M0 0h48v48H0z"></path>
+                        </svg>
+                        <div class="loading-ring"></div>
+                    </div>
+
+                    <!-- Animated text -->
+                    <h3 class="auth-title">
+                        <span class="gradient-text">Đang xác thực với Google</span>
+                    </h3>
+                    <p class="auth-message">Vui lòng chờ trong giây lát</p>
+
+                    <!-- Loading dots -->
+                    <div class="auth-dots">
+                        <span class="auth-dot"></span>
+                        <span class="auth-dot"></span>
+                        <span class="auth-dot"></span>
+                    </div>
+
+                    <!-- Decorative particles -->
+                    <div class="auth-particles">
+                        <div class="auth-particle"></div>
+                        <div class="auth-particle"></div>
+                        <div class="auth-particle"></div>
+                        <div class="auth-particle"></div>
+                    </div>
                 </div>
-                <h3>Đang xác thực với Google...</h3>
-                <p>Vui lòng chờ trong giây lát</p>
             }
             else if (!string.IsNullOrEmpty(errorMessage))
             {
                 <div class="error-container">
-                    <i class="fas fa-exclamation-triangle fa-3x text-danger"></i>
-                    <h3>Đăng nhập thất bại</h3>
+                    <div class="error-icon-wrapper">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3 class="error-title">Đăng nhập thất bại</h3>
                     <p class="error-message">@errorMessage</p>
-                    <button class="btn-primary" @onclick="RetryLogin">
-                        <i class="fas fa-redo"></i>
-                        Thử lại
-                    </button>
-                    <a href="/login" class="btn-secondary">
-                        <i class="fas fa-arrow-left"></i>
-                        Quay lại đăng nhập
-                    </a>
+                    <div class="error-actions">
+                        <button class="btn-retry" @onclick="RetryLogin">
+                            <i class="fas fa-redo"></i>
+                            <span>Thử lại</span>
+                        </button>
+                        <a href="/login" class="btn-back">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Quay lại đăng nhập</span>
+                        </a>
+                    </div>
                 </div>
             }
         </div>
@@ -40,44 +73,462 @@
 </div>
 
 <style>
+/* Container */
+.auth-container {
+    width: 100%;
+    min-height: 100vh;
+}
+
 .callback-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 80vh;
+    min-height: 100vh;
     padding: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.callback-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 50%, rgba(66, 133, 244, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(234, 67, 53, 0.2) 0%, transparent 50%);
+    animation: gradientShift 10s ease infinite;
 }
 
 .callback-content {
+    position: relative;
+    z-index: 1;
     text-align: center;
-    max-width: 400px;
+    max-width: 440px;
+    width: 100%;
 }
 
-.loading-spinner {
-    color: var(--auth-primary);
-    margin-bottom: 2rem;
+/* Google Auth Loading */
+.google-auth-loading {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 3.5rem 2.5rem;
+    border-radius: 24px;
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.2),
+        0 0 1px rgba(255, 255, 255, 0.5),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+    position: relative;
+    overflow: hidden;
+    animation: containerFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.google-auth-loading::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(66, 133, 244, 0.05) 50%,
+        transparent 70%
+    );
+    animation: shimmer 3s infinite;
+}
+
+/* Google Logo */
+.google-logo-wrapper {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.google-logo {
+    width: 60px;
+    height: 60px;
+    position: relative;
+    z-index: 2;
+    animation: logoFloat 3s ease-in-out infinite;
+    filter: drop-shadow(0 4px 12px rgba(66, 133, 244, 0.3));
+}
+
+.loading-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 3px solid transparent;
+    border-top-color: #4285f4;
+    border-right-color: #ea4335;
+    border-bottom-color: #fbbc04;
+    border-left-color: #34a853;
+    border-radius: 50%;
+    animation: spinRing 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+}
+
+/* Text */
+.auth-title {
+    margin: 0 0 1rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+}
+
+.gradient-text {
+    background: linear-gradient(135deg, #4285f4, #ea4335, #fbbc04, #34a853);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientFlow 3s ease infinite;
+}
+
+.auth-message {
+    color: #5f6368;
+    font-size: 1rem;
+    margin: 0 0 2rem;
+    font-weight: 400;
+    position: relative;
+    z-index: 1;
+    animation: textFadeIn 0.6s ease 0.2s both;
+}
+
+/* Loading Dots */
+.auth-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
+}
+
+.auth-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4285f4, #34a853);
+    animation: dotPulse 1.4s infinite ease-in-out;
+}
+
+.auth-dot:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.auth-dot:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+/* Particles */
+.auth-particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    overflow: hidden;
+    border-radius: 24px;
+}
+
+.auth-particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: linear-gradient(135deg, #4285f4, #34a853);
+    border-radius: 50%;
+    opacity: 0;
+    animation: particleRise 4s infinite;
+}
+
+.auth-particle:nth-child(1) {
+    left: 15%;
+    animation-delay: 0s;
+}
+
+.auth-particle:nth-child(2) {
+    left: 40%;
+    animation-delay: 1s;
+}
+
+.auth-particle:nth-child(3) {
+    left: 65%;
+    animation-delay: 2s;
+}
+
+.auth-particle:nth-child(4) {
+    left: 85%;
+    animation-delay: 3s;
+}
+
+/* Error Container */
 .error-container {
-    background: white;
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    padding: 3rem 2.5rem;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    animation: containerFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.error-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: errorIconBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.error-icon-wrapper i {
+    font-size: 2.5rem;
+    color: white;
+}
+
+.error-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 1rem;
 }
 
 .error-message {
-    color: var(--auth-error);
-    margin: 1rem 0;
+    color: #5f6368;
+    font-size: 1rem;
+    margin: 0 0 2rem;
+    line-height: 1.6;
 }
 
-.btn-secondary {
-    background: var(--auth-gray-500);
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
+.error-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-retry,
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.75rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
     text-decoration: none;
-    display: inline-block;
-    margin-left: 1rem;
+}
+
+.btn-retry {
+    background: linear-gradient(135deg, #4285f4, #34a853);
+    color: white;
+    box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+}
+
+.btn-retry:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(66, 133, 244, 0.4);
+}
+
+.btn-retry:active {
+    transform: translateY(0);
+}
+
+.btn-back {
+    background: white;
+    color: #5f6368;
+    border: 2px solid #e0e0e0;
+}
+
+.btn-back:hover {
+    background: #f8f9fa;
+    border-color: #d0d0d0;
+    transform: translateY(-2px);
+}
+
+/* Animations */
+@@keyframes containerFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@@keyframes gradientShift {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+@@keyframes shimmer {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    100% {
+        transform: translate(50%, 50%) rotate(360deg);
+    }
+}
+
+@@keyframes logoFloat {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(-10px) scale(1.05);
+    }
+}
+
+@@keyframes spinRing {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@@keyframes gradientFlow {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@@keyframes textFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@@keyframes dotPulse {
+    0%, 80%, 100% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1.3);
+        opacity: 1;
+    }
+}
+
+@@keyframes particleRise {
+    0% {
+        bottom: -10px;
+        opacity: 0;
+        transform: scale(0);
+    }
+    20% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    80% {
+        opacity: 1;
+    }
+    100% {
+        bottom: 100%;
+        opacity: 0;
+        transform: scale(0);
+    }
+}
+
+@@keyframes errorIconBounce {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Mobile Responsive */
+@@media (max-width: 576px) {
+    .callback-container {
+        padding: 1rem;
+    }
+
+    .google-auth-loading,
+    .error-container {
+        padding: 2.5rem 1.5rem;
+    }
+
+    .google-logo-wrapper {
+        width: 80px;
+        height: 80px;
+    }
+
+    .google-logo {
+        width: 48px;
+        height: 48px;
+    }
+
+    .auth-title {
+        font-size: 1.5rem;
+    }
+
+    .auth-message {
+        font-size: 0.95rem;
+    }
+
+    .error-icon-wrapper {
+        width: 70px;
+        height: 70px;
+    }
+
+    .error-icon-wrapper i {
+        font-size: 2rem;
+    }
+
+    .error-title {
+        font-size: 1.5rem;
+    }
+
+    .error-actions {
+        flex-direction: column;
+    }
+
+    .btn-retry,
+    .btn-back {
+        width: 100%;
+        justify-content: center;
+    }
 }
 </style>
 
