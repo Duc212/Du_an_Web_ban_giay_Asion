@@ -191,6 +191,45 @@
                                                 </small>
                                             </div>
 
+                                            <!-- GHN Tracking -->
+                                            @if (!string.IsNullOrEmpty(order.GhnOrderCode))
+                                            {
+                                                <div class="mt-3 border-top pt-3">
+                                                    <h6 class="mb-2">
+                                                        <i class="bi bi-truck me-2"></i>Vận chuyển GHN
+                                                    </h6>
+                                                    <div class="mb-2">
+                                                        <small class="text-muted d-block">Mã vận đơn</small>
+                                                        <code class="text-danger fw-bold">@order.GhnOrderCode</code>
+                                                    </div>
+                                                    @if (!string.IsNullOrEmpty(order.GhnStatus))
+                                                    {
+                                                        <div class="mb-2">
+                                                            <small class="text-muted d-block">Trạng thái</small>
+                                                            @GetGhnStatusBadge(order.GhnStatus)
+                                                        </div>
+                                                    }
+                                                    @if (order.GhnFee.HasValue)
+                                                    {
+                                                        <div class="mb-2">
+                                                            <small class="text-muted d-block">Phí ship GHN</small>
+                                                            <strong class="text-success">@order.GhnFee.Value.ToString("N0") ₫</strong>
+                                                        </div>
+                                                    }
+                                                    <div class="mb-2">
+                                                        <small class="text-muted d-block">COD</small>
+                                                        <span class="badge @(order.CodCollected ? "bg-success" : "bg-warning")">
+                                                            @(order.CodCollected ? "Đã thu" : "Chưa thu")
+                                                        </span>
+                                                    </div>
+                                                    <a href="https://donhang.ghn.vn/?order_code=@order.GhnOrderCode" 
+                                                       target="_blank" 
+                                                       class="btn btn-sm btn-outline-danger w-100">
+                                                        <i class="bi bi-box-arrow-up-right me-1"></i>Xem trên GHN
+                                                    </a>
+                                                </div>
+                                            }
+
                                             <!-- Actions -->
                                             <div class="mt-3 d-grid gap-2">
                                                 @if (activeTab == "unpaid" && order.Status == 0 && order.PaymentMethod != 1)
@@ -392,6 +431,20 @@
             3 => "PayPal",
             4 => "Google Pay",
             _ => "Không xác định"
+        };
+    }
+
+    private MarkupString GetGhnStatusBadge(string? status)
+    {
+        return status?.ToLower() switch
+        {
+            "pending" => new MarkupString("<span class='badge bg-warning text-dark'><i class='bi bi-clock me-1'></i>Chờ lấy hàng</span>"),
+            "picking" => new MarkupString("<span class='badge bg-info'><i class='bi bi-box-seam me-1'></i>Đang lấy hàng</span>"),
+            "delivering" => new MarkupString("<span class='badge bg-primary'><i class='bi bi-truck me-1'></i>Đang giao hàng</span>"),
+            "delivered" => new MarkupString("<span class='badge bg-success'><i class='bi bi-check-circle-fill me-1'></i>Đã giao</span>"),
+            "return" => new MarkupString("<span class='badge bg-danger'><i class='bi bi-arrow-return-left me-1'></i>Hoàn trả</span>"),
+            "cancel" => new MarkupString("<span class='badge bg-secondary'><i class='bi bi-x-circle me-1'></i>Đã hủy</span>"),
+            _ => new MarkupString("<span class='badge bg-secondary'>Chưa gửi</span>")
         };
     }
 

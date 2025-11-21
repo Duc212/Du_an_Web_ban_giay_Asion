@@ -23,6 +23,7 @@ namespace BUS.Services
         private readonly IRepositoryAsync<Payment> _paymentRepository;
         private readonly IRepositoryAsync<OrderPayment> _orderPaymentRepository;
         private readonly IUnitOfWork<AppDbContext> _unitOfWork;
+        private readonly IGhnService _ghnService;
 
         public OrderAdminServices(
             IRepositoryAsync<Order> orderRepository,
@@ -34,7 +35,8 @@ namespace BUS.Services
             IRepositoryAsync<Voucher> voucherRepository,
             IRepositoryAsync<Payment> paymentRepository,
             IRepositoryAsync<OrderPayment> orderPaymentRepository,
-            IUnitOfWork<AppDbContext> unitOfWork)
+            IUnitOfWork<AppDbContext> unitOfWork,
+            IGhnService ghnService)
         {
             _orderRepository = orderRepository;
             _orderDetailRepository = orderDetailRepository;
@@ -46,6 +48,7 @@ namespace BUS.Services
             _paymentRepository = paymentRepository;
             _orderPaymentRepository = orderPaymentRepository;
             _unitOfWork = unitOfWork;
+            _ghnService = ghnService;
         }
 
         public async Task<CommonResponse<List<AdminOrderListItem>>> GetAllOrders(
@@ -295,7 +298,14 @@ namespace BUS.Services
                         TrackingNumber = order.Shipment?.TrackingNumber,
                         ShippedDate = order.Shipment?.ShippedDate,
                         EstimatedDelivery = order.Shipment?.ShippedDate?.AddDays(3),
-                        DeliveryStatus = order.Shipment?.DeliveryStatus ?? 0
+                        DeliveryStatus = order.Shipment?.DeliveryStatus ?? 0,
+                        // GHN Integration
+                        GhnOrderCode = order.GhnOrderCode,
+                        GhnStatus = order.GhnStatus,
+                        GhnFee = order.GhnFee,
+                        CodCollected = order.CodCollected,
+                        GhnCreatedAt = order.GhnCreatedAt,
+                        GhnUpdatedAt = order.GhnUpdatedAt
                     },
                     Voucher = order.Voucher != null 
                         ? new OrderVoucherInfo
@@ -360,6 +370,33 @@ namespace BUS.Services
 
                 await _unitOfWork.ExecuteInTransactionAsync(async () =>
                 {
+                    // Auto-create GHN order when shipping (if not exists)
+                    if (newStatus == (int)OrderStatusEnums.Shipped && string.IsNullOrEmpty(order.GhnOrderCode))
+                    {
+                        try
+                        {
+                            var ghnResult = await _ghnService.CreateOrderAsync(new DAL.DTOs.Shipping.CreateGhnOrderRequest 
+                            { 
+                                OrderId = orderId 
+                            });
+                            if (ghnResult.Success && !string.IsNullOrEmpty(ghnResult.GhnOrderCode))
+                            {
+                                order.GhnOrderCode = ghnResult.GhnOrderCode;
+                                order.GhnStatus = "ready_to_pick";
+                                order.GhnFee = ghnResult.TotalFee;
+                                order.GhnCreatedAt = DateTime.Now;
+                                
+                                var ghnNote = $"Tự động tạo đơn GHN: {ghnResult.GhnOrderCode}";
+                                note = string.IsNullOrEmpty(note) ? ghnNote : $"{note}. {ghnNote}";
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // Log nhưng không fail transaction
+                            Console.WriteLine($"Warning: Không thể tạo GHN order tự động: {ex.Message}");
+                        }
+                    }
+                    
                     // Update order status
                     order.Status = newStatus;
                     
@@ -780,18 +817,31 @@ namespace BUS.Services
         {
             try
             {
-                var allOrders = await _orderRepository.AsQueryable().ToListAsync();
-                var deliveredOrders = allOrders.Where(o => o.Status == (int)OrderStatusEnums.Delivered).ToList();
+                // Lấy tất cả orders và include OrderPayments để tính revenue chính xác
+                var allOrders = await _orderRepository.AsQueryable()
+                    .Include(o => o.OrderPayments)
+                    .ToListAsync();
+
+                // Chỉ tính revenue cho orders đã giao + đã thanh toán
+                var deliveredOrders = allOrders
+                    .Where(o => o.Status == (int)OrderStatusEnums.Delivered)
+                    .ToList();
+
+                var paidDeliveredOrders = deliveredOrders
+                    .Where(o => o.OrderPayments.Any(op => op.Status == (int)PaymentStatus.Paid))
+                    .ToList();
 
                 var summary = new OrderStatisticsSummary
                 {
                     TotalOrders = allOrders.Count,
                     PendingOrders = allOrders.Count(o => o.Status == (int)OrderStatusEnums.Pending),
-                    ProcessingOrders = allOrders.Count(o => o.Status == (int)OrderStatusEnums.Processing),
+                    ProcessingOrders = allOrders.Count(o => 
+                        o.Status == (int)OrderStatusEnums.Confirmed || 
+                        o.Status == (int)OrderStatusEnums.Processing),
                     ShippingOrders = allOrders.Count(o => o.Status == (int)OrderStatusEnums.Shipped),
                     DeliveredOrders = deliveredOrders.Count,
-                    TotalRevenue = deliveredOrders.Sum(o => o.TotalAmount),
-                    AverageOrderValue = deliveredOrders.Any() ? deliveredOrders.Average(o => o.TotalAmount) : 0
+                    TotalRevenue = paidDeliveredOrders.Sum(o => o.TotalAmount),
+                    AverageOrderValue = allOrders.Any() ? allOrders.Average(o => o.TotalAmount) : 0
                 };
 
                 return new CommonResponse<OrderStatisticsSummary>
@@ -990,9 +1040,11 @@ namespace BUS.Services
             if (currentStatus == (int)OrderStatusEnums.Pending)
                 return newStatus == (int)OrderStatusEnums.Confirmed || newStatus == (int)OrderStatusEnums.Cancelled;
 
-            // Confirmed can go to Processing or Cancelled
+            // Confirmed can go to Processing, Shipped, or Cancelled
             if (currentStatus == (int)OrderStatusEnums.Confirmed)
-                return newStatus == (int)OrderStatusEnums.Processing || newStatus == (int)OrderStatusEnums.Cancelled;
+                return newStatus == (int)OrderStatusEnums.Processing || 
+                       newStatus == (int)OrderStatusEnums.Shipped || 
+                       newStatus == (int)OrderStatusEnums.Cancelled;
 
             // Processing can go to Shipped only
             if (currentStatus == (int)OrderStatusEnums.Processing)

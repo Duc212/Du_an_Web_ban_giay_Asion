@@ -80,11 +80,17 @@ builder.Services.AddTransient<IPaymentServices, PaymentServices>();
 builder.Services.AddTransient<IUserServices, UserServices>(); // đã đăng ký
 builder.Services.AddTransient<IVoucherService, VoucherService>();
 
+// GHN Service Configuration
+builder.Services.Configure<DAL.DTOs.Shipping.GhnOptions>(builder.Configuration.GetSection("GHN"));
+builder.Services.AddHttpClient<BUS.Services.Interfaces.IGhnService, BUS.Services.GhnService>();
+builder.Services.AddTransient<BUS.Services.Interfaces.IGhnService, BUS.Services.GhnService>();
+
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<VoucherRepository>();
 
 // Register background services
 builder.Services.AddHostedService<OrderCancellationService>();
+builder.Services.AddHostedService<GhnStatusUpdateBackgroundService>();
 
 builder.Services.AddMemoryCache(); 
 builder.Services.AddSingleton<IMemoryCacheSystem, MemoryCacheSystem>();

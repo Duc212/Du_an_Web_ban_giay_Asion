@@ -67,6 +67,19 @@ namespace WebUI.Models
         [JsonPropertyName("items")]
         public List<GetOrderItemRes> Items { get; set; } = new();
 
+        // GHN Tracking
+        [JsonPropertyName("ghnOrderCode")]
+        public string? GhnOrderCode { get; set; }
+
+        [JsonPropertyName("ghnStatus")]
+        public string? GhnStatus { get; set; }
+
+        [JsonPropertyName("ghnFee")]
+        public int? GhnFee { get; set; }
+
+        [JsonPropertyName("codCollected")]
+        public bool CodCollected { get; set; }
+
         // Computed
         public string FullAddress => $"{ShippingAddress}, {Ward}, {District}, {City}";
     }

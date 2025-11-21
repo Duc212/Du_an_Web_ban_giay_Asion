@@ -150,7 +150,7 @@ namespace BUS.Services
                     City = address?.City,
                     Status = o.Status,
                     PaymentMethod = paymentMethodInt,
-                    PaymentStatus = payment != null ? GetPaymentStatusInt(payment.PaymentStatus) : 0,
+                    PaymentStatus = orderPayment?.Status ?? 0,
                     SubTotal = subTotal,
                     ShippingFee = shippingFee,
                     Discount = discount,
@@ -243,20 +243,7 @@ namespace BUS.Services
             };
         }
 
-        private int GetPaymentStatusInt(string paymentStatus)
-        {
-            if (string.IsNullOrEmpty(paymentStatus))
-                return 0; // Unpaid
 
-            return paymentStatus.ToUpper() switch
-            {
-                "PAID" => 1,
-                "UNPAID" => 0,
-                "REFUNDED" => 2,
-                "FAILED" => 3,
-                _ => 0
-            };
-        }
 
         public async Task<CommonResponse<int>> CreateOrder(CreateOrderReq req)
         {
@@ -486,7 +473,7 @@ namespace BUS.Services
                     return new CommonResponse<bool>
                     {
                         Success = false,
-                        Message = $"Không tìm th?y don hàng có ID = {req.OrderID}."
+                        Message = $"Không tìm thấy đơn hàng có ID = {req.OrderID}."
                     };
                 }
 
@@ -495,7 +482,7 @@ namespace BUS.Services
                     return new CommonResponse<bool>
                     {
                         Success = false,
-                        Message = "Tr?ng thái don hàng không h?p l?."
+                        Message = "Trạng thái đơn hàng không hợp lệ."
                     };
                 }
 
@@ -504,9 +491,29 @@ namespace BUS.Services
                     return new CommonResponse<bool>
                     {
                         Success = false,
-                        Message = $"Không th? thay d?i tr?ng thái don hàng dã {order.Status}."
+                        Message = $"Không thể thay đổi trạng thái đơn hàng đã {(order.Status == (int)OrderStatusEnums.Delivered ? "Giao hàng" : "Hủy")}."
                     };
                 }
+
+                // Kiểm tra nếu hủy đơn hàng đã thanh toán -> tự động hoàn tiền
+                if (req.Status == OrderStatusEnums.Cancelled)
+                {
+                    var orderPayment = await _orderPaymentRepository.AsQueryable()
+                        .FirstOrDefaultAsync(op => op.OrderID == req.OrderID);
+
+                    if (orderPayment != null && orderPayment.Status == (int)PaymentStatus.Paid)
+                    {
+                        // Cập nhật trạng thái thanh toán thành Refunded
+                        orderPayment.Status = (int)PaymentStatus.Refunded;
+                        orderPayment.Note = $"Đã hoàn tiền do hủy đơn hàng lúc {DateTime.Now:dd/MM/yyyy HH:mm:ss}";
+                        
+                        await _orderPaymentRepository.UpdateAsync(orderPayment);
+                        
+                        // TODO: Tích hợp API hoàn tiền thực tế cho VNPay/PayPal/GPay tại đây
+                        // Ví dụ: await _paymentService.ProcessRefundAsync(orderPayment);
+                    }
+                }
+
                 order.Status = (int)req.Status;
 
                 await _orderRepository.UpdateAsync(order);
@@ -515,7 +522,9 @@ namespace BUS.Services
                 return new CommonResponse<bool>
                 {
                     Success = true,
-                    Message = $"C?p nh?t tr?ng thái don hàng #{req.OrderID} thành công: {req.Status}."
+                    Message = req.Status == OrderStatusEnums.Cancelled && order != null
+                        ? $"Đã hủy đơn hàng #{req.OrderID} và hoàn tiền (nếu đã thanh toán)."
+                        : $"Cập nhật trạng thái đơn hàng #{req.OrderID} thành công: {req.Status}."
                 };
             }
             catch (Exception ex)
@@ -523,7 +532,7 @@ namespace BUS.Services
                 return new CommonResponse<bool>
                 {
                     Success = false,
-                    Message = $"L?i khi c?p nh?t tr?ng thái don hàng: {ex.Message}"
+                    Message = $"Lỗi khi cập nhật trạng thái đơn hàng: {ex.Message}"
                 };
             }
         }

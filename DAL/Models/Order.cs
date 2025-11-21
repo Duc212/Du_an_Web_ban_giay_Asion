@@ -32,6 +32,21 @@ namespace DAL.Models
         [MaxLength(200)]
         public string? Note { get; set; }
 
+        // GHN Integration Fields
+        [MaxLength(50)]
+        public string? GhnOrderCode { get; set; }
+        
+        [MaxLength(50)]
+        public string? GhnStatus { get; set; }
+        
+        public bool CodCollected { get; set; } = false;
+        
+        public int? GhnFee { get; set; }
+        
+        public DateTime? GhnCreatedAt { get; set; }
+        
+        public DateTime? GhnUpdatedAt { get; set; }
+
         // Navigation
         public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
         public ICollection<ReturnRequest> ReturnRequests { get; set; } = new List<ReturnRequest>();

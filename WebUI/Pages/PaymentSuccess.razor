@@ -2,12 +2,14 @@
 @using Microsoft.AspNetCore.Components
 @inject NavigationManager Navigation
 @inject WebUI.Services.CartService CartService
+@inject WebUI.Services.OrderService OrderService
 
 <PageTitle>Thanh toán</PageTitle>
 
 @code {
     private string? transactionId;
     private string? rawAmount;
+    private string? orderId;
     private string amountDisplay = string.Empty;
 
     protected override async Task OnInitializedAsync()
@@ -17,6 +19,7 @@
 
         transactionId = queryParams.TryGetValue("transactionId", out var tid) ? tid : null;
         rawAmount     = queryParams.TryGetValue("amount",        out var amt) ? amt : null;
+        orderId       = queryParams.TryGetValue("orderId",       out var oid) ? oid : null;
 
         if (!string.IsNullOrWhiteSpace(rawAmount) &&
             decimal.TryParse(rawAmount, System.Globalization.NumberStyles.Any,
@@ -29,9 +32,15 @@
             amountDisplay = rawAmount ?? string.Empty;
         }
 
-        // Clear cart after successful payment
-        if (!string.IsNullOrWhiteSpace(transactionId))
+        // Update payment status after successful payment
+        if (!string.IsNullOrWhiteSpace(transactionId) && !string.IsNullOrWhiteSpace(orderId))
         {
+            if (int.TryParse(orderId, out int orderIdInt))
+            {
+                await OrderService.UpdatePaymentStatusAsync(orderIdInt, WebUI.Models.PaymentStatus.Paid);
+            }
+            
+            // Clear cart after successful payment
             await CartService.ClearCartAsync();
         }
     }

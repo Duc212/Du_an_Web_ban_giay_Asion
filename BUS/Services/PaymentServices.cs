@@ -3,6 +3,7 @@ using BUS.Services.Interfaces;
 using DAL.DTOs.Payments.Req;
 using DAL.DTOs.Payments.Res;
 using DAL.Entities;
+using DAL.Enums;
 using DAL.Models;
 using DAL.RepositoryAsyns;
 using Helper.Utils;
@@ -137,12 +138,11 @@ namespace BUS.Services
                     {
                         var orderPayment = await _orderPaymentRepository
                             .AsQueryable()
-                            .Include(op => op.Payment)
                             .FirstOrDefaultAsync(op => op.OrderID == request.OrderID);
 
-                        if (orderPayment != null && orderPayment.Payment != null)
+                        if (orderPayment != null)
                         {
-                            orderPayment.Payment.PaymentStatus = "Đã thanh toán";
+                            orderPayment.Status = (int)PaymentStatus.Paid;
                             await _orderPaymentRepository.UpdateAsync(orderPayment);
                         }
                     }
@@ -158,12 +158,11 @@ namespace BUS.Services
                     {
                         var orderPayment = await _orderPaymentRepository
                             .AsQueryable()
-                            .Include(op => op.Payment)
                             .FirstOrDefaultAsync(op => op.OrderID == request.OrderID);
 
-                        if (orderPayment != null && orderPayment.Payment != null)
+                        if (orderPayment != null)
                         {
-                            orderPayment.Payment.PaymentStatus = "Thất bại";
+                            orderPayment.Status = (int)PaymentStatus.Failed;
                             await _orderPaymentRepository.UpdateAsync(orderPayment);
                         }
                     }
@@ -305,16 +304,16 @@ namespace BUS.Services
                         .Include(op => op.Payment)
                         .FirstOrDefaultAsync(op => op.OrderID == orderId);
 
-                    if (orderPayment != null && orderPayment.Payment != null)
+                    if (orderPayment != null)
                     {
-                        // Cập nhật trạng thái Payment
+                        // Cập nhật trạng thái OrderPayment
                         if (isSuccess)
                         {
-                            orderPayment.Payment.PaymentStatus = "Đã thanh toán";
+                            orderPayment.Status = (int)PaymentStatus.Paid;
                         }
                         else
                         {
-                            orderPayment.Payment.PaymentStatus = "Thất bại";
+                            orderPayment.Status = (int)PaymentStatus.Failed;
                         }
 
                         await _orderPaymentRepository.UpdateAsync(orderPayment);
@@ -444,12 +443,11 @@ namespace BUS.Services
                 {
                     var orderPayment = await _orderPaymentRepository
                         .AsQueryable()
-                        .Include(op => op.Payment)
                         .FirstOrDefaultAsync(op => op.OrderID == captureReq.SystemOrderID);
 
-                    if (orderPayment != null && orderPayment.Payment != null)
+                    if (orderPayment != null)
                     {
-                        orderPayment.Payment.PaymentStatus = "Đã thanh toán";
+                        orderPayment.Status = (int)PaymentStatus.Paid;
                         await _orderPaymentRepository.UpdateAsync(orderPayment);
                     }
                 }

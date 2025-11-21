@@ -59,8 +59,8 @@ namespace API.Controllers
 
             if (result.Success)
             {
-                // Redirect về trang thành công trên frontend
-                var returnUrl = $"https://localhost:7100/payment-success?transactionId={result.Data?.TransactionId}&amount={result.Data?.Amount}";
+                // Redirect về trang thành công trên frontend với orderId
+                var returnUrl = $"https://localhost:7100/payment-success?transactionId={result.Data?.TransactionId}&amount={result.Data?.Amount}&orderId={result.Data?.OrderId}";
                 return Redirect(returnUrl);
             }
             else

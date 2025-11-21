@@ -99,10 +99,18 @@ public class OrderService
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             
             var response = await _httpClient.PutAsync($"{_baseUrl}/UpdateOrderStatus", content);
-            return response.IsSuccessStatusCode;
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
+                return result?.Success ?? false;
+            }
+            
+            return false;
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"UpdateOrderStatusAsync error: {ex.Message}");
             return false;
         }
     }
@@ -220,13 +228,32 @@ public class OrderService
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadFromJsonAsync<ApiResponse<OrderStatisticsSummary>>();
-                return result?.Data;
+                return result?.Data ?? new OrderStatisticsSummary
+                {
+                    TotalOrders = 0,
+                    PendingOrders = 0,
+                    ProcessingOrders = 0,
+                    ShippingOrders = 0,
+                    DeliveredOrders = 0,
+                    TotalRevenue = 0,
+                    AverageOrderValue = 0
+                };
             }
 
-            return null;
+            return new OrderStatisticsSummary
+            {
+                TotalOrders = 0,
+                PendingOrders = 0,
+                ProcessingOrders = 0,
+                ShippingOrders = 0,
+                DeliveredOrders = 0,
+                TotalRevenue = 0,
+                AverageOrderValue = 0
+            };
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"GetOrderStatisticsSummaryAsync error: {ex.Message}");
             // Return mock data if API fails
             return new OrderStatisticsSummary
             {

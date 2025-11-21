@@ -95,6 +95,14 @@ public class OrderShipmentInfo
     public DateTime? ShippedDate { get; set; }
     public DateTime? EstimatedDelivery { get; set; }
     public int DeliveryStatus { get; set; }
+    
+    // GHN Integration
+    public string? GhnOrderCode { get; set; }
+    public string? GhnStatus { get; set; }
+    public int? GhnFee { get; set; }
+    public bool CodCollected { get; set; }
+    public DateTime? GhnCreatedAt { get; set; }
+    public DateTime? GhnUpdatedAt { get; set; }
 }
 
 public class OrderVoucherInfo
@@ -215,4 +223,34 @@ public class UpdateShippingInfoRequest
     public DateTime? ShippedDate { get; set; }
     public DateTime? EstimatedDelivery { get; set; }
     public string? Note { get; set; }
+}
+
+// GHN DTOs
+public class CreateGhnOrderRequest
+{
+    public int OrderId { get; set; }
+    public int? PaymentTypeId { get; set; } = 2;
+    public string? Note { get; set; }
+}
+
+public class CreateGhnOrderResult
+{
+    public bool Success { get; set; }
+    public string? Message { get; set; }
+    public string? GhnOrderCode { get; set; }
+    public int? TotalFee { get; set; }
+    public DateTime? ExpectedDeliveryTime { get; set; }
+}
+
+public class OrderTrackingResponse
+{
+    public int OrderId { get; set; }
+    public string? OrderCode { get; set; }
+    public string? GhnOrderCode { get; set; }
+    public string? GhnStatus { get; set; }
+    public string? GhnStatusText { get; set; }
+    public int? GhnFee { get; set; }
+    public bool CodCollected { get; set; }
+    public DateTime? ExpectedDeliveryTime { get; set; }
+    public DateTime? LastUpdated { get; set; }
 }
