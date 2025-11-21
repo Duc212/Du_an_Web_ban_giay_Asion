@@ -6,6 +6,8 @@
 @inject CartService CartService
 @inject IToastService ToastService
 @inject VoucherService VoucherService
+@inject HttpClient Http
+@inject ConfigurationService ConfigService
 
 <div class="checkout-page">
     <div class="checkout-container">
@@ -27,7 +29,7 @@
                     <h3>Thông tin giao hàng</h3>
                     <div class="checkout-form-grid">
                         <div>
-                            <label>Họ và tên</label>
+                            <label>Họ và tên <span style="color: red;">*</span></label>
                             <input class="bw-input" @bind="Shipping.FullName" placeholder="Nguyễn Văn A" />
                         </div>
                         <div>
@@ -35,16 +37,68 @@
                             <input class="bw-input" @bind="Shipping.Email" placeholder="email@example.com" />
                         </div>
                         <div>
-                            <label>Số điện thoại</label>
+                            <label>Số điện thoại <span style="color: red;">*</span></label>
                             <input class="bw-input" @bind="Shipping.Phone" placeholder="0901234567" />
                         </div>
+                        
+                        <!-- GHN Address Selection -->
                         <div>
-                            <label>Tỉnh/Thành</label>
-                            <input class="bw-input" @bind="Shipping.City" placeholder="TP. Hồ Chí Minh" />
+                            <label>Tỉnh/Thành phố <span style="color: red;">*</span></label>
+                            <select class="bw-input" @onchange="OnProvinceChanged" disabled="@IsLoadingProvinces">
+                                <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                                @if (Provinces != null)
+                                {
+                                    @foreach (var province in Provinces)
+                                    {
+                                        <option value="@province.ProvinceID">@province.ProvinceName</option>
+                                    }
+                                }
+                            </select>
+                            @if (IsLoadingProvinces)
+                            {
+                                <small style="color: #6b7280;">Đang tải danh sách...</small>
+                            }
                         </div>
+
+                        <div>
+                            <label>Quận/Huyện <span style="color: red;">*</span></label>
+                            <select class="bw-input" @onchange="OnDistrictChanged" disabled="@(SelectedProvinceId == 0 || IsLoadingDistricts)">
+                                <option value="">-- Chọn Quận/Huyện --</option>
+                                @if (Districts != null)
+                                {
+                                    @foreach (var district in Districts)
+                                    {
+                                        <option value="@district.DistrictID">@district.DistrictName</option>
+                                    }
+                                }
+                            </select>
+                            @if (IsLoadingDistricts)
+                            {
+                                <small style="color: #6b7280;">Đang tải danh sách...</small>
+                            }
+                        </div>
+
+                        <div>
+                            <label>Phường/Xã <span style="color: red;">*</span></label>
+                            <select class="bw-input" @bind="SelectedWardCode" disabled="@(SelectedDistrictId == 0 || IsLoadingWards)">
+                                <option value="">-- Chọn Phường/Xã --</option>
+                                @if (Wards != null)
+                                {
+                                    @foreach (var ward in Wards)
+                                    {
+                                        <option value="@ward.WardCode">@ward.WardName</option>
+                                    }
+                                }
+                            </select>
+                            @if (IsLoadingWards)
+                            {
+                                <small style="color: #6b7280;">Đang tải danh sách...</small>
+                            }
+                        </div>
+
                         <div class="full">
-                            <label>Địa chỉ</label>
-                            <input class="bw-input" @bind="Shipping.Address" placeholder="Số nhà, đường, phường/xã, quận/huyện" />
+                            <label>Địa chỉ cụ thể <span style="color: red;">*</span></label>
+                            <input class="bw-input" @bind="Shipping.Address" placeholder="Số nhà, tên đường..." />
                         </div>
                         <div class="full">
                             <label>Ghi chú</label>
@@ -65,7 +119,7 @@
                         @if (AppliedVoucher == null)
                         {
                             <button 
-                                style="padding: 12px 24px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;"
+                                style="padding: 12px 24px; background: #2563eb; color: white, transparent; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;"
                                 @onclick="ApplyVoucher" 
                                 disabled="@(string.IsNullOrWhiteSpace(VoucherCode) || IsApplyingVoucher)">
                                 @if (IsApplyingVoucher)
@@ -202,6 +256,40 @@
 </div>
 
 @code {
+    // GHN Address DTOs
+    public class GhnProvince
+    {
+        public int ProvinceID { get; set; }
+        public string? ProvinceName { get; set; }
+    }
+
+    public class GhnDistrict
+    {
+        public int DistrictID { get; set; }
+        public string? DistrictName { get; set; }
+    }
+
+    public class GhnWard
+    {
+        public string? WardCode { get; set; }
+        public string? WardName { get; set; }
+    }
+
+    public class GhnProvinceResponse
+    {
+        public List<GhnProvince>? Data { get; set; }
+    }
+
+    public class GhnDistrictResponse
+    {
+        public List<GhnDistrict>? Data { get; set; }
+    }
+
+    public class GhnWardResponse
+    {
+        public List<GhnWard>? Data { get; set; }
+    }
+
     private class ShippingInfo
     {
         public string FullName { get; set; } = "";
@@ -213,7 +301,21 @@
     }
 
     private ShippingInfo Shipping = new();
-    private string SelectedShippingMethod = "standard"; // "standard" hoặc "express"
+    private string SelectedShippingMethod = "standard";
+
+    // GHN Address fields
+    private List<GhnProvince>? Provinces;
+    private List<GhnDistrict>? Districts;
+    private List<GhnWard>? Wards;
+    private int SelectedProvinceId = 0;
+    private int SelectedDistrictId = 0;
+    private string SelectedWardCode = "";
+    private string SelectedProvinceName = "";
+    private string SelectedDistrictName = "";
+    private string SelectedWardName = "";
+    private bool IsLoadingProvinces = false;
+    private bool IsLoadingDistricts = false;
+    private bool IsLoadingWards = false;
 
     private List<WebUI.Models.Cart.CartItemResponse>? SelectedApiItems;
     private List<WebUI.Services.CartItem>? SelectedLocalItems;
@@ -235,12 +337,10 @@
         {
             if (Subtotal >= 500000)
             {
-                // Miễn phí ship thường, chỉ tính phí ship hỏa tốc
                 return SelectedShippingMethod == "express" ? 20000 : 0;
             }
             else
             {
-                // Ship thường: 30.000đ, Ship hỏa tốc: 50.000đ
                 return SelectedShippingMethod == "express" ? 50000 : 30000;
             }
         }
@@ -254,13 +354,142 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Load selected items from CartService
         await LoadSelectedItems();
         
-        // If no items selected, redirect back to cart
         if (!HasAnySelection)
         {
             Navigation.NavigateTo("/cart");
+            return;
+        }
+
+        // Load provinces from GHN
+        await LoadProvinces();
+    }
+
+    private async Task LoadProvinces()
+    {
+        IsLoadingProvinces = true;
+        StateHasChanged();
+
+        try
+        {
+            var apiBaseUrl = await ConfigService.GetApiBaseUrlAsync();
+            var response = await Http.GetFromJsonAsync<GhnProvinceResponse>($"{apiBaseUrl}/api/shipping/provinces");
+            Provinces = response?.Data;
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Không thể tải danh sách tỉnh/thành: {ex.Message}");
+            Console.WriteLine($"[LoadProvinces] Error: {ex}");
+        }
+        finally
+        {
+            IsLoadingProvinces = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnProvinceChanged(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString();
+        if (int.TryParse(value, out var provinceId))
+        {
+            SelectedProvinceId = provinceId;
+            SelectedProvinceName = Provinces?.FirstOrDefault(p => p.ProvinceID == provinceId)?.ProvinceName ?? "";
+            
+            // Reset district and ward
+            SelectedDistrictId = 0;
+            SelectedWardCode = "";
+            Districts = null;
+            Wards = null;
+
+            // Load districts
+            await LoadDistricts(provinceId);
+        }
+        else
+        {
+            SelectedProvinceId = 0;
+            SelectedProvinceName = "";
+            Districts = null;
+            Wards = null;
+        }
+        
+        StateHasChanged();
+    }
+
+    private async Task LoadDistricts(int provinceId)
+    {
+        IsLoadingDistricts = true;
+        StateHasChanged();
+
+        try
+        {
+            var apiBaseUrl = await ConfigService.GetApiBaseUrlAsync();
+            var response = await Http.GetFromJsonAsync<GhnDistrictResponse>($"{apiBaseUrl}/api/shipping/districts/{provinceId}");
+            Districts = response?.Data;
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Không thể tải danh sách quận/huyện: {ex.Message}");
+            Console.WriteLine($"[LoadDistricts] Error: {ex}");
+        }
+        finally
+        {
+            IsLoadingDistricts = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnDistrictChanged(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString();
+        if (int.TryParse(value, out var districtId))
+        {
+            SelectedDistrictId = districtId;
+            SelectedDistrictName = Districts?.FirstOrDefault(d => d.DistrictID == districtId)?.DistrictName ?? "";
+            
+            // ⚠️ IMPORTANT: Reset ward khi đổi district
+            SelectedWardCode = "";
+            SelectedWardName = "";
+            Wards = null;
+
+            Console.WriteLine($"[Checkout] District changed to: {districtId} ({SelectedDistrictName})");
+
+            // Load wards
+            await LoadWards(districtId);
+        }
+        else
+        {
+            SelectedDistrictId = 0;
+            SelectedDistrictName = "";
+            SelectedWardCode = "";
+            SelectedWardName = "";
+            Wards = null;
+        }
+        
+        StateHasChanged();
+    }
+
+    private async Task LoadWards(int districtId)
+    {
+        IsLoadingWards = true;
+        StateHasChanged();
+
+        try
+        {
+            var apiBaseUrl = await ConfigService.GetApiBaseUrlAsync();
+            var response = await Http.GetFromJsonAsync<GhnWardResponse>($"{apiBaseUrl}/api/shipping/wards/{districtId}");
+            Wards = response?.Data;
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Không thể tải danh sách phường/xã: {ex.Message}");
+            Console.WriteLine($"[LoadWards] Error: {ex}");
+        }
+        finally
+        {
+            IsLoadingWards = false;
+            StateHasChanged();
         }
     }
 
@@ -268,27 +497,23 @@
     {
         try
         {
-            // Check if user is authenticated and has API cart items selected
             var apiCart = await CartService.GetCartFromApiAsync();
             
             if (apiCart != null && apiCart.Items.Any())
             {
                 if (CartService.SelectedApiCartItemIds.Any())
                 {
-                    // Filter API cart items based on selected IDs
                     SelectedApiItems = apiCart.Items
                         .Where(i => CartService.SelectedApiCartItemIds.Contains(i.CartItemID))
                         .ToList();
                 }
                 else
                 {
-                    // No selection, use all items
                     SelectedApiItems = apiCart.Items.ToList();
                 }
             }
             else
             {
-                // Use local cart items for guest users
                 var localAll = CartService.GetItems();
                 
                 if (CartService.SelectedLocalProductIds.Any())
@@ -299,7 +524,6 @@
                 }
                 else
                 {
-                    // No selection, use all items
                     SelectedLocalItems = localAll.ToList();
                 }
             }
@@ -386,21 +610,49 @@
         // Validate shipping info
         if (string.IsNullOrWhiteSpace(Shipping.FullName) || 
             string.IsNullOrWhiteSpace(Shipping.Phone) || 
-            string.IsNullOrWhiteSpace(Shipping.Address) || 
-            string.IsNullOrWhiteSpace(Shipping.City))
+            string.IsNullOrWhiteSpace(Shipping.Address))
         {
             ToastService.ShowWarning("Vui lòng điền đầy đủ thông tin giao hàng");
             return;
         }
 
-        // Lưu thông tin checkout vào CartService
+        // Validate GHN address
+        if (SelectedProvinceId == 0 || SelectedDistrictId == 0 || string.IsNullOrWhiteSpace(SelectedWardCode))
+        {
+            ToastService.ShowWarning("Vui lòng chọn đầy đủ Tỉnh/Thành phố, Quận/Huyện, Phường/Xã");
+            return;
+        }
+
+        // ⚠️ IMPORTANT: Validate Ward thuộc District đã chọn
+        if (Wards == null || !Wards.Any(w => w.WardCode == SelectedWardCode))
+        {
+            ToastService.ShowError($"❌ Lỗi: Phường/Xã '{SelectedWardCode}' không thuộc Quận/Huyện đã chọn! Vui lòng chọn lại.");
+            Console.WriteLine($"[Checkout] VALIDATION ERROR: WardCode {SelectedWardCode} not in District {SelectedDistrictId}");
+            Console.WriteLine($"[Checkout] Available Wards: {string.Join(", ", Wards?.Select(w => w.WardCode) ?? new List<string>())}");
+            return;
+        }
+
+        // Get selected ward name
+        SelectedWardName = Wards?.FirstOrDefault(w => w.WardCode == SelectedWardCode)?.WardName ?? "";
+
+        // Build full address
+        var fullAddress = $"{Shipping.Address}, {SelectedWardName}, {SelectedDistrictName}, {SelectedProvinceName}";
+
+        Console.WriteLine($"[Checkout] Saving address:");
+        Console.WriteLine($"  - ProvinceId: {SelectedProvinceId} ({SelectedProvinceName})");
+        Console.WriteLine($"  - DistrictId: {SelectedDistrictId} ({SelectedDistrictName})");
+        Console.WriteLine($"  - WardCode: {SelectedWardCode} ({SelectedWardName})");
+        Console.WriteLine($"  - DetailAddress: {Shipping.Address}");
+        Console.WriteLine($"  - FullAddress: {fullAddress}");
+
+        // Save checkout info
         CartService.CheckoutInfo = new CheckoutInfo
         {
             FullName = Shipping.FullName,
             Email = Shipping.Email,
             Phone = Shipping.Phone,
-            City = Shipping.City,
-            Address = Shipping.Address,
+            City = SelectedProvinceName,
+            Address = fullAddress, // Full GHN address
             Note = Shipping.Note,
             ShippingMethod = SelectedShippingMethod,
             ShippingFee = ShippingFee,
@@ -410,7 +662,12 @@
             SelectedLocalItems = SelectedLocalItems,
             VoucherID = AppliedVoucher?.VoucherID,
             VoucherCode = AppliedVoucher?.VoucherCode,
-            Discount = Discount
+            Discount = Discount,
+            // GHN fields
+            GhnProvinceId = SelectedProvinceId,
+            GhnDistrictId = SelectedDistrictId,
+            GhnWardCode = SelectedWardCode,
+            GhnFullAddress = fullAddress
         };
 
         Navigation.NavigateTo("/payment");

@@ -21,5 +21,13 @@ namespace DAL.DTOs.Orders.Req
 
         [Required(ErrorMessage = "OrderDetails is required")]
         public List<CreateOrderDetailsReq> OrderDetails { get; set; } = new();
+        
+        // GHN Address Fields
+        public int? GhnProvinceId { get; set; }
+        public int? GhnDistrictId { get; set; }
+        [MaxLength(20)]
+        public string? GhnWardCode { get; set; }
+        [MaxLength(500)]
+        public string? GhnFullAddress { get; set; }
     }
 }

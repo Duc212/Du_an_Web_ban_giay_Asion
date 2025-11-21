@@ -379,11 +379,16 @@
         {
             UserID = AuthService.IsAuthenticated ? GetUserId() : 0,
             PaymentID = GetPaymentId(paymentMethod) ?? 0,
-            VoucherID = checkoutInfo.VoucherID, // Apply voucher if selected
+            VoucherID = checkoutInfo.VoucherID,
             OrderType = "online",
-            Address = $"{checkoutInfo.Address}, {checkoutInfo.City}",
+            Address = checkoutInfo.Address,
             Note = checkoutInfo.Note,
-            OrderDetails = GetOrderDetails(checkoutInfo)
+            OrderDetails = GetOrderDetails(checkoutInfo),
+            // GHN Address Fields
+            GhnProvinceId = checkoutInfo.GhnProvinceId,
+            GhnDistrictId = checkoutInfo.GhnDistrictId,
+            GhnWardCode = checkoutInfo.GhnWardCode,
+            GhnFullAddress = checkoutInfo.GhnFullAddress
         };
 
         var createOrderResult = await OrderService.CreateOrderAsync(orderRequest);
@@ -733,7 +738,7 @@
             // 2. Gọi Google Pay SDK qua JSInterop để lấy token và xử lý luôn
             await JSRuntime.InvokeVoidAsync("eval", $@"
                 (function() {{
-                    if (!window.google || !window.google.payments) {{
+                    if (!window.google || !window.payments) {{
                         alert('Google Pay SDK chưa sẵn sàng!');
                         return;
                     }}

@@ -24,5 +24,55 @@ namespace BUS.Services.Interfaces
         /// Lấy thông tin tracking đơn hàng từ DB
         /// </summary>
         Task<OrderTrackingResponse?> GetOrderTrackingAsync(int orderId);
+
+        /// <summary>
+        /// Cập nhật thông tin đơn hàng GHN (note)
+        /// </summary>
+        Task<bool> UpdateOrderAsync(string orderCode, string note);
+
+        /// <summary>
+        /// Hủy đơn hàng GHN
+        /// </summary>
+        Task<bool> CancelOrderAsync(List<string> orderCodes);
+
+        /// <summary>
+        /// Chuyển đơn về trạng thái trả hàng
+        /// </summary>
+        Task<bool> ReturnOrderAsync(List<string> orderCodes);
+
+        /// <summary>
+        /// Cập nhật số tiền COD
+        /// </summary>
+        Task<bool> UpdateCODAsync(string orderCode, int codAmount);
+
+        /// <summary>
+        /// Lấy thời gian dự kiến giao hàng
+        /// </summary>
+        Task<DateTime?> GetLeadTimeAsync(int fromDistrictId, string fromWardCode, int toDistrictId, string toWardCode, int serviceId);
+
+        /// <summary>
+        /// Preview đơn hàng trước khi tạo
+        /// </summary>
+        Task<GhnOrderPreviewResponse?> PreviewOrderAsync(GhnCreateOrderPayload payload);
+
+        /// <summary>
+        /// Lấy danh sách Shop từ GHN (for testing/debugging)
+        /// </summary>
+        Task<string> GetAllShopsAsync();
+
+        /// <summary>
+        /// Lấy danh sách tỉnh/thành phố
+        /// </summary>
+        Task<GhnProvinceResponse?> GetProvincesAsync();
+
+        /// <summary>
+        /// Lấy danh sách quận/huyện theo tỉnh
+        /// </summary>
+        Task<GhnDistrictResponse?> GetDistrictsAsync(int provinceId);
+
+        /// <summary>
+        /// Lấy danh sách phường/xã theo quận
+        /// </summary>
+        Task<GhnWardResponse?> GetWardsAsync(int districtId);
     }
 }

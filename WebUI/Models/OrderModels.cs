@@ -12,6 +12,12 @@ namespace WebUI.Models
         public string Address { get; set; } = string.Empty;
         public string? Note { get; set; }
         public List<OrderDetailRequest> OrderDetails { get; set; } = new();
+        
+        // GHN Address Fields
+        public int? GhnProvinceId { get; set; }
+        public int? GhnDistrictId { get; set; }
+        public string? GhnWardCode { get; set; }
+        public string? GhnFullAddress { get; set; }
     }
 
     /// <summary>

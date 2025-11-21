@@ -36,6 +36,7 @@ namespace DAL.DTOs.Shipping
         public string? FromDistrictId { get; set; }
         
         public int? ServiceTypeId { get; set; } = 2; // 2 = Chuẩn, 5 = Nhanh
+        public int? ServiceId { get; set; } = 0;
         public int? PaymentTypeId { get; set; } = 2; // 1 = Người gửi trả, 2 = Người nhận trả
         public string? Note { get; set; }
         public int? RequiredNote { get; set; } = 2; // KHONGCHOXEMHANG
@@ -44,6 +45,12 @@ namespace DAL.DTOs.Shipping
         public int? Length { get; set; } = 20; // cm
         public int? Width { get; set; } = 20; // cm
         public int? Height { get; set; } = 10; // cm
+        
+        // Các field mới theo API spec
+        public int? PickStationId { get; set; }
+        public int? InsuranceValue { get; set; }
+        public string? Coupon { get; set; }
+        public List<int>? PickShift { get; set; }
     }
 
     /// <summary>
@@ -79,11 +86,20 @@ namespace DAL.DTOs.Shipping
         [JsonPropertyName("from_province_name")]
         public string? FromProvinceName { get; set; }
 
-        [JsonPropertyName("from_ward_code")]
-        public string? FromWardCode { get; set; }
+        [JsonPropertyName("return_phone")]
+        public string? ReturnPhone { get; set; }
 
-        [JsonPropertyName("from_district_id")]
-        public int? FromDistrictId { get; set; }
+        [JsonPropertyName("return_address")]
+        public string? ReturnAddress { get; set; }
+
+        [JsonPropertyName("return_district_id")]
+        public int? ReturnDistrictId { get; set; }
+
+        [JsonPropertyName("return_ward_code")]
+        public string? ReturnWardCode { get; set; }
+
+        [JsonPropertyName("client_order_code")]
+        public string? ClientOrderCode { get; set; }
 
         [JsonPropertyName("to_name")]
         public string ToName { get; set; } = string.Empty;
@@ -118,8 +134,26 @@ namespace DAL.DTOs.Shipping
         [JsonPropertyName("height")]
         public int Height { get; set; }
 
+        [JsonPropertyName("pick_station_id")]
+        public int? PickStationId { get; set; }
+
+        [JsonPropertyName("deliver_station_id")]
+        public int? DeliverStationId { get; set; }
+
+        [JsonPropertyName("insurance_value")]
+        public int? InsuranceValue { get; set; }
+
+        [JsonPropertyName("service_id")]
+        public int? ServiceId { get; set; }
+
         [JsonPropertyName("service_type_id")]
         public int ServiceTypeId { get; set; } = 2;
+
+        [JsonPropertyName("coupon")]
+        public string? Coupon { get; set; }
+
+        [JsonPropertyName("pick_shift")]
+        public List<int>? PickShift { get; set; }
 
         [JsonPropertyName("items")]
         public List<GhnOrderItem>? Items { get; set; }
@@ -130,11 +164,35 @@ namespace DAL.DTOs.Shipping
         [JsonPropertyName("name")]
         public string Name { get; set; } = string.Empty;
 
+        [JsonPropertyName("code")]
+        public string? Code { get; set; }
+
         [JsonPropertyName("quantity")]
         public int Quantity { get; set; }
 
         [JsonPropertyName("price")]
         public int Price { get; set; }
+
+        [JsonPropertyName("length")]
+        public int? Length { get; set; }
+
+        [JsonPropertyName("width")]
+        public int? Width { get; set; }
+
+        [JsonPropertyName("height")]
+        public int? Height { get; set; }
+
+        [JsonPropertyName("weight")]
+        public int? Weight { get; set; }
+
+        [JsonPropertyName("category")]
+        public GhnItemCategory? Category { get; set; }
+    }
+
+    public class GhnItemCategory
+    {
+        [JsonPropertyName("level1")]
+        public string? Level1 { get; set; }
     }
 
     /// <summary>
@@ -368,5 +426,95 @@ namespace DAL.DTOs.Shipping
         public bool CodCollected { get; set; }
         public DateTime? ExpectedDeliveryTime { get; set; }
         public DateTime? LastUpdated { get; set; }
+    }
+
+    /// <summary>
+    /// Response preview đơn hàng
+    /// </summary>
+    public class GhnOrderPreviewResponse
+    {
+        [JsonPropertyName("order_code")]
+        public string? OrderCode { get; set; }
+
+        [JsonPropertyName("total_fee")]
+        public int? TotalFee { get; set; }
+
+        [JsonPropertyName("expected_delivery_time")]
+        public DateTime? ExpectedDeliveryTime { get; set; }
+
+        [JsonPropertyName("operation_partner")]
+        public string? OperationPartner { get; set; }
+    }
+
+    /// <summary>
+    /// Response leadtime
+    /// </summary>
+    public class GhnLeadTimeResponse
+    {
+        [JsonPropertyName("leadtime")]
+        public int LeadTime { get; set; }
+
+        [JsonPropertyName("order_date")]
+        public long OrderDate { get; set; }
+    }
+
+    /// <summary>
+    /// Response danh sách tỉnh/thành
+    /// </summary>
+    public class GhnProvinceResponse
+    {
+        [JsonPropertyName("data")]
+        public List<GhnProvince>? Data { get; set; }
+    }
+
+    public class GhnProvince
+    {
+        [JsonPropertyName("ProvinceID")]
+        public int ProvinceID { get; set; }
+
+        [JsonPropertyName("ProvinceName")]
+        public string? ProvinceName { get; set; }
+    }
+
+    /// <summary>
+    /// Response danh sách quận/huyện
+    /// </summary>
+    public class GhnDistrictResponse
+    {
+        [JsonPropertyName("data")]
+        public List<GhnDistrict>? Data { get; set; }
+    }
+
+    public class GhnDistrict
+    {
+        [JsonPropertyName("DistrictID")]
+        public int DistrictID { get; set; }
+
+        [JsonPropertyName("DistrictName")]
+        public string? DistrictName { get; set; }
+
+        [JsonPropertyName("ProvinceID")]
+        public int ProvinceID { get; set; }
+    }
+
+    /// <summary>
+    /// Response danh sách phường/xã
+    /// </summary>
+    public class GhnWardResponse
+    {
+        [JsonPropertyName("data")]
+        public List<GhnWard>? Data { get; set; }
+    }
+
+    public class GhnWard
+    {
+        [JsonPropertyName("WardCode")]
+        public string? WardCode { get; set; }
+
+        [JsonPropertyName("WardName")]
+        public string? WardName { get; set; }
+
+        [JsonPropertyName("DistrictID")]
+        public int DistrictID { get; set; }
     }
 }

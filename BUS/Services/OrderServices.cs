@@ -261,7 +261,12 @@ namespace BUS.Services
                         Note = req.Note,
                         OrderDate = DateTime.Now,
                         Status = (int)OrderStatusEnums.Pending,
-                        OrderCode = GenerateOrderCode()
+                        OrderCode = GenerateOrderCode(),
+                        // GHN Address Fields
+                        GhnProvinceId = req.GhnProvinceId,
+                        GhnDistrictId = req.GhnDistrictId,
+                        GhnWardCode = req.GhnWardCode,
+                        GhnFullAddress = req.GhnFullAddress
                     };
 
                     await _orderRepository.AddAsync(order);
@@ -276,10 +281,10 @@ namespace BUS.Services
                             .FirstOrDefaultAsync(v => v.VariantID == item.VariantID);
 
                         if (variant == null)
-                            throw new Exception($"VariantID {item.VariantID} không t?n t?i.");
+                            throw new Exception($"VariantID {item.VariantID} không tồn tại.");
 
                         if (variant.StockQuantity < item.Quantity)
-                            throw new Exception($"S?n ph?m {variant.VariantID} không d? hàng.");
+                            throw new Exception($"Sản phẩm {variant.VariantID} không đủ hàng.");
 
                         variant.StockQuantity -= item.Quantity;
                         await _variantRepository.UpdateAsync(variant);
@@ -304,7 +309,7 @@ namespace BUS.Services
                         var payment = await _paymentRepository.AsQueryable()
                             .FirstOrDefaultAsync(p => p.PaymentID == req.PaymentID.Value);
                         if (payment == null)
-                            throw new Exception($"PaymentID {req.PaymentID.Value} không t?n t?i.");
+                            throw new Exception($"PaymentID {req.PaymentID.Value} không tồn tại.");
 
                         var orderPayment = new OrderPayment
                         {
@@ -328,7 +333,7 @@ namespace BUS.Services
                 return new CommonResponse<int>
                 {
                     Success = true,
-                    Message = "T?o don hàng thành công.",
+                    Message = "Tạo đơn hàng thành công.",
                     Data = orderId
                 };
             }
@@ -337,7 +342,7 @@ namespace BUS.Services
                 return new CommonResponse<int>
                 {
                     Success = false,
-                    Message = $"L?i khi t?o don hàng: {ex.Message}",
+                    Message = $"Lỗi khi tạo đơn hàng: {ex.Message}",
                     Data = 0
                 };
             }
@@ -387,7 +392,7 @@ namespace BUS.Services
             return new CommonPagination<GetListOrderRes>
             {
                 Success = true,
-                Message = "L?y danh sách don hàng thành công.",
+                Message = "Lấy danh sách đơn hàng thành công.",
                 Data = data,
                 TotalRecords = totalRecords
             };

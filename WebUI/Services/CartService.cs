@@ -530,5 +530,11 @@ namespace WebUI.Services
         public int? VoucherID { get; set; }
         public string? VoucherCode { get; set; }
         public decimal Discount { get; set; }
+        
+        // GHN Address Fields
+        public int GhnProvinceId { get; set; }
+        public int GhnDistrictId { get; set; }
+        public string? GhnWardCode { get; set; }
+        public string? GhnFullAddress { get; set; }
     }
 }

@@ -29,7 +29,7 @@ namespace DAL.Models
         public decimal TotalAmount { get; set; }
         [MaxLength(200)]
         public string? Address { get; set; }
-        [MaxLength(200)]
+        [MaxLength(2000)]
         public string? Note { get; set; }
 
         // GHN Integration Fields
@@ -46,6 +46,17 @@ namespace DAL.Models
         public DateTime? GhnCreatedAt { get; set; }
         
         public DateTime? GhnUpdatedAt { get; set; }
+
+        // GHN Address Fields
+        public int? GhnProvinceId { get; set; }
+        
+        public int? GhnDistrictId { get; set; }
+        
+        [MaxLength(20)]
+        public string? GhnWardCode { get; set; }
+        
+        [MaxLength(500)]
+        public string? GhnFullAddress { get; set; }
 
         // Navigation
         public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
