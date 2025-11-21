@@ -370,15 +370,25 @@ namespace BUS.Services
 
                 await _unitOfWork.ExecuteInTransactionAsync(async () =>
                 {
+                    // Debug log
+                    Console.WriteLine($"🔍 UpdateOrderStatus - OrderID: {orderId}, NewStatus: {newStatus}, CurrentGhnOrderCode: '{order.GhnOrderCode}'");
+                    
                     // Auto-create GHN order when shipping (if not exists)
                     if (newStatus == (int)OrderStatusEnums.Shipped && string.IsNullOrEmpty(order.GhnOrderCode))
                     {
+                        Console.WriteLine($"✅ Điều kiện đúng! Bắt đầu tạo đơn GHN...");
                         try
                         {
                             var ghnResult = await _ghnService.CreateOrderAsync(new DAL.DTOs.Shipping.CreateGhnOrderRequest 
                             { 
-                                OrderId = orderId 
+                                OrderId = orderId,
+                                // TEMP: Hardcode ward/district for testing (Quận 1, TP.HCM)
+                                ToWardCode = "20308",  // Phường Bến Nghé
+                                ToDistrictId = "1454"  // Quận 1
                             });
+                            
+                            Console.WriteLine($"📦 GHN API Response - Success: {ghnResult.Success}, OrderCode: '{ghnResult.GhnOrderCode}', Message: '{ghnResult.Message}'");
+                            
                             if (ghnResult.Success && !string.IsNullOrEmpty(ghnResult.GhnOrderCode))
                             {
                                 order.GhnOrderCode = ghnResult.GhnOrderCode;
@@ -386,15 +396,34 @@ namespace BUS.Services
                                 order.GhnFee = ghnResult.TotalFee;
                                 order.GhnCreatedAt = DateTime.Now;
                                 
+                                Console.WriteLine($"✅ Đã cập nhật Order với GhnOrderCode: {ghnResult.GhnOrderCode}");
+                                
                                 var ghnNote = $"Tự động tạo đơn GHN: {ghnResult.GhnOrderCode}";
                                 note = string.IsNullOrEmpty(note) ? ghnNote : $"{note}. {ghnNote}";
+                            }
+                            else
+                            {
+                                // Log lỗi chi tiết
+                                var errorMsg = $"⚠️ Không thể tạo đơn GHN: {ghnResult.Message}";
+                                Console.WriteLine(errorMsg);
+                                
+                                var errorNote = $"[GHN Error] {ghnResult.Message}";
+                                note = string.IsNullOrEmpty(note) ? errorNote : $"{note}. {errorNote}";
                             }
                         }
                         catch (Exception ex)
                         {
-                            // Log nhưng không fail transaction
-                            Console.WriteLine($"Warning: Không thể tạo GHN order tự động: {ex.Message}");
+                            // Log exception chi tiết
+                            var errorMsg = $"❌ Exception khi tạo GHN order: {ex.Message}\nStackTrace: {ex.StackTrace}";
+                            Console.WriteLine(errorMsg);
+                            
+                            var errorNote = $"[GHN Exception] {ex.Message}";
+                            note = string.IsNullOrEmpty(note) ? errorNote : $"{note}. {errorNote}";
                         }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"⏭️ Skip tạo GHN - Lý do: newStatus={newStatus} (cần 3), GhnOrderCode='{order.GhnOrderCode}' (cần null/empty)");
                     }
                     
                     // Update order status

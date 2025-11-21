@@ -115,10 +115,7 @@ namespace API.Controllers
             }
         }
 
-        /// <summary>
-        /// Lấy chi tiết đơn hàng từ GHN API
-        /// GET /api/shipping/ghn-detail/{ghnOrderCode}
-        /// </summary>
+   
         [HttpGet("ghn-detail/{ghnOrderCode}")]
         [BAuthorize]
         public async Task<ActionResult<GhnOrderDetailResponse>> GetGhnOrderDetail(string ghnOrderCode)

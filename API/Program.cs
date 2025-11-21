@@ -83,7 +83,6 @@ builder.Services.AddTransient<IVoucherService, VoucherService>();
 // GHN Service Configuration
 builder.Services.Configure<DAL.DTOs.Shipping.GhnOptions>(builder.Configuration.GetSection("GHN"));
 builder.Services.AddHttpClient<BUS.Services.Interfaces.IGhnService, BUS.Services.GhnService>();
-builder.Services.AddTransient<BUS.Services.Interfaces.IGhnService, BUS.Services.GhnService>();
 
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<VoucherRepository>();

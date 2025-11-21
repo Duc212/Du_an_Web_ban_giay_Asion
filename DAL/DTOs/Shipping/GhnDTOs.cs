@@ -79,6 +79,12 @@ namespace DAL.DTOs.Shipping
         [JsonPropertyName("from_province_name")]
         public string? FromProvinceName { get; set; }
 
+        [JsonPropertyName("from_ward_code")]
+        public string? FromWardCode { get; set; }
+
+        [JsonPropertyName("from_district_id")]
+        public int? FromDistrictId { get; set; }
+
         [JsonPropertyName("to_name")]
         public string ToName { get; set; } = string.Empty;
 

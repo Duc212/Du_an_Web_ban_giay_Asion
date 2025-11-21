@@ -46,10 +46,24 @@ namespace BUS.Services
         {
             try
             {
+                // 0. Test shop info first
+                try
+                {
+                    var shopInfoResponse = await _httpClient.GetAsync("/v2/shop/all");
+                    var shopInfoContent = await shopInfoResponse.Content.ReadAsStringAsync();
+                    _logger.LogInformation("📦 Shop Info: {ShopInfo}", shopInfoContent);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning("Cannot get shop info: {Error}", ex.Message);
+                }
+
                 // 1. Lấy thông tin order từ DB
                 var order = await _context.Orders
                     .Include(o => o.User)
                     .Include(o => o.OrderDetails)
+                        .ThenInclude(od => od.Variant)
+                            .ThenInclude(v => v.Product)
                     .FirstOrDefaultAsync(o => o.OrderID == request.OrderId);
 
                 if (order == null)
@@ -71,24 +85,27 @@ namespace BUS.Services
                     };
                 }
 
-                // 2. Chuẩn bị payload
+                // 2. Chuẩn bị payload - Theo đúng GHN API spec
                 var payload = new GhnCreateOrderPayload
                 {
                     PaymentTypeId = request.PaymentTypeId ?? 2, // 2 = Người nhận trả phí
                     Note = request.Note ?? order.Note,
                     RequiredNote = "KHONGCHOXEMHANG",
                     
-                    // Thông tin người gửi (shop) - IMPORTANT: Cập nhật thông tin shop thật khi deploy
+                    // Thông tin người gửi (shop) - IMPORTANT: Phải có địa chỉ kho trong GHN
                     FromName = request.FromName ?? "ASION Store",
-                    FromPhone = request.FromPhone ?? "0123456789",
-                    FromAddress = request.FromAddress ?? "123 Đường ABC, Quận 1",
+                    FromPhone = request.FromPhone ?? "0862158868",
+                    FromAddress = request.FromAddress ?? "72 Thành Thái, Phường 14",
+                    FromWardCode = request.FromWardCode ?? "20308",  
+                    FromDistrictId = string.IsNullOrEmpty(request.FromDistrictId) ? 1454 : int.Parse(request.FromDistrictId),
                     
-                    // Thông tin người nhận
+                    // Thông tin người nhận - FIX: Validate phone number
                     ToName = request.ToName ?? order.User?.FullName ?? "Khách hàng",
-                    ToPhone = request.ToPhone ?? order.User?.Phone ?? "",
-                    ToAddress = request.ToAddress ?? order.Address ?? "",
-                    ToWardCode = request.ToWardCode,
-                    ToDistrictId = string.IsNullOrEmpty(request.ToDistrictId) ? null : int.Parse(request.ToDistrictId),
+                    ToPhone = request.ToPhone ?? 
+                              (!string.IsNullOrWhiteSpace(order.User?.Phone) ? order.User.Phone : "0862158868"),
+                    ToAddress = request.ToAddress ?? order.Address ?? "Địa chỉ khách hàng",
+                    ToWardCode = request.ToWardCode ?? "20308",
+                    ToDistrictId = string.IsNullOrEmpty(request.ToDistrictId) ? 1454 : int.Parse(request.ToDistrictId),
                     
                     // COD
                     CodAmount = request.CodAmount ?? (int)order.TotalAmount,
@@ -115,6 +132,13 @@ namespace BUS.Services
                 var requestJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
                 _logger.LogInformation("GHN Create Order Request for OrderID {OrderId}:\n{Request}", 
                     request.OrderId, requestJson);
+                
+                // Log full URL
+                var fullUrl = $"{_httpClient.BaseAddress}v2/shipping-order/create";
+                _logger.LogInformation("🌐 Full GHN URL: {Url}", fullUrl);
+                _logger.LogInformation("🔑 Token: {Token}, ShopId: {ShopId}", 
+                    _ghnOptions.Token?.Substring(0, 10) + "...", 
+                    _ghnOptions.ShopId);
 
                 // 4. Gọi GHN API
                 var response = await _httpClient.PostAsJsonAsync("/v2/shipping-order/create", payload);
@@ -131,7 +155,7 @@ namespace BUS.Services
                     return new CreateGhnOrderResult
                     {
                         Success = false,
-                        Message = $"GHN API Error: {response.StatusCode}"
+                        Message = $"GHN API Error: {response.StatusCode} - {responseContent}"
                     };
                 }
 
@@ -157,7 +181,7 @@ namespace BUS.Services
 
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Order {OrderId} successfully created on GHN with code: {GhnOrderCode}", 
+                _logger.LogInformation("✅ Order {OrderId} successfully created on GHN with code: {GhnOrderCode}", 
                     request.OrderId, ghnResponse.Data.OrderCode);
 
                 return new CreateGhnOrderResult
