@@ -6,6 +6,7 @@ namespace AdminWeb.Services
     public class SizeService
     {
         private readonly HttpClient _httpClient;
+        private const string BaseUrl = "https://localhost:7134/api/Size";
 
         public SizeService(HttpClient httpClient)
         {
@@ -18,7 +19,7 @@ namespace AdminWeb.Services
             {
                 var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<SizeDTO>>>("api/Size");
                 return response?.Data ?? new List<SizeDTO>();
-            }
+                }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error getting sizes: {ex.Message}");

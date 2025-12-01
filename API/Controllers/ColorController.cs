@@ -1,3 +1,4 @@
+using API.Extensions;
 using BUS.Services.Interfaces;
 using DAL.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +23,7 @@ namespace API.Controllers
             if (result.Success)
             {
                 return Ok(result);
-            }
+        }
             return BadRequest(result);
         }
 
@@ -47,7 +48,7 @@ namespace API.Controllers
 
             var result = await _colorServices.CreateColorAsync(color);
             if (result.Success)
-            {
+        {
                 return CreatedAtAction(nameof(GetColorById), new { id = result.Data?.ColorID }, result);
             }
             return BadRequest(result);
@@ -57,13 +58,13 @@ namespace API.Controllers
         public async Task<IActionResult> UpdateColor(int id, [FromBody] Color color)
         {
             if (!ModelState.IsValid)
-            {
+        {
                 return BadRequest(ModelState);
-            }
+        }
 
             var result = await _colorServices.UpdateColorAsync(id, color);
             if (result.Success)
-            {
+        {
                 return Ok(result);
             }
             return BadRequest(result);
@@ -74,7 +75,7 @@ namespace API.Controllers
         {
             var result = await _colorServices.DeleteColorAsync(id);
             if (result.Success)
-            {
+        {
                 return Ok(result);
             }
             return BadRequest(result);

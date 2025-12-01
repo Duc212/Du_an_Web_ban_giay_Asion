@@ -244,6 +244,7 @@ namespace BUS.Services
                 var query = from product in _productRepository.AsNoTrackingQueryable()
                             join brand in _brandRepository.AsNoTrackingQueryable() on product.BrandId equals brand.BrandID
                             join gender in _genderRepository.AsNoTrackingQueryable() on product.GenderId equals gender.GenderID
+                            where _productVariantRepository.AsNoTrackingQueryable().Any(v => v.ProductID == product.ProductID && (v.Status == "Active" || v.Status == "Available"))
                             select new { product, brand, gender };
 
                 if (CategoryId.HasValue && CategoryId.Value != -1)
@@ -279,7 +280,7 @@ namespace BUS.Services
                 var productIdsBase = pagedProductsBase.Select(p => p.product.ProductID).ToList();
 
                 var variantsAll = await _productVariantRepository.AsNoTrackingQueryable()
-                    .Where(v => productIdsBase.Contains(v.ProductID))
+                    .Where(v => productIdsBase.Contains(v.ProductID) && (v.Status == "Active" || v.Status == "Available"))
                     .Include(v => v.Size)
                     .Include(v => v.Color)
                     .ToListAsync();
@@ -400,6 +401,7 @@ namespace BUS.Services
                 var query = from product in _productRepository.AsNoTrackingQueryable()
                             join brand in _brandRepository.AsNoTrackingQueryable() on product.BrandId equals brand.BrandID
                             join gender in _genderRepository.AsNoTrackingQueryable() on product.GenderId equals gender.GenderID
+                            where _productVariantRepository.AsNoTrackingQueryable().Any(v => v.ProductID == product.ProductID && (v.Status == "Active" || v.Status == "Available"))
                             select new { product, brand, gender };
 
                 if (categoryId.HasValue && categoryId != -1)
@@ -411,7 +413,7 @@ namespace BUS.Services
                 var productIds = await query.Select(x => x.product.ProductID).ToListAsync();
 
                 var variants = await _productVariantRepository.AsNoTrackingQueryable()
-                    .Where(v => productIds.Contains(v.ProductID))
+                    .Where(v => productIds.Contains(v.ProductID) && (v.Status == "Active" || v.Status == "Available"))
                     .Include(v => v.Size)
                     .Include(v => v.Color)
                     .ToListAsync();
@@ -557,7 +559,7 @@ namespace BUS.Services
             var brand = await _brandRepository.AsNoTrackingQueryable()
                 .FirstOrDefaultAsync(b => b.BrandID == product.BrandId);
             var variants = await _productVariantRepository.AsNoTrackingQueryable()
-                .Where(v => v.ProductID == productId)
+                .Where(v => v.ProductID == productId && (v.Status == "Active" || v.Status == "Available"))
                 .Include(v => v.Size)
                 .Include(v => v.Color)
                 .ToListAsync();
@@ -793,7 +795,7 @@ namespace BUS.Services
                 .ToListAsync();
             var brands = await _brandRepository.AsNoTrackingQueryable().ToListAsync();
             var variants = await _productVariantRepository.AsNoTrackingQueryable()
-                .Where(v => favoriteProductIds.Contains(v.ProductID))
+                .Where(v => favoriteProductIds.Contains(v.ProductID) && (v.Status == "Active" || v.Status == "Available"))
                 .Include(v => v.Size)
                 .Include(v => v.Color)
                 .ToListAsync();

@@ -1,3 +1,4 @@
+using API.Extensions;
 using BUS.Services.Interfaces;
 using DAL.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +23,7 @@ namespace API.Controllers
             if (result.Success)
             {
                 return Ok(result);
-            }
+        }
             return BadRequest(result);
         }
 
@@ -47,7 +48,7 @@ namespace API.Controllers
 
             var result = await _sizeServices.CreateSizeAsync(size);
             if (result.Success)
-            {
+        {
                 return CreatedAtAction(nameof(GetSizeById), new { id = result.Data?.SizeID }, result);
             }
             return BadRequest(result);
@@ -57,13 +58,13 @@ namespace API.Controllers
         public async Task<IActionResult> UpdateSize(int id, [FromBody] Size size)
         {
             if (!ModelState.IsValid)
-            {
+        {
                 return BadRequest(ModelState);
-            }
+        }
 
             var result = await _sizeServices.UpdateSizeAsync(id, size);
             if (result.Success)
-            {
+        {
                 return Ok(result);
             }
             return BadRequest(result);
@@ -74,7 +75,7 @@ namespace API.Controllers
         {
             var result = await _sizeServices.DeleteSizeAsync(id);
             if (result.Success)
-            {
+        {
                 return Ok(result);
             }
             return BadRequest(result);

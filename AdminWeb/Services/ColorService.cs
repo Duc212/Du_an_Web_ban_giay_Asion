@@ -6,6 +6,7 @@ namespace AdminWeb.Services
     public class ColorService
     {
         private readonly HttpClient _httpClient;
+        private const string BaseUrl = "https://localhost:7134/api/Color";
 
         public ColorService(HttpClient httpClient)
         {
@@ -18,7 +19,7 @@ namespace AdminWeb.Services
             {
                 var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<ColorDTO>>>("api/Color");
                 return response?.Data ?? new List<ColorDTO>();
-            }
+                }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error getting colors: {ex.Message}");
@@ -92,8 +93,8 @@ namespace AdminWeb.Services
                     Message = $"Error deleting color: {ex.Message}" 
                 };
             }
+            }
         }
-    }
 
     public class ApiResponse<T>
     {

@@ -81,6 +81,18 @@ builder.Services.AddHttpClient<AuthService>(client =>
     client.BaseAddress = new Uri("https://localhost:7134/");
 });
 
+builder.Services.AddHttpClient<ColorService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7134/");
+})
+.AddHttpMessageHandler<AuthorizationMessageHandler>();
+
+builder.Services.AddHttpClient<SizeService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7134/");
+})
+.AddHttpMessageHandler<AuthorizationMessageHandler>();
+
 builder.Services.AddScoped<ToastService>();
 
 await builder.Build().RunAsync();
