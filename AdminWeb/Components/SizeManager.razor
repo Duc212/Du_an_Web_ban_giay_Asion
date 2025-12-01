@@ -290,15 +290,15 @@
 
         var result = await SizeService.DeleteSizeAsync(sizeId);
         
-        if (result.Success)
+        if (result.success)
         {
-            ToastService.Success("Xóa kích cỡ thành công!");
+            ToastService.Success(result.message);
             await LoadSizes();
             await OnSizesChanged.InvokeAsync();
         }
         else
         {
-            ToastService.Error(result.Message);
+            ToastService.Error(result.message);
         }
     }
 

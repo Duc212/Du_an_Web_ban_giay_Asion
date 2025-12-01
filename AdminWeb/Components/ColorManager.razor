@@ -300,7 +300,7 @@
 
         var result = await ColorService.DeleteColorAsync(colorId);
         
-        if (result.Success)
+        if (result.success)
         {
             ToastService.Success("Xóa màu thành công!");
             await LoadColors();
@@ -308,7 +308,7 @@
         }
         else
         {
-            ToastService.Error(result.Message);
+            ToastService.Error(result.message);
         }
     }
 
