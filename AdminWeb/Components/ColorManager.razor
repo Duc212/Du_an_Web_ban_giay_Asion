@@ -1,0 +1,319 @@
+@using AdminWeb.Models
+@using AdminWeb.Services
+@using Microsoft.JSInterop
+@inject ColorService ColorService
+@inject ToastService ToastService
+@inject IJSRuntime JSRuntime
+
+<div class="color-manager">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="mb-0"><i class="fas fa-palette me-2"></i>Quản lý Màu sắc</h5>
+        <button class="btn btn-sm btn-primary" @onclick="OpenAddModal">
+            <i class="fas fa-plus me-2"></i>Thêm màu
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (colors.Count == 0)
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>Chưa có màu sắc nào. Hãy thêm màu mới!
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-items-center">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Màu</th>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tên</th>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Mã màu</th>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-end">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var color in colors)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="color-preview" style="background-color: @color.HexColor;"></div>
+                                </div>
+                            </td>
+                            <td class="text-sm">@color.ColorName</td>
+                            <td class="text-sm font-monospace">@color.HexColor</td>
+                            <td class="text-end">
+                                <button class="btn btn-link btn-sm text-warning p-0 me-2" 
+                                        @onclick="() => OpenEditModal(color)"
+                                        title="Sửa">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-link btn-sm text-danger p-0" 
+                                        @onclick="() => DeleteColor(color.ColorID)"
+                                        title="Xóa">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@if (showModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-palette me-2"></i>
+                        @(isEditMode ? "Sửa màu" : "Thêm màu mới")
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tên màu <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" @bind="currentColor.ColorName" 
+                               placeholder="Ví dụ: Đỏ, Xanh dương, ...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mã màu (Hex) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="text" class="form-control font-monospace" 
+                                   @bind="currentColor.HexColor" 
+                                   placeholder="#FF0000"
+                                   maxlength="7">
+                            <input type="color" class="form-control form-control-color" 
+                                   value="@currentColor.HexColor"
+                                   @onchange="OnColorPickerChange"
+                                   title="Chọn màu">
+                        </div>
+                        <small class="text-muted">Format: #RRGGBB (ví dụ: #FF0000)</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Xem trước</label>
+                        <div class="color-preview-large" style="background-color: @currentColor.HexColor;">
+                            <span class="text-white" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">
+                                @currentColor.ColorName
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light border" @onclick="CloseModal" style="color: #6b7280; font-weight: 600;">
+                        <i class="fas fa-times me-2"></i>Hủy
+                    </button>
+                    <button type="button" class="btn btn-primary" @onclick="SaveColor" disabled="@isSaving">
+                        @if (isSaving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        <i class="fas fa-save me-2"></i>
+                        @(isEditMode ? "Cập nhật" : "Thêm mới")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .color-preview {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        border: 2px solid #dee2e6;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .color-preview-large {
+        width: 100%;
+        height: 80px;
+        border-radius: 8px;
+        border: 2px solid #dee2e6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .btn-link {
+        text-decoration: none;
+    }
+
+    .btn-link:hover {
+        text-decoration: none;
+        opacity: 0.8;
+    }
+
+    .modal.show {
+        display: block;
+    }
+
+    .font-monospace {
+        font-family: 'Courier New', monospace;
+    }
+</style>
+
+@code {
+    private List<ColorDTO> colors = new();
+    private ColorDTO currentColor = new();
+    private bool showModal = false;
+    private bool isEditMode = false;
+    private bool isLoading = true;
+    private bool isSaving = false;
+
+    [Parameter]
+    public EventCallback OnColorsChanged { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadColors();
+    }
+
+    private async Task LoadColors()
+    {
+        isLoading = true;
+        colors = await ColorService.GetAllColorsAsync();
+        isLoading = false;
+    }
+
+    private void OpenAddModal()
+    {
+        currentColor = new ColorDTO { HexColor = "#000000" };
+        isEditMode = false;
+        showModal = true;
+    }
+
+    private void OpenEditModal(ColorDTO color)
+    {
+        currentColor = new ColorDTO
+        {
+            ColorID = color.ColorID,
+            ColorName = color.ColorName,
+            HexColor = color.HexColor
+        };
+        isEditMode = true;
+        showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        currentColor = new ColorDTO();
+    }
+
+    private void OnColorPickerChange(ChangeEventArgs e)
+    {
+        if (e.Value != null)
+        {
+            currentColor.HexColor = e.Value.ToString()?.ToUpper() ?? "#000000";
+        }
+    }
+
+    private async Task SaveColor()
+    {
+        if (string.IsNullOrWhiteSpace(currentColor.ColorName))
+        {
+            ToastService.Error("Vui lòng nhập tên màu");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(currentColor.HexColor) || !currentColor.HexColor.StartsWith("#"))
+        {
+            ToastService.Error("Vui lòng nhập mã màu hợp lệ (ví dụ: #FF0000)");
+            return;
+        }
+
+        isSaving = true;
+
+        try
+        {
+            if (isEditMode)
+            {
+                var updateDto = new UpdateColorDTO
+                {
+                    ColorName = currentColor.ColorName,
+                    HexColor = currentColor.HexColor.ToUpper()
+                };
+                var result = await ColorService.UpdateColorAsync(currentColor.ColorID, updateDto);
+                
+                if (result.Success)
+                {
+                    ToastService.Success("Cập nhật màu thành công!");
+                    await LoadColors();
+                    await OnColorsChanged.InvokeAsync();
+                    CloseModal();
+                }
+                else
+                {
+                    ToastService.Error(result.Message);
+                }
+            }
+            else
+            {
+                var createDto = new CreateColorDTO
+                {
+                    ColorName = currentColor.ColorName,
+                    HexColor = currentColor.HexColor.ToUpper()
+                };
+                var result = await ColorService.CreateColorAsync(createDto);
+                
+                if (result.Success)
+                {
+                    ToastService.Success("Thêm màu thành công!");
+                    await LoadColors();
+                    await OnColorsChanged.InvokeAsync();
+                    CloseModal();
+                }
+                else
+                {
+                    ToastService.Error(result.Message);
+                }
+            }
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task DeleteColor(int colorId)
+    {
+        if (!await JSRuntime.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa màu này?"))
+        {
+            return;
+        }
+
+        var result = await ColorService.DeleteColorAsync(colorId);
+        
+        if (result.Success)
+        {
+            ToastService.Success("Xóa màu thành công!");
+            await LoadColors();
+            await OnColorsChanged.InvokeAsync();
+        }
+        else
+        {
+            ToastService.Error(result.Message);
+        }
+    }
+
+    public async Task RefreshColors()
+    {
+        await LoadColors();
+    }
+}

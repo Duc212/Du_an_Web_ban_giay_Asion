@@ -1,8 +1,6 @@
 using API.Extensions;
 using BUS.Services.Interfaces;
-using DAL.DTOs.Sizes.Req;
-using DAL.DTOs.Sizes.Res;
-using DAL.Entities;
+using DAL.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
@@ -11,59 +9,76 @@ namespace API.Controllers
     [ApiController]
     public class SizeController : ControllerBase
     {
-        private readonly ISizeService _sizeService;
+        private readonly ISizeServices _sizeServices;
 
-        public SizeController(ISizeService sizeService)
+        public SizeController(ISizeServices sizeServices)
         {
-            _sizeService = sizeService;
+            _sizeServices = sizeServices;
         }
 
-        /// <summary>
-        /// Lấy danh sách size phân trang
-        /// </summary>
-        [HttpGet("GetSizesPaged")]
-        public async Task<CommonPagination<GetSizeRes>> GetSizesPaged(int pageIndex = 1, int pageSize = 10, string? keyword = null)
+        [HttpGet]
+        public async Task<IActionResult> GetAllSizes()
         {
-            return await _sizeService.GetSizesPaged(pageIndex, pageSize, keyword);
+            var result = await _sizeServices.GetAllSizesAsync();
+            if (result.Success)
+            {
+                return Ok(result);
+        }
+            return BadRequest(result);
         }
 
-        /// <summary>
-        /// Lấy thông tin size theo ID
-        /// </summary>
-        [HttpGet("GetSizeById/{sizeId}")]
-        public async Task<CommonResponse<GetSizeRes>> GetSizeById(int sizeId)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetSizeById(int id)
         {
-            return await _sizeService.GetSizeById(sizeId);
+            var result = await _sizeServices.GetSizeByIdAsync(id);
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return NotFound(result);
         }
 
-        /// <summary>
-        /// Thêm size mới
-        /// </summary>
-        [HttpPost("AddSize")]
-        [BAuthorize]
-        public async Task<CommonResponse<bool>> AddSize([FromBody] AddSizeReq req)
+        [HttpPost]
+        public async Task<IActionResult> CreateSize([FromBody] Size size)
         {
-            return await _sizeService.AddSize(req);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _sizeServices.CreateSizeAsync(size);
+            if (result.Success)
+        {
+                return CreatedAtAction(nameof(GetSizeById), new { id = result.Data?.SizeID }, result);
+            }
+            return BadRequest(result);
         }
 
-        /// <summary>
-        /// Cập nhật thông tin size
-        /// </summary>
-        [HttpPut("UpdateSize")]
-        [BAuthorize]
-        public async Task<CommonResponse<bool>> UpdateSize([FromBody] UpdateSizeReq req)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateSize(int id, [FromBody] Size size)
         {
-            return await _sizeService.UpdateSize(req);
+            if (!ModelState.IsValid)
+        {
+                return BadRequest(ModelState);
         }
 
-        /// <summary>
-        /// Xóa size
-        /// </summary>
-        [HttpDelete("DeleteSize/{sizeId}")]
-        [BAuthorize]
-        public async Task<CommonResponse<bool>> DeleteSize(int sizeId)
+            var result = await _sizeServices.UpdateSizeAsync(id, size);
+            if (result.Success)
         {
-            return await _sizeService.DeleteSize(sizeId);
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteSize(int id)
+        {
+            var result = await _sizeServices.DeleteSizeAsync(id);
+            if (result.Success)
+        {
+                return Ok(result);
+            }
+            return BadRequest(result);
         }
     }
 }

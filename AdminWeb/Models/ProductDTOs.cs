@@ -102,11 +102,13 @@ namespace AdminWeb.Models
 
     public class AddVariantRequest
     {
+        public int ProductID { get; set; }
         public int ColorID { get; set; }
         public int SizeID { get; set; }
         public decimal ImportPrice { get; set; }
         public decimal SellingPrice { get; set; }
         public int StockQuantity { get; set; }
+        public string Status { get; set; } = "Active";
     }
 
     public class AddImageRequest
@@ -164,7 +166,25 @@ namespace AdminWeb.Models
     public class ColorDTO
     {
         public int ColorID { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string ColorName { get; set; } = string.Empty;
+        [System.Text.Json.Serialization.JsonPropertyName("HexCode")]
+        public string HexColor { get; set; } = string.Empty;
+    }
+
+    public class CreateColorDTO
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("Name")]
+        public string ColorName { get; set; } = string.Empty;
+        [System.Text.Json.Serialization.JsonPropertyName("HexCode")]
+        public string HexColor { get; set; } = string.Empty;
+    }
+
+    public class UpdateColorDTO
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("Name")]
+        public string ColorName { get; set; } = string.Empty;
+        [System.Text.Json.Serialization.JsonPropertyName("HexCode")]
         public string HexColor { get; set; } = string.Empty;
     }
 
@@ -178,6 +198,16 @@ namespace AdminWeb.Models
     public class SizeDTO
     {
         public int SizeID { get; set; }
+        public string Value { get; set; } = string.Empty;
+    }
+
+    public class CreateSizeDTO
+    {
+        public string Value { get; set; } = string.Empty;
+    }
+
+    public class UpdateSizeDTO
+    {
         public string Value { get; set; } = string.Empty;
     }
 

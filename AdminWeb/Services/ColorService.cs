@@ -13,78 +13,93 @@ namespace AdminWeb.Services
             _httpClient = httpClient;
         }
 
-        public async Task<(List<GetColorRes> Data, int TotalRecords)> GetColorsPagedAsync(int pageIndex, int pageSize, string? keyword)
+        public async Task<List<ColorDTO>> GetAllColorsAsync()
         {
             try
             {
-                var query = $"?pageIndex={pageIndex}&pageSize={pageSize}";
-                if (!string.IsNullOrEmpty(keyword))
-                {
-                    query += $"&keyword={keyword}";
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<ColorDTO>>>("api/Color");
+                return response?.Data ?? new List<ColorDTO>();
                 }
-
-                var response = await _httpClient.GetFromJsonAsync<ColorPaginationResponse>($"{BaseUrl}/GetColorsPaged{query}");
-                return (response?.Data ?? new List<GetColorRes>(), response?.TotalRecords ?? 0);
-            }
-            catch
+            catch (Exception ex)
             {
-                return (new List<GetColorRes>(), 0);
+                Console.WriteLine($"Error getting colors: {ex.Message}");
+                return new List<ColorDTO>();
             }
         }
 
-        public async Task<GetColorRes?> GetColorByIdAsync(int colorId)
+        public async Task<ColorDTO?> GetColorByIdAsync(int id)
         {
             try
             {
-                var response = await _httpClient.GetFromJsonAsync<ColorSingleResponse>($"{BaseUrl}/GetColorById/{colorId}");
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse<ColorDTO>>($"api/Color/{id}");
                 return response?.Data;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error getting color: {ex.Message}");
                 return null;
             }
         }
 
-        public async Task<(bool success, string message)> AddColorAsync(AddColorReq request)
+        public async Task<ApiResponse<ColorDTO>> CreateColorAsync(CreateColorDTO color)
         {
             try
             {
-                var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/AddColor", request);
-                var result = await response.Content.ReadFromJsonAsync<ColorBoolResponse>();
-                return (result?.Data ?? false, result?.Message ?? "Lỗi không xác định");
+                var response = await _httpClient.PostAsJsonAsync("api/Color", color);
+                return await response.Content.ReadFromJsonAsync<ApiResponse<ColorDTO>>() 
+                    ?? new ApiResponse<ColorDTO> { Success = false, Message = "Failed to create color" };
             }
             catch (Exception ex)
             {
-                return (false, ex.Message);
+                return new ApiResponse<ColorDTO> 
+                { 
+                    Success = false, 
+                    Message = $"Error creating color: {ex.Message}" 
+                };
             }
         }
 
-        public async Task<(bool success, string message)> UpdateColorAsync(UpdateColorReq request)
+        public async Task<ApiResponse<ColorDTO>> UpdateColorAsync(int id, UpdateColorDTO color)
         {
             try
             {
-                var response = await _httpClient.PutAsJsonAsync($"{BaseUrl}/UpdateColor", request);
-                var result = await response.Content.ReadFromJsonAsync<ColorBoolResponse>();
-                return (result?.Data ?? false, result?.Message ?? "Lỗi không xác định");
+                var response = await _httpClient.PutAsJsonAsync($"api/Color/{id}", color);
+                return await response.Content.ReadFromJsonAsync<ApiResponse<ColorDTO>>() 
+                    ?? new ApiResponse<ColorDTO> { Success = false, Message = "Failed to update color" };
             }
             catch (Exception ex)
             {
-                return (false, ex.Message);
+                return new ApiResponse<ColorDTO> 
+                { 
+                    Success = false, 
+                    Message = $"Error updating color: {ex.Message}" 
+                };
             }
         }
 
-        public async Task<(bool success, string message)> DeleteColorAsync(int colorId)
+        public async Task<ApiResponse<bool>> DeleteColorAsync(int id)
         {
             try
             {
-                var response = await _httpClient.DeleteAsync($"{BaseUrl}/DeleteColor/{colorId}");
-                var result = await response.Content.ReadFromJsonAsync<ColorBoolResponse>();
-                return (result?.Data ?? false, result?.Message ?? "Lỗi không xác định");
+                var response = await _httpClient.DeleteAsync($"api/Color/{id}");
+                return await response.Content.ReadFromJsonAsync<ApiResponse<bool>>() 
+                    ?? new ApiResponse<bool> { Success = false, Message = "Failed to delete color" };
             }
             catch (Exception ex)
             {
-                return (false, ex.Message);
+                return new ApiResponse<bool> 
+                { 
+                    Success = false, 
+                    Message = $"Error deleting color: {ex.Message}" 
+                };
+            }
             }
         }
+
+    public class ApiResponse<T>
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public T? Data { get; set; }
     }
 }

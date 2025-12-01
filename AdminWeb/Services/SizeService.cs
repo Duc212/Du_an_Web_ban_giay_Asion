@@ -13,77 +13,85 @@ namespace AdminWeb.Services
             _httpClient = httpClient;
         }
 
-        public async Task<(List<GetSizeRes> Data, int TotalRecords)> GetSizesPagedAsync(int pageIndex, int pageSize, string? keyword)
+        public async Task<List<SizeDTO>> GetAllSizesAsync()
         {
             try
             {
-                var query = $"?pageIndex={pageIndex}&pageSize={pageSize}";
-                if (!string.IsNullOrEmpty(keyword))
-                {
-                    query += $"&keyword={keyword}";
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<SizeDTO>>>("api/Size");
+                return response?.Data ?? new List<SizeDTO>();
                 }
-
-                var response = await _httpClient.GetFromJsonAsync<SizePaginationResponse>($"{BaseUrl}/GetSizesPaged{query}");
-                return (response?.Data ?? new List<GetSizeRes>(), response?.TotalRecords ?? 0);
-            }
-            catch
+            catch (Exception ex)
             {
-                return (new List<GetSizeRes>(), 0);
+                Console.WriteLine($"Error getting sizes: {ex.Message}");
+                return new List<SizeDTO>();
             }
         }
 
-        public async Task<GetSizeRes?> GetSizeByIdAsync(int sizeId)
+        public async Task<SizeDTO?> GetSizeByIdAsync(int id)
         {
             try
             {
-                var response = await _httpClient.GetFromJsonAsync<SizeSingleResponse>($"{BaseUrl}/GetSizeById/{sizeId}");
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse<SizeDTO>>($"api/Size/{id}");
                 return response?.Data;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error getting size: {ex.Message}");
                 return null;
             }
         }
 
-        public async Task<(bool success, string message)> AddSizeAsync(AddSizeReq request)
+        public async Task<ApiResponse<SizeDTO>> CreateSizeAsync(CreateSizeDTO size)
         {
             try
             {
-                var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/AddSize", request);
-                var result = await response.Content.ReadFromJsonAsync<SizeBoolResponse>();
-                return (result?.Data ?? false, result?.Message ?? "Lỗi không xác định");
+                var response = await _httpClient.PostAsJsonAsync("api/Size", size);
+                return await response.Content.ReadFromJsonAsync<ApiResponse<SizeDTO>>() 
+                    ?? new ApiResponse<SizeDTO> { Success = false, Message = "Failed to create size" };
             }
             catch (Exception ex)
             {
-                return (false, ex.Message);
+                return new ApiResponse<SizeDTO> 
+                { 
+                    Success = false, 
+                    Message = $"Error creating size: {ex.Message}" 
+                };
             }
         }
 
-        public async Task<(bool success, string message)> UpdateSizeAsync(UpdateSizeReq request)
+        public async Task<ApiResponse<SizeDTO>> UpdateSizeAsync(int id, UpdateSizeDTO size)
         {
             try
             {
-                var response = await _httpClient.PutAsJsonAsync($"{BaseUrl}/UpdateSize", request);
-                var result = await response.Content.ReadFromJsonAsync<SizeBoolResponse>();
-                return (result?.Data ?? false, result?.Message ?? "Lỗi không xác định");
+                var response = await _httpClient.PutAsJsonAsync($"api/Size/{id}", size);
+                return await response.Content.ReadFromJsonAsync<ApiResponse<SizeDTO>>() 
+                    ?? new ApiResponse<SizeDTO> { Success = false, Message = "Failed to update size" };
             }
             catch (Exception ex)
             {
-                return (false, ex.Message);
+                return new ApiResponse<SizeDTO> 
+                { 
+                    Success = false, 
+                    Message = $"Error updating size: {ex.Message}" 
+                };
             }
         }
 
-        public async Task<(bool success, string message)> DeleteSizeAsync(int sizeId)
+        public async Task<ApiResponse<bool>> DeleteSizeAsync(int id)
         {
             try
             {
-                var response = await _httpClient.DeleteAsync($"{BaseUrl}/DeleteSize/{sizeId}");
-                var result = await response.Content.ReadFromJsonAsync<SizeBoolResponse>();
-                return (result?.Data ?? false, result?.Message ?? "Lỗi không xác định");
+                var response = await _httpClient.DeleteAsync($"api/Size/{id}");
+                return await response.Content.ReadFromJsonAsync<ApiResponse<bool>>() 
+                    ?? new ApiResponse<bool> { Success = false, Message = "Failed to delete size" };
             }
             catch (Exception ex)
             {
-                return (false, ex.Message);
+                return new ApiResponse<bool> 
+                { 
+                    Success = false, 
+                    Message = $"Error deleting size: {ex.Message}" 
+                };
             }
         }
     }

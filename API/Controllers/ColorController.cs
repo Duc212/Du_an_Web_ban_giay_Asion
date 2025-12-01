@@ -1,8 +1,6 @@
 using API.Extensions;
 using BUS.Services.Interfaces;
-using DAL.DTOs.Colors.Req;
-using DAL.DTOs.Colors.Res;
-using DAL.Entities;
+using DAL.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
@@ -11,59 +9,76 @@ namespace API.Controllers
     [ApiController]
     public class ColorController : ControllerBase
     {
-        private readonly IColorService _colorService;
+        private readonly IColorServices _colorServices;
 
-        public ColorController(IColorService colorService)
+        public ColorController(IColorServices colorServices)
         {
-            _colorService = colorService;
+            _colorServices = colorServices;
         }
 
-        /// <summary>
-        /// Lấy danh sách màu sắc phân trang
-        /// </summary>
-        [HttpGet("GetColorsPaged")]
-        public async Task<CommonPagination<GetColorRes>> GetColorsPaged(int pageIndex = 1, int pageSize = 10, string? keyword = null)
+        [HttpGet]
+        public async Task<IActionResult> GetAllColors()
         {
-            return await _colorService.GetColorsPaged(pageIndex, pageSize, keyword);
+            var result = await _colorServices.GetAllColorsAsync();
+            if (result.Success)
+            {
+                return Ok(result);
+        }
+            return BadRequest(result);
         }
 
-        /// <summary>
-        /// Lấy thông tin màu sắc theo ID
-        /// </summary>
-        [HttpGet("GetColorById/{colorId}")]
-        public async Task<CommonResponse<GetColorRes>> GetColorById(int colorId)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetColorById(int id)
         {
-            return await _colorService.GetColorById(colorId);
+            var result = await _colorServices.GetColorByIdAsync(id);
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return NotFound(result);
         }
 
-        /// <summary>
-        /// Thêm màu sắc mới
-        /// </summary>
-        [HttpPost("AddColor")]
-        [BAuthorize]
-        public async Task<CommonResponse<bool>> AddColor([FromBody] AddColorReq req)
+        [HttpPost]
+        public async Task<IActionResult> CreateColor([FromBody] Color color)
         {
-            return await _colorService.AddColor(req);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _colorServices.CreateColorAsync(color);
+            if (result.Success)
+        {
+                return CreatedAtAction(nameof(GetColorById), new { id = result.Data?.ColorID }, result);
+            }
+            return BadRequest(result);
         }
 
-        /// <summary>
-        /// Cập nhật thông tin màu sắc
-        /// </summary>
-        [HttpPut("UpdateColor")]
-        [BAuthorize]
-        public async Task<CommonResponse<bool>> UpdateColor([FromBody] UpdateColorReq req)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateColor(int id, [FromBody] Color color)
         {
-            return await _colorService.UpdateColor(req);
+            if (!ModelState.IsValid)
+        {
+                return BadRequest(ModelState);
         }
 
-        /// <summary>
-        /// Xóa màu sắc
-        /// </summary>
-        [HttpDelete("DeleteColor/{colorId}")]
-        [BAuthorize]
-        public async Task<CommonResponse<bool>> DeleteColor(int colorId)
+            var result = await _colorServices.UpdateColorAsync(id, color);
+            if (result.Success)
         {
-            return await _colorService.DeleteColor(colorId);
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteColor(int id)
+        {
+            var result = await _colorServices.DeleteColorAsync(id);
+            if (result.Success)
+        {
+                return Ok(result);
+            }
+            return BadRequest(result);
         }
     }
 }
