@@ -923,24 +923,36 @@
                                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 40px; gap: 10px; align-items: end;">
                                         <div>
                                             <label style="display: block; font-size: 13px; font-weight: 500; color: #6b7280; margin-bottom: 4px;">Màu</label>
-                                            <select @bind="variant.ColorID" style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;">
-                                                <option value="0">Chọn</option>
-                                                @foreach (var color in colors)
-                                                {
-                                                    <option value="@color.ColorID">@color.ColorName</option>
-                                                }
-                                            </select>
+                                            <div style="display: flex; gap: 6px;">
+                                                <select @bind="variant.ColorID" style="flex: 1; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;">
+                                                    <option value="0">Chọn</option>
+                                                    @foreach (var color in colors)
+                                                    {
+                                                        <option value="@color.ColorID">@color.ColorName</option>
+                                                    }
+                                                </select>
+                                                <button type="button" @onclick="OpenQuickAddColor" title="Thêm màu mới"
+                                                        style="padding: 8px 10px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; min-width: 32px;">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <div>
                                             <label style="display: block; font-size: 13px; font-weight: 500; color: #6b7280; margin-bottom: 4px;">Size</label>
-                                            <select @bind="variant.SizeID" style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;">
-                                                <option value="0">Chọn</option>
-                                                @foreach (var size in sizes)
-                                                {
-                                                    <option value="@size.SizeID">@size.Value</option>
-                                                }
-                                            </select>
+                                            <div style="display: flex; gap: 6px;">
+                                                <select @bind="variant.SizeID" style="flex: 1; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;">
+                                                    <option value="0">Chọn</option>
+                                                    @foreach (var size in sizes)
+                                                    {
+                                                        <option value="@size.SizeID">@size.Value</option>
+                                                    }
+                                                </select>
+                                                <button type="button" @onclick="OpenQuickAddSize" title="Thêm size mới"
+                                                        style="padding: 8px 10px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; min-width: 32px;">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <div>
@@ -1854,6 +1866,8 @@
     }
 
     // Quick add color methods
+    private int currentVariantIndexForQuickAdd = -1; // Track which variant row opened the quick add
+
     private void OpenQuickAddColor()
     {
         quickColorForm = new CreateColorDTO { ColorName = "", HexColor = "#000000" };
@@ -1865,6 +1879,7 @@
     {
         showQuickAddColorModal = false;
         quickColorForm = new();
+        currentVariantIndexForQuickAdd = -1;
         StateHasChanged();
     }
 
@@ -1891,7 +1906,16 @@
                 var newColor = colors.FirstOrDefault(c => c.ColorName == quickColorForm.ColorName);
                 if (newColor != null)
                 {
-                    addVariantForm.ColorID = newColor.ColorID;
+                    // If opened from detail modal's add variant form
+                    if (showAddVariantForm && selectedProduct != null)
+                    {
+                        addVariantForm.ColorID = newColor.ColorID;
+                    }
+                    // If opened from add product modal's variant row
+                    else if (showAddModal && currentVariantIndexForQuickAdd >= 0 && currentVariantIndexForQuickAdd < addProductForm.Variants.Count)
+                    {
+                        addProductForm.Variants[currentVariantIndexForQuickAdd].ColorID = newColor.ColorID;
+                    }
                 }
                 
                 CloseQuickAddColor();
@@ -1924,6 +1948,7 @@
     {
         showQuickAddSizeModal = false;
         quickSizeForm = new();
+        currentVariantIndexForQuickAdd = -1;
         StateHasChanged();
     }
 
@@ -1950,7 +1975,16 @@
                 var newSize = sizes.FirstOrDefault(s => s.Value == quickSizeForm.Value);
                 if (newSize != null)
                 {
-                    addVariantForm.SizeID = newSize.SizeID;
+                    // If opened from detail modal's add variant form
+                    if (showAddVariantForm && selectedProduct != null)
+                    {
+                        addVariantForm.SizeID = newSize.SizeID;
+                    }
+                    // If opened from add product modal's variant row
+                    else if (showAddModal && currentVariantIndexForQuickAdd >= 0 && currentVariantIndexForQuickAdd < addProductForm.Variants.Count)
+                    {
+                        addProductForm.Variants[currentVariantIndexForQuickAdd].SizeID = newSize.SizeID;
+                    }
                 }
                 
                 CloseQuickAddSize();
@@ -2193,12 +2227,12 @@
     private async Task OnColorsChanged()
     {
         // Reload colors in product forms
-        await LoadDropdownData();
+        await LoadColors();
     }
 
     private async Task OnSizesChanged()
     {
         // Reload sizes in product forms
-        await LoadDropdownData();
+        await LoadSizes();
     }
 }

@@ -12,8 +12,8 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 
-// Tạo HttpMessageHandler tự động thêm token
-builder.Services.AddScoped<AuthorizationMessageHandler>();
+// ✅ QUAN TRỌNG: Đăng ký TRANSIENT để mỗi HttpClient có instance riêng
+builder.Services.AddTransient<AuthorizationMessageHandler>();
 
 // Cấu hình HttpClient với token handler
 builder.Services.AddHttpClient<ProductService>(client =>
@@ -71,23 +71,6 @@ builder.Services.AddHttpClient<SizeService>(client =>
 .AddHttpMessageHandler<AuthorizationMessageHandler>();
 
 builder.Services.AddHttpClient<AuthService>(client =>
-{
-    client.BaseAddress = new Uri("https://localhost:7134/");
-})
-.AddHttpMessageHandler<AuthorizationMessageHandler>();
-
-builder.Services.AddHttpClient<AuthService>(client =>
-{
-    client.BaseAddress = new Uri("https://localhost:7134/");
-});
-
-builder.Services.AddHttpClient<ColorService>(client =>
-{
-    client.BaseAddress = new Uri("https://localhost:7134/");
-})
-.AddHttpMessageHandler<AuthorizationMessageHandler>();
-
-builder.Services.AddHttpClient<SizeService>(client =>
 {
     client.BaseAddress = new Uri("https://localhost:7134/");
 })
