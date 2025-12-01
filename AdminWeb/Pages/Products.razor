@@ -2,8 +2,11 @@
 @inject ProductService ProductService
 @inject CategoryService CategoryService
 @inject BrandService BrandService
+@inject ColorService ColorService
+@inject SizeService SizeService
 @inject ToastService ToastService
 @inject IJSRuntime JSRuntime
+@using AdminWeb.Components
 
 <PageTitle>Sản phẩm - Asion Shop</PageTitle>
 
@@ -50,6 +53,37 @@
         </div>
     </div>
 
+    <!-- Color & Size Management Section -->
+    <div class="management-section">
+        <ul class="nav nav-tabs mb-4" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(activeTab == "products" ? "active" : "")" 
+                        @onclick='() => activeTab = "products"'
+                        type="button">
+                    <i class="fas fa-box me-2"></i>Sản phẩm
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(activeTab == "colors" ? "active" : "")" 
+                        @onclick='() => activeTab = "colors"'
+                        type="button">
+                    <i class="fas fa-palette me-2"></i>Màu sắc
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(activeTab == "sizes" ? "active" : "")" 
+                        @onclick='() => activeTab = "sizes"'
+                        type="button">
+                    <i class="fas fa-ruler me-2"></i>Kích cỡ
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <!-- Products Tab -->
+            @if (activeTab == "products")
+            {
+                <div class="tab-pane-active">
     <!-- Filter Bar -->
     <div class="filter-bar">
         <div class="filter-inner">
@@ -217,7 +251,35 @@
             </span>
         </div>
     }
-</div>
+                </div>
+            }
+
+            <!-- Colors Tab -->
+            @if (activeTab == "colors")
+            {
+                <div class="tab-pane-active">
+                    <div class="card">
+                        <div class="card-body">
+                            <ColorManager @ref="colorManagerRef" OnColorsChanged="OnColorsChanged" />
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Sizes Tab -->
+            @if (activeTab == "sizes")
+            {
+                <div class="tab-pane-active">
+                    <div class="card">
+                        <div class="card-body">
+                            <SizeManager @ref="sizeManagerRef" OnSizesChanged="OnSizesChanged" />
+                        </div>
+                    </div>
+                </div>
+            }
+        </div> <!-- End tab-content -->
+    </div> <!-- End management-section -->
+</div> <!-- End products-container -->
 
 <!-- View Detail Modal -->
 @if (showDetailModal && selectedProduct != null)
@@ -284,10 +346,86 @@
 
                         <!-- Variants Section Grouped by Color -->
                         <div style="padding: 24px; background: #f9fafb;">
-                            <h4 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 700; color: #111827; display: flex; align-items: center; gap: 8px;">
-                                <i class="fas fa-boxes" style="color: #f59e0b;"></i>
-                                Biến thể sản phẩm (@productDetail.Variants.Count)
-                            </h4>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                                <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: #111827; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-boxes" style="color: #f59e0b;"></i>
+                                    Biến thể sản phẩm (@productDetail.Variants.Count)
+                                </h4>
+                                <button type="button" @onclick="ToggleAddVariantForm" 
+                                        style="padding: 8px 16px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-plus"></i>
+                                    Thêm biến thể
+                                </button>
+                            </div>
+                            
+                            @if (showAddVariantForm)
+                            {
+                                <div style="background: #f0fdf4; border: 2px solid #10b981; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                        <h5 style="margin: 0; font-size: 14px; font-weight: 600; color: #047857;">
+                                            <i class="fas fa-plus-circle"></i> Thêm biến thể mới
+                                        </h5>
+                                        <button type="button" @onclick="CloseAddVariantForm" 
+                                                style="padding: 4px 8px; background: #dc2626; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 100px; gap: 12px; align-items: end;">
+                                        <div>
+                                            <label style="display: block; font-size: 12px; font-weight: 500; color: #374151; margin-bottom: 4px;">Màu sắc <span style="color: #dc2626;">*</span></label>
+                                            <div style="display: flex; gap: 6px;">
+                                                <select @bind="addVariantForm.ColorID" style="flex: 1; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;">
+                                                    <option value="0">Chọn màu</option>
+                                                    @foreach (var color in colors)
+                                                    {
+                                                        <option value="@color.ColorID">@color.ColorName</option>
+                                                    }
+                                                </select>
+                                                <button type="button" @onclick="OpenQuickAddColor" title="Thêm màu mới"
+                                                        style="padding: 8px 10px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label style="display: block; font-size: 12px; font-weight: 500; color: #374151; margin-bottom: 4px;">Size <span style="color: #dc2626;">*</span></label>
+                                            <div style="display: flex; gap: 6px;">
+                                                <select @bind="addVariantForm.SizeID" style="flex: 1; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;">
+                                                    <option value="0">Chọn size</option>
+                                                    @foreach (var size in sizes)
+                                                    {
+                                                        <option value="@size.SizeID">@size.Value</option>
+                                                    }
+                                                </select>
+                                                <button type="button" @onclick="OpenQuickAddSize" title="Thêm size mới"
+                                                        style="padding: 8px 10px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label style="display: block; font-size: 12px; font-weight: 500; color: #374151; margin-bottom: 4px;">Giá nhập <span style="color: #dc2626;">*</span></label>
+                                            <input type="number" @bind="addVariantForm.ImportPrice" placeholder="0" 
+                                                   style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" />
+                                        </div>
+                                        <div>
+                                            <label style="display: block; font-size: 12px; font-weight: 500; color: #374151; margin-bottom: 4px;">Giá bán <span style="color: #dc2626;">*</span></label>
+                                            <input type="number" @bind="addVariantForm.SellingPrice" placeholder="0" 
+                                                   style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" />
+                                        </div>
+                                        <div>
+                                            <label style="display: block; font-size: 12px; font-weight: 500; color: #374151; margin-bottom: 4px;">Tồn kho <span style="color: #dc2626;">*</span></label>
+                                            <input type="number" @bind="addVariantForm.StockQuantity" placeholder="0" 
+                                                   style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" />
+                                        </div>
+                                        <button type="button" @onclick="SaveNewVariant" disabled="@isSavingVariant"
+                                                style="padding: 8px 12px; background: #10b981; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; height: 38px;">
+                                            @(isSavingVariant ? "Đang lưu..." : "Thêm")
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                            
                             <div style="display: grid; gap: 16px;">
                                 @foreach (var colorGroup in productDetail.Variants.GroupBy(v => new { v.ColorID, v.ColorName, v.ColorHex }))
                                 {
@@ -567,7 +705,90 @@
     </div>
 }
 
-    }
+<!-- Quick Add Color Modal -->
+@if (showQuickAddColorModal)
+{
+    <div class="modal show" style="display: flex !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;" @onclick="CloseQuickAddColor">
+        <div class="modal-dialog" style="max-width: 400px; width: 100%; margin: auto;" @onclick:stopPropagation="true">
+            <div class="modal-content" style="background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+                <div class="modal-header" style="padding: 20px; border-bottom: 1px solid #e5e7eb;">
+                    <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #111827; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-palette" style="color: #10b981;"></i>
+                        Thêm màu mới
+                    </h3>
+                    <button class="modal-close" @onclick="CloseQuickAddColor" style="width: 32px; height: 32px; border: none; background: #f3f4f6; color: #6b7280; border-radius: 6px; cursor: pointer;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body" style="padding: 20px;">
+                    <div style="display: grid; gap: 12px;">
+                        <div>
+                            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Tên màu</label>
+                            <input type="text" @bind="quickColorForm.ColorName" placeholder="VD: Đỏ, Xanh dương..." 
+                                   style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;" />
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Mã màu (Hex)</label>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <input type="color" @bind="quickColorForm.HexColor" 
+                                       style="width: 50px; height: 42px; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer;" />
+                                <input type="text" @bind="quickColorForm.HexColor" placeholder="#000000" 
+                                       style="flex: 1; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; font-family: monospace;" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="padding: 16px 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 10px; background: #f9fafb;">
+                    <button @onclick="CloseQuickAddColor" 
+                            style="padding: 8px 16px; background: white; border: 1px solid #d1d5db; color: #374151; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">
+                        Hủy
+                    </button>
+                    <button @onclick="SaveQuickColor" disabled="@isSavingQuickColor"
+                            style="padding: 8px 20px; background: #10b981; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">
+                        @(isSavingQuickColor ? "Đang lưu..." : "Thêm màu")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Quick Add Size Modal -->
+@if (showQuickAddSizeModal)
+{
+    <div class="modal show" style="display: flex !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;" @onclick="CloseQuickAddSize">
+        <div class="modal-dialog" style="max-width: 350px; width: 100%; margin: auto;" @onclick:stopPropagation="true">
+            <div class="modal-content" style="background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+                <div class="modal-header" style="padding: 20px; border-bottom: 1px solid #e5e7eb;">
+                    <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #111827; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-ruler" style="color: #10b981;"></i>
+                        Thêm size mới
+                    </h3>
+                    <button class="modal-close" @onclick="CloseQuickAddSize" style="width: 32px; height: 32px; border: none; background: #f3f4f6; color: #6b7280; border-radius: 6px; cursor: pointer;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body" style="padding: 20px;">
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Giá trị size</label>
+                        <input type="text" @bind="quickSizeForm.Value" placeholder="VD: 38, 39, 40, XL..." 
+                               style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;" />
+                        <p style="margin: 8px 0 0 0; font-size: 12px; color: #6b7280;">Nhập số hoặc chữ (VD: 39, M, XL)</p>
+                    </div>
+                </div>
+                <div style="padding: 16px 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 10px; background: #f9fafb;">
+                    <button @onclick="CloseQuickAddSize" 
+                            style="padding: 8px 16px; background: white; border: 1px solid #d1d5db; color: #374151; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">
+                        Hủy
+                    </button>
+                    <button @onclick="SaveQuickSize" disabled="@isSavingQuickSize"
+                            style="padding: 8px 20px; background: #10b981; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">
+                        @(isSavingQuickSize ? "Đang lưu..." : "Thêm size")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 }
 
 <!-- Add Product Modal -->
@@ -1058,6 +1279,19 @@
     private bool isSavingImage = false;
     private AddProductImageRequest newImageForm = new();
     
+    // Add variant states
+    private bool showAddVariantForm = false;
+    private bool isSavingVariant = false;
+    private AddVariantRequest addVariantForm = new();
+    
+    // Quick add color/size states
+    private bool showQuickAddColorModal = false;
+    private bool showQuickAddSizeModal = false;
+    private bool isSavingQuickColor = false;
+    private bool isSavingQuickSize = false;
+    private CreateColorDTO quickColorForm = new();
+    private CreateSizeDTO quickSizeForm = new();
+    
     private ProductDTO? selectedProduct = null;
     private ProductDetailDTO? productDetail = null;
     private ProductDTO? productToDelete = null;
@@ -1218,22 +1452,31 @@
 
     private async Task LoadFormDropdowns()
     {
-        var colorsResponse = await ProductService.GetColorsAsync();
-        if (colorsResponse.Success)
-        {
-            colors = colorsResponse.Data;
-        }
-
-        var sizesResponse = await ProductService.GetSizesAsync();
-        if (sizesResponse.Success)
-        {
-            sizes = sizesResponse.Data;
-        }
+        await LoadColors();
+        await LoadSizes();
 
         var gendersResponse = await ProductService.GetGendersAsync();
         if (gendersResponse.Success)
         {
             genders = gendersResponse.Data;
+        }
+    }
+
+    private async Task LoadColors()
+    {
+        var colorsResponse = await ProductService.GetColorsAsync();
+        if (colorsResponse.Success)
+        {
+            colors = colorsResponse.Data;
+        }
+    }
+
+    private async Task LoadSizes()
+    {
+        var sizesResponse = await ProductService.GetSizesAsync();
+        if (sizesResponse.Success)
+        {
+            sizes = sizesResponse.Data;
         }
     }
 
@@ -1516,6 +1759,218 @@
         }
     }
 
+    // Add variant methods
+    private void ToggleAddVariantForm()
+    {
+        showAddVariantForm = !showAddVariantForm;
+        if (showAddVariantForm)
+        {
+            addVariantForm = new AddVariantRequest
+            {
+                ProductID = selectedProduct?.ProductID ?? 0,
+                ColorID = 0,
+                SizeID = 0,
+                ImportPrice = 0,
+                SellingPrice = 0,
+                StockQuantity = 0,
+                Status = "Active"
+            };
+        }
+        StateHasChanged();
+    }
+
+    private void CloseAddVariantForm()
+    {
+        showAddVariantForm = false;
+        addVariantForm = new();
+        StateHasChanged();
+    }
+
+    private async Task SaveNewVariant()
+    {
+        if (selectedProduct == null) return;
+
+        // Validation
+        if (addVariantForm.ColorID == 0)
+        {
+            ToastService.Error("Vui lòng chọn màu sắc!");
+            return;
+        }
+        if (addVariantForm.SizeID == 0)
+        {
+            ToastService.Error("Vui lòng chọn size!");
+            return;
+        }
+        if (addVariantForm.ImportPrice <= 0 || addVariantForm.SellingPrice <= 0)
+        {
+            ToastService.Error("Giá nhập và giá bán phải lớn hơn 0!");
+            return;
+        }
+
+        // Check if variant already exists
+        if (productDetail != null)
+        {
+            var existingVariant = productDetail.Variants.FirstOrDefault(v => 
+                v.ColorID == addVariantForm.ColorID && v.SizeID == addVariantForm.SizeID);
+            
+            if (existingVariant != null)
+            {
+                var colorName = colors.FirstOrDefault(c => c.ColorID == addVariantForm.ColorID)?.ColorName ?? "";
+                var sizeName = sizes.FirstOrDefault(s => s.SizeID == addVariantForm.SizeID)?.Value ?? "";
+                ToastService.Error($"Biến thể màu {colorName} - Size {sizeName} đã tồn tại!");
+                return;
+            }
+        }
+
+        try
+        {
+            isSavingVariant = true;
+            addVariantForm.ProductID = selectedProduct.ProductID;
+            StateHasChanged();
+
+            var response = await ProductService.AddVariantAsync(addVariantForm);
+            if (response.Success)
+            {
+                ToastService.Success("Thêm biến thể thành công!");
+                CloseAddVariantForm();
+                
+                // Reload product detail
+                await ViewProductDetail(selectedProduct.ProductID);
+            }
+            else
+            {
+                ToastService.Error(response.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.Error($"Lỗi: {ex.Message}");
+        }
+        finally
+        {
+            isSavingVariant = false;
+            StateHasChanged();
+        }
+    }
+
+    // Quick add color methods
+    private void OpenQuickAddColor()
+    {
+        quickColorForm = new CreateColorDTO { ColorName = "", HexColor = "#000000" };
+        showQuickAddColorModal = true;
+        StateHasChanged();
+    }
+
+    private void CloseQuickAddColor()
+    {
+        showQuickAddColorModal = false;
+        quickColorForm = new();
+        StateHasChanged();
+    }
+
+    private async Task SaveQuickColor()
+    {
+        if (string.IsNullOrWhiteSpace(quickColorForm.ColorName))
+        {
+            ToastService.Error("Vui lòng nhập tên màu!");
+            return;
+        }
+
+        try
+        {
+            isSavingQuickColor = true;
+            StateHasChanged();
+
+            var response = await ColorService.CreateColorAsync(quickColorForm);
+            if (response.Success)
+            {
+                ToastService.Success($"Đã thêm màu {quickColorForm.ColorName}!");
+                await LoadColors();
+                
+                // Auto select the newly created color
+                var newColor = colors.FirstOrDefault(c => c.ColorName == quickColorForm.ColorName);
+                if (newColor != null)
+                {
+                    addVariantForm.ColorID = newColor.ColorID;
+                }
+                
+                CloseQuickAddColor();
+            }
+            else
+            {
+                ToastService.Error(response.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.Error($"Lỗi: {ex.Message}");
+        }
+        finally
+        {
+            isSavingQuickColor = false;
+            StateHasChanged();
+        }
+    }
+
+    // Quick add size methods
+    private void OpenQuickAddSize()
+    {
+        quickSizeForm = new CreateSizeDTO { Value = "" };
+        showQuickAddSizeModal = true;
+        StateHasChanged();
+    }
+
+    private void CloseQuickAddSize()
+    {
+        showQuickAddSizeModal = false;
+        quickSizeForm = new();
+        StateHasChanged();
+    }
+
+    private async Task SaveQuickSize()
+    {
+        if (string.IsNullOrWhiteSpace(quickSizeForm.Value))
+        {
+            ToastService.Error("Vui lòng nhập giá trị size!");
+            return;
+        }
+
+        try
+        {
+            isSavingQuickSize = true;
+            StateHasChanged();
+
+            var response = await SizeService.CreateSizeAsync(quickSizeForm);
+            if (response.Success)
+            {
+                ToastService.Success($"Đã thêm size {quickSizeForm.Value}!");
+                await LoadSizes();
+                
+                // Auto select the newly created size
+                var newSize = sizes.FirstOrDefault(s => s.Value == quickSizeForm.Value);
+                if (newSize != null)
+                {
+                    addVariantForm.SizeID = newSize.SizeID;
+                }
+                
+                CloseQuickAddSize();
+            }
+            else
+            {
+                ToastService.Error(response.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.Error($"Lỗi: {ex.Message}");
+        }
+        finally
+        {
+            isSavingQuickSize = false;
+            StateHasChanged();
+        }
+    }
+
     private async Task OpenEditModal(int productId)
     {
         try
@@ -1727,5 +2182,23 @@
     public void Dispose()
     {
         searchTimer?.Dispose();
+    }
+
+    // Tab management
+    private string activeTab = "products";
+
+    private ColorManager? colorManagerRef;
+    private SizeManager? sizeManagerRef;
+
+    private async Task OnColorsChanged()
+    {
+        // Reload colors in product forms
+        await LoadDropdownData();
+    }
+
+    private async Task OnSizesChanged()
+    {
+        // Reload sizes in product forms
+        await LoadDropdownData();
     }
 }

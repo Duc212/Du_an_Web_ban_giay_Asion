@@ -58,6 +58,18 @@ builder.Services.AddHttpClient<ShippingService>(client =>
 })
 .AddHttpMessageHandler<AuthorizationMessageHandler>();
 
+builder.Services.AddHttpClient<ColorService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7134/");
+})
+.AddHttpMessageHandler<AuthorizationMessageHandler>();
+
+builder.Services.AddHttpClient<SizeService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7134/");
+})
+.AddHttpMessageHandler<AuthorizationMessageHandler>();
+
 builder.Services.AddHttpClient<AuthService>(client =>
 {
     client.BaseAddress = new Uri("https://localhost:7134/");

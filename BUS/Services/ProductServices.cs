@@ -265,7 +265,8 @@ namespace BUS.Services
                             query = query.Where(x => x.product.CreatedAt >= DateTime.UtcNow.AddDays(-30));
                             break;
                         case ProductLandingFilterType.FeaturedCollections:
-                            break;
+
+                            break; 
                     }
                 }
 
@@ -289,56 +290,56 @@ namespace BUS.Services
                     .OrderBy(img => img.DisplayOrder)
                     .ToListAsync();
 
-                // Nếu filter FeaturedCollections cần loại bỏ những sản phẩm không đủ điều kiện và nạp lại phân trang
-                if (filterType == ProductLandingFilterType.FeaturedCollections)
-                {
-                    var discountQualifiedIds = variantsAll
-                        .GroupBy(v => v.ProductID)
-                        .Select(g => new
-                        {
-                            ProductID = g.Key,
-                            MaxImport = g.Max(x => x.ImportPrice),
-                            MinSelling = g.Min(x => x.SellingPrice)
-                        })
-                        .Where(x => x.MaxImport > 0 && ((x.MaxImport - x.MinSelling) / x.MaxImport * 100) >= 20)
-                        .Select(x => x.ProductID)
-                        .ToHashSet();
+                // Tạm thời bỏ filter discount cho FeaturedCollections - hiển thị tất cả sản phẩm
+                // if (filterType == ProductLandingFilterType.FeaturedCollections)
+                // {
+                //     var discountQualifiedIds = variantsAll
+                //         .GroupBy(v => v.ProductID)
+                //         .Select(g => new
+                //         {
+                //             ProductID = g.Key,
+                //             MaxImport = g.Max(x => x.ImportPrice),
+                //             MinSelling = g.Min(x => x.SellingPrice)
+                //         })
+                //         .Where(x => x.MaxImport > 0 && ((x.MaxImport - x.MinSelling) / x.MaxImport * 100) >= 10)
+                //         .Select(x => x.ProductID)
+                //         .ToHashSet();
 
-                    query = query.Where(x => discountQualifiedIds.Contains(x.product.ProductID));
+                //     query = query.Where(x => discountQualifiedIds.Contains(x.product.ProductID));
 
-                    var totalRecordsAfterDiscount = await query.CountAsync();
+                //     var totalRecordsAfterDiscount = await query.CountAsync();
 
-                    var pagedProductsAfterDiscount = await query.Skip((currentPage - 1) * recordPerPage)
-                                                                .Take(recordPerPage)
-                                                                .ToListAsync();
+                //     var pagedProductsAfterDiscount = await query.Skip((currentPage - 1) * recordPerPage)
+                //                                                 .Take(recordPerPage)
+                //                                                 .ToListAsync();
 
-                    var productIdsDiscount = pagedProductsAfterDiscount.Select(p => p.product.ProductID).ToList();
+                //     var productIdsDiscount = pagedProductsAfterDiscount.Select(p => p.product.ProductID).ToList();
 
-                    variantsAll = await _productVariantRepository.AsNoTrackingQueryable()
-                        .Where(v => productIdsDiscount.Contains(v.ProductID))
-                        .Include(v => v.Size)
-                        .Include(v => v.Color)
-                        .ToListAsync();
+                //     variantsAll = await _productVariantRepository.AsNoTrackingQueryable()
+                //         .Where(v => productIdsDiscount.Contains(v.ProductID))
+                //         .Include(v => v.Size)
+                //         .Include(v => v.Color)
+                //         .ToListAsync();
 
-                    productImagesAll = await _productImageRepository.AsNoTrackingQueryable()
-                        .Where(img => productIdsDiscount.Contains(img.ProductID) && img.IsActive)
-                        .Include(img => img.Color)
-                        .OrderBy(img => img.DisplayOrder)
-                        .ToListAsync();
+                //     productImagesAll = await _productImageRepository.AsNoTrackingQueryable()
+                //         .Where(img => productIdsDiscount.Contains(img.ProductID) && img.IsActive)
+                //         .Include(img => img.Color)
+                //         .OrderBy(img => img.DisplayOrder)
+                //         .ToListAsync();
 
-                    var variantGroupsDiscount = variantsAll.GroupBy(v => v.ProductID).ToDictionary(g => g.Key, g => g.ToList());
-                    var imageGroupsDiscount = productImagesAll.GroupBy(img => img.ProductID).ToDictionary(g => g.Key, g => g.ToList());
+                //     var variantGroupsDiscount = variantsAll.GroupBy(v => v.ProductID).ToDictionary(g => g.Key, g => g.ToList());
+                //     var imageGroupsDiscount = productImagesAll.GroupBy(img => img.ProductID).ToDictionary(g => g.Key, g => g.ToList());
 
-                    var productListDiscount = pagedProductsAfterDiscount.Select(p => MapToGetProductRes(p.product, p.brand, variantGroupsDiscount, imageGroupsDiscount)).ToList();
+                //     var productListDiscount = pagedProductsAfterDiscount.Select(p => MapToGetProductRes(p.product, p.brand, variantGroupsDiscount, imageGroupsDiscount)).ToList();
 
-                    return new CommonPagination<GetProductRes>
-                    {
-                        Success = true,
-                        Message = "Lấy danh sách sản phẩm Landing thành công",
-                        Data = productListDiscount,
-                        TotalRecords = totalRecordsAfterDiscount
-                    };
-                }
+                //     return new CommonPagination<GetProductRes>
+                //     {
+                //         Success = true,
+                //         Message = "Lấy danh sách sản phẩm Landing thành công",
+                //         Data = productListDiscount,
+                //         TotalRecords = totalRecordsAfterDiscount
+                //     };
+                // }
 
                 // WeeklyTrend sắp xếp theo một tiêu chí giả định: mức giảm giá lớn nhất trước + ngày tạo mới
                 if (filterType == ProductLandingFilterType.WeeklyTrend)

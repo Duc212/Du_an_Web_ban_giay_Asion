@@ -1,0 +1,309 @@
+@using AdminWeb.Models
+@using AdminWeb.Services
+@using Microsoft.JSInterop
+@inject SizeService SizeService
+@inject ToastService ToastService
+@inject IJSRuntime JSRuntime
+
+<div class="size-manager">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="mb-0"><i class="fas fa-ruler me-2"></i>Quản lý Kích cỡ</h5>
+        <button class="btn btn-sm btn-primary" @onclick="OpenAddModal">
+            <i class="fas fa-plus me-2"></i>Thêm kích cỡ
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (sizes.Count == 0)
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>Chưa có kích cỡ nào. Hãy thêm kích cỡ mới!
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-items-center">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Kích cỡ</th>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-end">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var size in sizes)
+                    {
+                        <tr>
+                            <td>
+                                <div class="size-badge">
+                                    @size.Value
+                                </div>
+                            </td>
+                            <td class="text-end">
+                                <button class="btn btn-link btn-sm text-warning p-0 me-2" 
+                                        @onclick="() => OpenEditModal(size)"
+                                        title="Sửa">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-link btn-sm text-danger p-0" 
+                                        @onclick="() => DeleteSize(size.SizeID)"
+                                        title="Xóa">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@if (showModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-ruler me-2"></i>
+                        @(isEditMode ? "Sửa kích cỡ" : "Thêm kích cỡ mới")
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Kích cỡ <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control form-control-lg text-center fw-bold" 
+                               @bind="currentSize.Value" 
+                               placeholder="36, 37, 38, ...">
+                        <small class="text-muted">Ví dụ: 36, 37, 38, 39, 40, 41, 42, 43, 44, 45</small>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(currentSize.Value))
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Xem trước</label>
+                            <div class="size-preview">
+                                <span class="size-badge-large">@currentSize.Value</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light border" @onclick="CloseModal" style="color: #6b7280; font-weight: 600;">
+                        <i class="fas fa-times me-2"></i>Hủy
+                    </button>
+                    <button type="button" class="btn btn-primary" @onclick="SaveSize" disabled="@isSaving">
+                        @if (isSaving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        <i class="fas fa-save me-2"></i>
+                        @(isEditMode ? "Cập nhật" : "Thêm mới")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .size-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 48px;
+        height: 48px;
+        padding: 0 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .size-badge-large {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 80px;
+        height: 80px;
+        padding: 0 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 2rem;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+
+    .size-preview {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .btn-link {
+        text-decoration: none;
+    }
+
+    .btn-link:hover {
+        text-decoration: none;
+        opacity: 0.8;
+    }
+
+    .modal.show {
+        display: block;
+    }
+</style>
+
+@code {
+    private List<SizeDTO> sizes = new();
+    private SizeDTO currentSize = new();
+    private bool showModal = false;
+    private bool isEditMode = false;
+    private bool isLoading = true;
+    private bool isSaving = false;
+
+    [Parameter]
+    public EventCallback OnSizesChanged { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSizes();
+    }
+
+    private async Task LoadSizes()
+    {
+        isLoading = true;
+        sizes = await SizeService.GetAllSizesAsync();
+        // Sort sizes numerically if possible
+        sizes = sizes.OrderBy(s => 
+        {
+            if (int.TryParse(s.Value, out int numValue))
+                return numValue;
+            return 999;
+        }).ToList();
+        isLoading = false;
+    }
+
+    private void OpenAddModal()
+    {
+        currentSize = new SizeDTO();
+        isEditMode = false;
+        showModal = true;
+    }
+
+    private void OpenEditModal(SizeDTO size)
+    {
+        currentSize = new SizeDTO
+        {
+            SizeID = size.SizeID,
+            Value = size.Value
+        };
+        isEditMode = true;
+        showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        currentSize = new SizeDTO();
+    }
+
+    private async Task SaveSize()
+    {
+        if (string.IsNullOrWhiteSpace(currentSize.Value))
+        {
+            ToastService.Error("Vui lòng nhập kích cỡ");
+            return;
+        }
+
+        isSaving = true;
+
+        try
+        {
+            if (isEditMode)
+            {
+                var updateDto = new UpdateSizeDTO
+                {
+                    Value = currentSize.Value.Trim()
+                };
+                var result = await SizeService.UpdateSizeAsync(currentSize.SizeID, updateDto);
+                
+                if (result.Success)
+                {
+                    ToastService.Success("Cập nhật kích cỡ thành công!");
+                    await LoadSizes();
+                    await OnSizesChanged.InvokeAsync();
+                    CloseModal();
+                }
+                else
+                {
+                    ToastService.Error(result.Message);
+                }
+            }
+            else
+            {
+                var createDto = new CreateSizeDTO
+                {
+                    Value = currentSize.Value.Trim()
+                };
+                var result = await SizeService.CreateSizeAsync(createDto);
+                
+                if (result.Success)
+                {
+                    ToastService.Success("Thêm kích cỡ thành công!");
+                    await LoadSizes();
+                    await OnSizesChanged.InvokeAsync();
+                    CloseModal();
+                }
+                else
+                {
+                    ToastService.Error(result.Message);
+                }
+            }
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task DeleteSize(int sizeId)
+    {
+        if (!await JSRuntime.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa kích cỡ này?"))
+        {
+            return;
+        }
+
+        var result = await SizeService.DeleteSizeAsync(sizeId);
+        
+        if (result.Success)
+        {
+            ToastService.Success("Xóa kích cỡ thành công!");
+            await LoadSizes();
+            await OnSizesChanged.InvokeAsync();
+        }
+        else
+        {
+            ToastService.Error(result.Message);
+        }
+    }
+
+    public async Task RefreshSizes()
+    {
+        await LoadSizes();
+    }
+}

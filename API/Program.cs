@@ -79,6 +79,8 @@ builder.Services.AddTransient<ICartServices, CartServices>();
 builder.Services.AddTransient<IPaymentServices, PaymentServices>();
 builder.Services.AddTransient<IUserServices, UserServices>(); // đã đăng ký
 builder.Services.AddTransient<IVoucherService, VoucherService>();
+builder.Services.AddTransient<IColorServices, ColorServices>();
+builder.Services.AddTransient<ISizeServices, SizeServices>();
 
 // GHN Service Configuration
 builder.Services.Configure<DAL.DTOs.Shipping.GhnOptions>(builder.Configuration.GetSection("GHN"));
@@ -86,6 +88,8 @@ builder.Services.AddHttpClient<BUS.Services.Interfaces.IGhnService, BUS.Services
 
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<VoucherRepository>();
+builder.Services.AddScoped<ColorRepository>();
+builder.Services.AddScoped<SizeRepository>();
 
 // Register background services
 builder.Services.AddHostedService<OrderCancellationService>();
