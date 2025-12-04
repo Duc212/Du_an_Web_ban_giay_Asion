@@ -291,12 +291,16 @@ namespace BUS.Services
 
                 // 5. Lưu thông tin GHN vào DB
                 order.GhnOrderCode = ghnResponse.Data.OrderCode;
-                order.GhnStatus = "pending";
+                order.GhnStatus = "ready_to_pick"; // ✅ Status mặc định khi tạo đơn GHN
                 order.GhnFee = ghnResponse.Data.TotalFee;
                 order.GhnCreatedAt = DateTime.Now;
                 order.GhnUpdatedAt = DateTime.Now;
 
+                _context.Orders.Update(order);
                 await _context.SaveChangesAsync();
+
+                _logger.LogInformation("✅ Saved GhnOrderCode='{Code}', GhnStatus='{Status}' to database", 
+                    order.GhnOrderCode, order.GhnStatus);
 
                 _logger.LogInformation("✅ Order {OrderId} successfully created on GHN with code: {GhnOrderCode}", 
                     request.OrderId, ghnResponse.Data.OrderCode);
