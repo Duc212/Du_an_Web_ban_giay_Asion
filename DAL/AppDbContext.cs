@@ -1,5 +1,6 @@
 ﻿using DAL.Enums;
 using DAL.Models;
+using DAL.Entities;
 using Helper.Utils;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,6 +33,7 @@ namespace DAL
         public DbSet<Brand> Brands { get; set; }
         public DbSet<Gender> Genders { get; set; }
         public DbSet<FavoriteProduct> FavoriteProducts { get; set; }
+        public DbSet<Revenue> Revenues { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -332,8 +332,25 @@ namespace BUS.Services
                 
                 _logger.LogInformation("Getting GHN order detail for: {GhnOrderCode}", ghnOrderCode);
 
-                var response = await _httpClient.PostAsJsonAsync("/v2/shipping-order/detail", payload);
+                // ✅ Sửa endpoint đầy đủ
+                var request = new HttpRequestMessage(HttpMethod.Post, 
+                    "https://dev-online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/detail")
+                {
+                    Content = JsonContent.Create(payload)
+                };
+                
+                // Clear any existing Token header và add mới
+                request.Headers.Remove("Token");
+                request.Headers.TryAddWithoutValidation("Token", _ghnOptions.Token);
+                
+                _logger.LogInformation("📤 GetOrderDetail Request - URL: {Url}, OrderCode: {OrderCode}", 
+                    request.RequestUri, ghnOrderCode);
+
+                var response = await _httpClient.SendAsync(request);
                 var responseContent = await response.Content.ReadAsStringAsync();
+                
+                _logger.LogInformation("📥 GetOrderDetail Response - Status: {Status}, Body: {Body}", 
+                    response.StatusCode, responseContent);
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -408,14 +425,46 @@ namespace BUS.Services
                     })
                     .FirstOrDefaultAsync();
 
-                // Nếu có GhnOrderCode, lấy thêm status text từ GHN
-                if (order != null && !string.IsNullOrEmpty(order.GhnOrderCode))
+                if (order == null)
                 {
-                    var ghnDetail = await GetOrderDetailAsync(order.GhnOrderCode);
-                    if (ghnDetail != null)
+                    _logger.LogWarning("Order {OrderId} not found in database", orderId);
+                    return null;
+                }
+
+                // Nếu có GhnOrderCode, lấy thêm thông tin realtime từ GHN
+                if (!string.IsNullOrEmpty(order.GhnOrderCode))
+                {
+                    try
                     {
-                        order.GhnStatusText = ghnDetail.StatusText;
-                        order.ExpectedDeliveryTime = ghnDetail.ExpectedDeliveryTime;
+                        var ghnDetail = await GetOrderDetailAsync(order.GhnOrderCode);
+                        if (ghnDetail != null)
+                        {
+                            // Cập nhật thông tin từ GHN vào response
+                            order.GhnStatus = ghnDetail.Status ?? order.GhnStatus;
+                            order.GhnStatusText = ghnDetail.StatusText ?? GetStatusText(ghnDetail.Status);
+                            order.GhnFee = ghnDetail.TotalFee ?? order.GhnFee;
+                            order.CodCollected = ghnDetail.IsCodCollected;
+                            order.ExpectedDeliveryTime = ghnDetail.ExpectedDeliveryTime ?? ghnDetail.Leadtime;
+                            order.LastUpdated = ghnDetail.UpdatedDate ?? order.LastUpdated;
+                            
+                            // Cập nhật vào DB nếu có thay đổi
+                            var dbOrder = await _context.Orders.FindAsync(orderId);
+                            if (dbOrder != null)
+                            {
+                                dbOrder.GhnStatus = ghnDetail.Status;
+                                dbOrder.GhnFee = ghnDetail.TotalFee;
+                                dbOrder.CodCollected = ghnDetail.IsCodCollected;
+                                dbOrder.GhnUpdatedAt = DateTime.Now;
+                                await _context.SaveChangesAsync();
+                                _logger.LogInformation("✅ Updated Order {OrderId} with latest GHN status: {Status}", 
+                                    orderId, ghnDetail.Status);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to get realtime GHN status for order {OrderId}, using DB data", orderId);
+                        // Không throw, vẫn trả về data từ DB
                     }
                 }
 
@@ -427,6 +476,28 @@ namespace BUS.Services
                 return null;
             }
         }
+        
+        /// <summary>
+        /// Map GHN status code sang text tiếng Việt
+        /// </summary>
+        private string GetStatusText(string? status) => status?.ToLower() switch
+        {
+            "ready_to_pick" => "Chờ lấy hàng",
+            "picking" => "Đang lấy hàng",
+            "picked" => "Đã lấy hàng",
+            "storing" => "Đang lưu kho",
+            "transporting" => "Đang vận chuyển",
+            "sorting" => "Đang phân loại",
+            "delivering" => "Đang giao hàng",
+            "delivered" => "Đã giao hàng",
+            "return" => "Đang hoàn trả",
+            "returned" => "Đã hoàn trả",
+            "exception" => "Giao hàng thất bại",
+            "damage" => "Hàng hư hỏng",
+            "lost" => "Thất lạc",
+            "cancel" => "Đã hủy",
+            _ => status ?? "Chưa xác định"
+        };
 
         /// <summary>
         /// Cập nhật thông tin đơn hàng GHN (note)

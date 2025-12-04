@@ -166,9 +166,9 @@ namespace AdminWeb.Models
     public class ColorDTO
     {
         public int ColorID { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("Name")]
+        [System.Text.Json.Serialization.JsonPropertyName("ColorName")]
         public string ColorName { get; set; } = string.Empty;
-        [System.Text.Json.Serialization.JsonPropertyName("HexCode")]
+        [System.Text.Json.Serialization.JsonPropertyName("HexColor")]
         public string HexColor { get; set; } = string.Empty;
     }
 

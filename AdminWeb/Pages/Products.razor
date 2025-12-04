@@ -364,6 +364,10 @@
                                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                                         <h5 style="margin: 0; font-size: 14px; font-weight: 600; color: #047857;">
                                             <i class="fas fa-plus-circle"></i> Thêm biến thể mới
+                                            @if (colors.Count > 0)
+                                            {
+                                                <span style="font-size: 11px; color: #6b7280; font-weight: 400;">(@colors.Count màu có sẵn)</span>
+                                            }
                                         </h5>
                                         <button type="button" @onclick="CloseAddVariantForm" 
                                                 style="padding: 4px 8px; background: #dc2626; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
@@ -374,15 +378,69 @@
                                         <div>
                                             <label style="display: block; font-size: 12px; font-weight: 500; color: #374151; margin-bottom: 4px;">Màu sắc <span style="color: #dc2626;">*</span></label>
                                             <div style="display: flex; gap: 6px;">
-                                                <select @bind="addVariantForm.ColorID" style="flex: 1; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;">
-                                                    <option value="0">Chọn màu</option>
-                                                    @foreach (var color in colors)
+                                                <div style="position: relative; flex: 1;">
+                                                    <!-- Custom Dropdown -->
+                                                    <div class="custom-color-dropdown" @onclick="() => isColorDropdownOpen = !isColorDropdownOpen" 
+                                                         style="width: 100%; height: 38px; padding: 0 32px 0 40px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px; cursor: pointer; background: white; position: relative; display: flex; align-items: center;">
+                                                        @if (addVariantForm.ColorID > 0)
+                                                        {
+                                                            var selected = colors.FirstOrDefault(c => c.ColorID == addVariantForm.ColorID);
+                                                            if (selected != null)
+                                                            {
+                                                                <span style="position: absolute; left: 10px; width: 22px; height: 22px; border-radius: 4px; background-color: @selected.HexColor; border: 2px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"></span>
+                                                                <span>@selected.ColorName - @selected.HexColor</span>
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <span style="position: absolute; left: 10px; width: 22px; height: 22px; border-radius: 4px; background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); border: 2px solid #d1d5db; display: flex; align-items: center; justify-content: center;">
+                                                                <svg style="width: 14px; height: 14px; fill: #9ca3af;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                                                                    <path d="M512 256c0 .9 0 1.8 0 2.7c-.4 36.5-33.6 61.3-70.1 61.3H344c-26.5 0-48 21.5-48 48c0 3.4 .4 6.7 1 9.9c2.1 10.2 6.5 20 10.8 29.9c6.1 13.8 12.1 27.5 12.1 42c0 31.8-21.6 60.7-53.4 62c-3.5 .1-7 .2-10.6 .2C114.6 512 0 397.4 0 256S114.6 0 256 0S512 114.6 512 256zM128 288a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zm0-96a32 32 0 1 0 0-64 32 32 0 1 0 0 64zM288 96a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zm96 96a32 32 0 1 0 0-64 32 32 0 1 0 0 64z"/>
+                                                                </svg>
+                                                            </span>
+                                                            <span style="color: #9ca3af;">-- Chọn màu sắc --</span>
+                                                        }
+                                                        <svg style="position: absolute; right: 8px; width: 16px; height: 16px; transition: transform 0.2s; transform: rotate(@(isColorDropdownOpen ? "180deg" : "0deg"));" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <polyline points="6 9 12 15 18 9"></polyline>
+                                                        </svg>
+                                                    </div>
+                                                    
+                                                    @if (isColorDropdownOpen)
                                                     {
-                                                        <option value="@color.ColorID">@color.ColorName</option>
+                                                        <div @onclick:stopPropagation style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: white; border: 1px solid #d1d5db; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); max-height: 300px; overflow-y: auto; z-index: 50;">
+                                                            <div @onclick="() => { addVariantForm.ColorID = 0; isColorDropdownOpen = false; }" 
+                                                                 style="padding: 10px 12px; cursor: pointer; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f3f4f6; background: @(addVariantForm.ColorID == 0 ? "#f0fdf4" : "white");">
+                                                                <span style="width: 22px; height: 22px; border-radius: 4px; background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); border: 2px solid #d1d5db; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                                    <svg style="width: 14px; height: 14px; fill: #9ca3af;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                                                                        <path d="M512 256c0 .9 0 1.8 0 2.7c-.4 36.5-33.6 61.3-70.1 61.3H344c-26.5 0-48 21.5-48 48c0 3.4 .4 6.7 1 9.9c2.1 10.2 6.5 20 10.8 29.9c6.1 13.8 12.1 27.5 12.1 42c0 31.8-21.6 60.7-53.4 62c-3.5 .1-7 .2-10.6 .2C114.6 512 0 397.4 0 256S114.6 0 256 0S512 114.6 512 256zM128 288a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zm0-96a32 32 0 1 0 0-64 32 32 0 1 0 0 64zM288 96a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zm96 96a32 32 0 1 0 0-64 32 32 0 1 0 0 64z"/>
+                                                                    </svg>
+                                                                </span>
+                                                                <span style="color: #6b7280; font-size: 13px;">-- Chọn màu sắc --</span>
+                                                            </div>
+                                                            @foreach (var color in colors)
+                                                            {
+                                                                <div @onclick="() => { addVariantForm.ColorID = color.ColorID; isColorDropdownOpen = false; StateHasChanged(); }" 
+                                                                     style="padding: 10px 12px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: background 0.15s; background: @(addVariantForm.ColorID == color.ColorID ? "#f0fdf4" : (hoveredColorId == color.ColorID ? "#f9fafb" : "white"));"
+                                                                     @onmouseover="@((MouseEventArgs e) => { hoveredColorId = color.ColorID; StateHasChanged(); })"
+                                                                     @onmouseout="@((MouseEventArgs e) => { hoveredColorId = 0; StateHasChanged(); })">
+                                                                    <span style="width: 22px; height: 22px; border-radius: 4px; background-color: @color.HexColor; border: 2px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex-shrink: 0;"></span>
+                                                                    <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                                                                        <span style="font-size: 13px; font-weight: 500; color: #1f2937;">@color.ColorName</span>
+                                                                        <span style="font-size: 11px; color: #6b7280; font-family: monospace;">@color.HexColor</span>
+                                                                    </div>
+                                                                    @if (addVariantForm.ColorID == color.ColorID)
+                                                                    {
+                                                                        <svg style="width: 16px; height: 16px; color: #10b981;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                                                        </svg>
+                                                                    }
+                                                                </div>
+                                                            }
+                                                        </div>
                                                     }
-                                                </select>
+                                                </div>
                                                 <button type="button" @onclick="OpenQuickAddColor" title="Thêm màu mới"
-                                                        style="padding: 8px 10px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">
+                                                        style="height: 38px; width: 38px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center;">
                                                     <i class="fas fa-plus"></i>
                                                 </button>
                                             </div>
@@ -390,7 +448,7 @@
                                         <div>
                                             <label style="display: block; font-size: 12px; font-weight: 500; color: #374151; margin-bottom: 4px;">Size <span style="color: #dc2626;">*</span></label>
                                             <div style="display: flex; gap: 6px;">
-                                                <select @bind="addVariantForm.SizeID" style="flex: 1; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;">
+                                                <select @bind="addVariantForm.SizeID" style="flex: 1; height: 38px; padding: 0 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;">
                                                     <option value="0">Chọn size</option>
                                                     @foreach (var size in sizes)
                                                     {
@@ -398,7 +456,7 @@
                                                     }
                                                 </select>
                                                 <button type="button" @onclick="OpenQuickAddSize" title="Thêm size mới"
-                                                        style="padding: 8px 10px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">
+                                                        style="height: 38px; width: 38px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center;">
                                                     <i class="fas fa-plus"></i>
                                                 </button>
                                             </div>
@@ -406,17 +464,17 @@
                                         <div>
                                             <label style="display: block; font-size: 12px; font-weight: 500; color: #374151; margin-bottom: 4px;">Giá nhập <span style="color: #dc2626;">*</span></label>
                                             <input type="number" @bind="addVariantForm.ImportPrice" placeholder="0" 
-                                                   style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" />
+                                                   style="width: 100%; height: 38px; padding: 0 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" />
                                         </div>
                                         <div>
                                             <label style="display: block; font-size: 12px; font-weight: 500; color: #374151; margin-bottom: 4px;">Giá bán <span style="color: #dc2626;">*</span></label>
                                             <input type="number" @bind="addVariantForm.SellingPrice" placeholder="0" 
-                                                   style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" />
+                                                   style="width: 100%; height: 38px; padding: 0 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" />
                                         </div>
                                         <div>
                                             <label style="display: block; font-size: 12px; font-weight: 500; color: #374151; margin-bottom: 4px;">Tồn kho <span style="color: #dc2626;">*</span></label>
                                             <input type="number" @bind="addVariantForm.StockQuantity" placeholder="0" 
-                                                   style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" />
+                                                   style="width: 100%; height: 38px; padding: 0 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;" />
                                         </div>
                                         <button type="button" @onclick="SaveNewVariant" disabled="@isSavingVariant"
                                                 style="padding: 8px 12px; background: #10b981; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; height: 38px;">
@@ -1295,6 +1353,8 @@
     private bool showAddVariantForm = false;
     private bool isSavingVariant = false;
     private AddVariantRequest addVariantForm = new();
+    private bool isColorDropdownOpen = false;
+    private int hoveredColorId = 0;
     
     // Quick add color/size states
     private bool showQuickAddColorModal = false;
@@ -1725,6 +1785,7 @@
             editingVariantId = variant.VariantID;
             editVariantForm = new UpdateVariantRequest
             {
+                VariantID = variant.VariantID,
                 ImportPrice = variant.ImportPrice,
                 SellingPrice = variant.SellingPrice,
                 StockQuantity = variant.StockQuantity,
@@ -1743,7 +1804,7 @@
             isSaving = true;
             StateHasChanged();
 
-            var response = await ProductService.UpdateVariantAsync(editingVariantId.Value, editVariantForm);
+            var response = await ProductService.UpdateVariantAsync(editVariantForm);
             if (response.Success)
             {
                 ToastService.Success("Cập nhật biến thể thành công!");

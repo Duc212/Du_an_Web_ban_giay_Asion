@@ -30,7 +30,7 @@
             </div>
             <div class="info">
                 <p>Đang hoạt động</p>
-                <h4>@customers.Count(u => u.Status == 0)</h4>
+                <h4>@customers.Count(u => u.Status == 1)</h4>
             </div>
         </div>
         <div class="stat-card locked">
@@ -41,7 +41,7 @@
             </div>
             <div class="info">
                 <p>Bị khóa</p>
-                <h4>@customers.Count(u => u.Status == 1)</h4>
+                <h4>@customers.Count(u => u.Status == 0)</h4>
             </div>
         </div>
     </div>

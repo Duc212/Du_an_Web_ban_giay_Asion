@@ -61,11 +61,14 @@ namespace API.Services
             using var scope = _serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var ghnService = scope.ServiceProvider.GetRequiredService<IGhnService>();
+            var revenueService = scope.ServiceProvider.GetRequiredService<IRevenueService>();
 
             try
             {
                 // Lấy danh sách orders đang vận chuyển (có GhnOrderCode và chưa delivered/cancelled)
                 var ordersToUpdate = await context.Orders
+                    .Include(o => o.OrderDetails)
+                        .ThenInclude(od => od.Variant)
                     .Where(o => 
                         !string.IsNullOrEmpty(o.GhnOrderCode) && 
                         o.GhnStatus != "delivered" && 
@@ -121,6 +124,17 @@ namespace API.Services
 
                                 context.Orders.Update(order);
                                 await context.SaveChangesAsync(cancellationToken);
+
+                                // BUSINESS LOGIC: Xử lý giao hàng thành công (thêm doanh số)
+                                if (IsDeliverySuccess(newStatus))
+                                {
+                                    await HandleDeliverySuccess(order, revenueService);
+                                }
+                                // BUSINESS LOGIC: Xử lý giao hàng thất bại (hoàn kho)
+                                else if (IsDeliveryFailed(newStatus))
+                                {
+                                    await HandleDeliveryFailed(order, context);
+                                }
 
                                 _logger.LogInformation(
                                     "Order {OrderId} updated: GhnStatus changed from '{OldStatus}' to '{NewStatus}'",
@@ -212,6 +226,100 @@ namespace API.Services
                     _logger.LogWarning("Order {OrderId} has exception status: {Status}", 
                         order.OrderID, ghnStatus);
                     break;
+            }
+        }
+
+        /// <summary>
+        /// Kiểm tra xem status có phải là giao hàng thành công không
+        /// </summary>
+        private bool IsDeliverySuccess(string? ghnStatus)
+        {
+            if (string.IsNullOrEmpty(ghnStatus))
+                return false;
+
+            return ghnStatus.ToLower() == "delivered";
+        }
+
+        /// <summary>
+        /// Kiểm tra xem status có phải là giao hàng thất bại không (cancel/return/exception)
+        /// </summary>
+        private bool IsDeliveryFailed(string? ghnStatus)
+        {
+            if (string.IsNullOrEmpty(ghnStatus))
+                return false;
+
+            var status = ghnStatus.ToLower();
+            return status == "cancel" || status == "returned" || status == "return" || 
+                   status == "exception" || status == "damage" || status == "lost";
+        }
+
+        /// <summary>
+        /// Xử lý khi giao hàng thành công: Ghi nhận doanh số vào bảng Revenue
+        /// </summary>
+        private async Task HandleDeliverySuccess(Order order, IRevenueService revenueService)
+        {
+            try
+            {
+                var amount = order.TotalAmount;
+                var success = await revenueService.RecordRevenueAsync(order.OrderID, amount);
+
+                if (success)
+                {
+                    _logger.LogInformation(
+                        "✅ Revenue recorded for Order {OrderId}: Amount = {Amount}",
+                        order.OrderID, amount);
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "⚠️ Revenue already recorded for Order {OrderId} (duplicate prevention)",
+                        order.OrderID);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, 
+                    "❌ Error recording revenue for Order {OrderId}", order.OrderID);
+            }
+        }
+
+        /// <summary>
+        /// Xử lý khi giao hàng thất bại: Hoàn trả số lượng sản phẩm vào kho
+        /// </summary>
+        private async Task HandleDeliveryFailed(Order order, AppDbContext context)
+        {
+            try
+            {
+                if (order.OrderDetails == null || !order.OrderDetails.Any())
+                {
+                    _logger.LogWarning(
+                        "Order {OrderId} has no OrderDetails to restore stock", order.OrderID);
+                    return;
+                }
+
+                foreach (var detail in order.OrderDetails)
+                {
+                    if (detail.Variant != null)
+                    {
+                        var oldQuantity = detail.Variant.StockQuantity;
+                        detail.Variant.StockQuantity += detail.Quantity;
+                        var newQuantity = detail.Variant.StockQuantity;
+
+                        _logger.LogInformation(
+                            "🔄 Stock restored for ProductVariant {VariantId}: {OldQty} → {NewQty} (+{Restored})",
+                            detail.Variant.VariantID, oldQuantity, newQuantity, detail.Quantity);
+                    }
+                }
+
+                await context.SaveChangesAsync();
+
+                _logger.LogInformation(
+                    "✅ Stock restoration completed for failed delivery Order {OrderId}", order.OrderID);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, 
+                    "❌ Error restoring stock for Order {OrderId}", order.OrderID);
             }
         }
 

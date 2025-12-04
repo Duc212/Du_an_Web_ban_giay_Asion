@@ -23,7 +23,7 @@
     <!-- Product Price -->
     <div class="product-pricing">
         <div class="price-main">
-            <span class="current-price">@Product.PriceFormatted</span>
+            <span class="current-price">@GetCurrentPriceFormatted()</span>
             @if (Product.OriginalPrice.HasValue)
             {
                 <span class="old-price">@Product.OldPriceFormatted</span>
@@ -359,11 +359,33 @@
         return Product.Description;
     }
 
+    private decimal GetCurrentPrice()
+    {
+        // If both color and size are selected, get the specific variant price
+        if (!string.IsNullOrEmpty(SelectedColor) && !string.IsNullOrEmpty(SelectedSize))
+        {
+            var colorInfo = Product.Colors?.FirstOrDefault(c => c.HexColor.Equals(SelectedColor, StringComparison.OrdinalIgnoreCase));
+            if (colorInfo?.SizePrice != null && colorInfo.SizePrice.TryGetValue(SelectedSize, out decimal variantPrice))
+            {
+                return variantPrice;
+            }
+        }
+        
+        // Fall back to the product's default price (minimum price across all variants)
+        return Product.Price;
+    }
+
+    private string GetCurrentPriceFormatted()
+    {
+        return $"{GetCurrentPrice():N0}đ";
+    }
+
     private string GetSavingsAmount()
     {
         if (Product.OriginalPrice.HasValue)
         {
-            var savings = Product.OriginalPrice.Value - Product.Price;
+            var currentPrice = GetCurrentPrice();
+            var savings = Product.OriginalPrice.Value - currentPrice;
             return savings.ToString("N0") + "đ";
         }
         return "";

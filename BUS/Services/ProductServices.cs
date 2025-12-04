@@ -606,7 +606,12 @@ namespace BUS.Services
                                  .ToDictionary(
                                      v => v.Size.Value, 
                                      v => v.StockQuantity
-                                 ) // Stock theo từng size của màu này
+                                 ), // Stock theo từng size của màu này
+                    SizePrice = g.Where(v => v.Size != null)
+                                 .ToDictionary(
+                                     v => v.Size.Value,
+                                     v => v.SellingPrice
+                                 ) // Price theo từng size của màu này
                 })
                 .ToList();
 

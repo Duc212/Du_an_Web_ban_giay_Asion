@@ -278,33 +278,7 @@ namespace AdminWeb.Services
             }
         }
 
-        public async Task<ApiResponse> UpdateVariantAsync(int variantId, UpdateVariantRequest request)
-        {
-            try
-            {
-                var response = await _http.PutAsJsonAsync($"api/ProductAdmin/UpdateVariant/{variantId}", request);
-                if (response.IsSuccessStatusCode)
-                {
-                    return await response.Content.ReadFromJsonAsync<ApiResponse>()
-                        ?? new ApiResponse { Success = false, Message = "Lỗi không xác định" };
-                }
 
-                var errorContent = await response.Content.ReadAsStringAsync();
-                return new ApiResponse
-                {
-                    Success = false,
-                    Message = $"Lỗi: {response.StatusCode} - {errorContent}"
-                };
-            }
-            catch (Exception ex)
-            {
-                return new ApiResponse
-                {
-                    Success = false,
-                    Message = $"Lỗi: {ex.Message}"
-                };
-            }
-        }
 
         public async Task<ApiResponse> DeleteVariantAsync(int variantId)
         {

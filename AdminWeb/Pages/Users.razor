@@ -361,7 +361,8 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Mật khẩu <span class="text-danger">*</span></label>
-                            <input type="password" class="form-control" @bind="newUser.Password" placeholder="Nhập mật khẩu" />
+                            <input type="password" class="form-control" @bind="newUser.Password" placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)" />
+                            <small class="text-muted">Mật khẩu phải có ít nhất 6 ký tự</small>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Ngày sinh</label>
@@ -457,7 +458,7 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Mật khẩu mới</label>
                             <input type="password" class="form-control" @bind="editUser.Password" placeholder="Để trống nếu không đổi" />
-                            <small class="text-muted">Để trống nếu không muốn thay đổi mật khẩu</small>
+                            <small class="text-muted">Để trống nếu không muốn thay đổi mật khẩu. Nếu đổi phải tối thiểu 6 ký tự</small>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Ngày sinh <span class="text-danger">*</span></label>
@@ -784,6 +785,12 @@
             return;
         }
         
+        if (newUser.Password.Length < 6)
+        {
+            addUserError = "Mật khẩu phải có ít nhất 6 ký tự";
+            return;
+        }
+        
         if (selectedRoles.Count == 0)
         {
             addUserError = "Vui lòng chọn ít nhất một vai trò";
@@ -890,6 +897,13 @@
         if (string.IsNullOrWhiteSpace(editUser.Phone))
         {
             editUserError = "Vui lòng nhập số điện thoại";
+            return;
+        }
+        
+        // Validate password if it's being changed
+        if (!string.IsNullOrWhiteSpace(editUser.Password) && editUser.Password.Length < 6)
+        {
+            editUserError = "Mật khẩu phải có ít nhất 6 ký tự";
             return;
         }
         

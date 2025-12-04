@@ -6,6 +6,7 @@ public class ColorInfo
     public string HexColor { get; set; } = string.Empty;
     public int AvailableStock { get; set; } = 0; // Số lượng còn của màu này
     public Dictionary<string, int> SizeStock { get; set; } = new(); // Stock theo từng size
+    public Dictionary<string, decimal> SizePrice { get; set; } = new(); // Price theo từng size
 }
 
 public class ColorImageInfo

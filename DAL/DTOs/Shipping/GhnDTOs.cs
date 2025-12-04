@@ -321,15 +321,82 @@ namespace DAL.DTOs.Shipping
 
         [JsonPropertyName("cod_collect_date")]
         public DateTime? CodCollectDate { get; set; }
+        
+        [JsonPropertyName("is_cod_collected")]
+        public bool IsCodCollected { get; set; }
+        
+        [JsonPropertyName("is_cod_transferred")]
+        public bool IsCodTransferred { get; set; }
 
         [JsonPropertyName("total_fee")]
         public int? TotalFee { get; set; }
 
         [JsonPropertyName("expected_delivery_time")]
         public DateTime? ExpectedDeliveryTime { get; set; }
+        
+        [JsonPropertyName("leadtime")]
+        public DateTime? Leadtime { get; set; }
+        
+        [JsonPropertyName("updated_date")]
+        public DateTime? UpdatedDate { get; set; }
 
         [JsonPropertyName("log")]
         public List<GhnOrderLog>? Log { get; set; }
+        
+        // Thêm các field còn lại từ GHN response
+        [JsonPropertyName("shop_id")]
+        public int? ShopId { get; set; }
+        
+        [JsonPropertyName("client_order_code")]
+        public string? ClientOrderCode { get; set; }
+        
+        [JsonPropertyName("to_name")]
+        public string? ToName { get; set; }
+        
+        [JsonPropertyName("to_phone")]
+        public string? ToPhone { get; set; }
+        
+        [JsonPropertyName("to_address")]
+        public string? ToAddress { get; set; }
+        
+        [JsonPropertyName("from_name")]
+        public string? FromName { get; set; }
+        
+        [JsonPropertyName("from_phone")]
+        public string? FromPhone { get; set; }
+        
+        [JsonPropertyName("from_address")]
+        public string? FromAddress { get; set; }
+        
+        [JsonPropertyName("weight")]
+        public int? Weight { get; set; }
+        
+        [JsonPropertyName("length")]
+        public int? Length { get; set; }
+        
+        [JsonPropertyName("width")]
+        public int? Width { get; set; }
+        
+        [JsonPropertyName("height")]
+        public int? Height { get; set; }
+        
+        [JsonPropertyName("note")]
+        public string? Note { get; set; }
+        
+        [JsonPropertyName("content")]
+        public string? Content { get; set; }
+        
+        [JsonPropertyName("payment_type_id")]
+        public int? PaymentTypeId { get; set; }
+        
+        [JsonPropertyName("service_type_id")]
+        public int? ServiceTypeId { get; set; }
+        
+        [JsonPropertyName("service_id")]
+        public int? ServiceId { get; set; }
+        
+        [JsonPropertyName("items")]
+        public List<GhnOrderItem>? Items { get; set; }
     }
 
     public class GhnOrderLog

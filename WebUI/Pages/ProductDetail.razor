@@ -90,7 +90,7 @@
         <div class="mobile-sticky-actions">
             <div class="mobile-actions-content">
                 <div class="mobile-price">
-                    <span class="current-price">@(CurrentProduct?.PriceFormatted ?? "")</span>
+                    <span class="current-price">@GetCurrentPriceFormatted()</span>
                     @if (!string.IsNullOrEmpty(CurrentProduct?.OldPriceFormatted))
                     {
                         <span class="old-price">@CurrentProduct.OldPriceFormatted</span>
@@ -219,6 +219,29 @@
     {
         SelectedColor = newColor;
         StateHasChanged();
+    }
+
+    private decimal GetCurrentPrice()
+    {
+        if (CurrentProduct == null) return 0;
+
+        // If both color and size are selected, get the specific variant price
+        if (!string.IsNullOrEmpty(SelectedColor) && !string.IsNullOrEmpty(SelectedSize))
+        {
+            var colorInfo = CurrentProduct.Colors?.FirstOrDefault(c => c.HexColor.Equals(SelectedColor, StringComparison.OrdinalIgnoreCase));
+            if (colorInfo?.SizePrice != null && colorInfo.SizePrice.TryGetValue(SelectedSize, out decimal variantPrice))
+            {
+                return variantPrice;
+            }
+        }
+        
+        // Fall back to the product's default price (minimum price across all variants)
+        return CurrentProduct.Price;
+    }
+
+    private string GetCurrentPriceFormatted()
+    {
+        return $"{GetCurrentPrice():N0}đ";
     }
 
     private async Task ShowToast(string type, string title, string message)

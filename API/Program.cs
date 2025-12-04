@@ -81,6 +81,7 @@ builder.Services.AddTransient<IUserServices, UserServices>(); // đã đăng ký
 builder.Services.AddTransient<IVoucherService, VoucherService>();
 builder.Services.AddTransient<IColorServices, ColorServices>();
 builder.Services.AddTransient<ISizeServices, SizeServices>();
+builder.Services.AddTransient<IRevenueService, RevenueService>();
 
 // GHN Service Configuration
 builder.Services.Configure<DAL.DTOs.Shipping.GhnOptions>(builder.Configuration.GetSection("GHN"));
