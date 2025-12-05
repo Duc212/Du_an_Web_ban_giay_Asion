@@ -257,11 +257,13 @@
     // Modified to calculate based on selected items only
     private decimal Subtotal => ApiCart != null 
         ? ApiCart.Items.Where(i => SelectedItems.Contains(i.CartItemID)).Sum(i => i.TotalPrice)
-        : CartItems.Where(i => SelectedLocalItems.Contains(i.Product.Id)).Sum(item => item.Product.Price * item.Quantity);
+        : CartItems.Where(i => SelectedLocalItems.Contains(i.Product.Id)).Sum(item => item.VariantPrice * item.Quantity);
     
-    private decimal TotalDiscount => CartItems
+    private decimal SelectedDiscount => CartItems
         .Where(item => SelectedLocalItems.Contains(item.Product.Id) && item.Product.OriginalPrice.HasValue)
-        .Sum(item => ((item.Product.OriginalPrice ?? item.Product.Price) - item.Product.Price) * item.Quantity);
+        .Sum(item => ((item.Product.OriginalPrice ?? item.VariantPrice) - item.VariantPrice) * item.Quantity);
+    
+    private decimal TotalDiscount => SelectedDiscount; // Alias for compatibility
     
     private decimal ShippingFee => Subtotal >= 500000 ? 0 : 30000;
     private decimal Total => Subtotal + ShippingFee;
@@ -446,7 +448,7 @@
 
     private string GetItemTotal(CartItem item)
     {
-        var total = item.Product.Price * item.Quantity;
+        var total = item.VariantPrice * item.Quantity;
         return $"{total:N0}đ";
     }
 
@@ -474,7 +476,7 @@
 
     private async Task RemoveItem(CartItem item)
     {
-        CartService.RemoveItem(item.Product.Id);
+        CartService.RemoveItem(item.Product.Id, item.SelectedSize, item.SelectedColor);
         
         await JSRuntime.InvokeVoidAsync("eval", $@"
             let toast = document.createElement('div');

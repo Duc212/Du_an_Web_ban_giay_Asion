@@ -19,6 +19,10 @@ namespace DAL.Models
         [Required]
         [Range(1, 100000, ErrorMessage = "Quantity must be at least 1")]
         public int Quantity { get; set; }
+        
+        // Snapshot giá tại thời điểm đặt hàng
+        [Required]
+        public decimal UnitPrice { get; set; }
 
     }
 

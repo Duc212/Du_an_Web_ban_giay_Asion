@@ -25,6 +25,8 @@ namespace BUS.Services
         private readonly IRepositoryAsync<Voucher> _voucherRepository;
         private readonly IRepositoryAsync<Payment> _paymentRepository;
         private readonly IRepositoryAsync<OrderPayment> _orderPaymentRepository;
+        private readonly IRepositoryAsync<Color> _colorRepository;
+        private readonly IRepositoryAsync<Size> _sizeRepository;
         public OrderServices(
             IRepositoryAsync<Order> orderRepository,
             IRepositoryAsync<OrderDetail> orderDetailRepository,
@@ -35,7 +37,9 @@ namespace BUS.Services
             IRepositoryAsync<Address> addressRepository,
             IRepositoryAsync<Voucher> voucherRepository,
             IRepositoryAsync<Payment> paymentRepository,
-            IRepositoryAsync<OrderPayment> orderPaymentRepository)
+            IRepositoryAsync<OrderPayment> orderPaymentRepository,
+            IRepositoryAsync<Color> colorRepository,
+            IRepositoryAsync<Size> sizeRepository)
         {
             _orderRepository = orderRepository;
             _orderDetailRepository = orderDetailRepository;
@@ -47,6 +51,8 @@ namespace BUS.Services
             _voucherRepository = voucherRepository;
             _paymentRepository = paymentRepository;
             _orderPaymentRepository = orderPaymentRepository;
+            _colorRepository = colorRepository;
+            _sizeRepository = sizeRepository;
         }
         public async Task<CommonPagination<List<GetOrderRes>>> GetOrdersByUserId(int userId, int CurrentPage, int RecordPerPage)
         {
@@ -249,6 +255,16 @@ namespace BUS.Services
         {
             try
             {
+                Console.WriteLine($"[OrderServices.CreateOrder] Starting order creation - UserID={req.UserID}, OrderDetails count={req.OrderDetails?.Count ?? 0}");
+                
+                if (req.OrderDetails != null && req.OrderDetails.Any())
+                {
+                    foreach (var item in req.OrderDetails)
+                    {
+                        Console.WriteLine($"[OrderServices.CreateOrder] Request OrderDetail: VariantID={item.VariantID}, Qty={item.Quantity}");
+                    }
+                }
+                
                 int orderId = 0;
                 await _unitOfWork.ExecuteInTransactionAsync(async () =>
                 {
@@ -277,14 +293,45 @@ namespace BUS.Services
 
                     foreach (var item in req.OrderDetails)
                     {
-                        var variant = await _variantRepository.AsQueryable()
-                            .FirstOrDefaultAsync(v => v.VariantID == item.VariantID);
+                        ProductVariant? variant = null;
+                        
+                        // Tìm variant theo VariantID (user đã login)
+                        if (item.VariantID > 0)
+                        {
+                            variant = await _variantRepository.AsQueryable()
+                                .Include(v => v.Product)
+                                .Include(v => v.Color)
+                                .Include(v => v.Size)
+                                .FirstOrDefaultAsync(v => v.VariantID == item.VariantID);
+                                
+                            Console.WriteLine($"[CreateOrder] Looking for VariantID={item.VariantID}, Found={variant != null}");
+                        }
+                        // Tìm variant theo ProductID + Color + Size (guest user)
+                        else if (item.ProductID.HasValue && !string.IsNullOrEmpty(item.SelectedColor) && !string.IsNullOrEmpty(item.SelectedSize))
+                        {
+                            variant = await (from v in _variantRepository.AsQueryable()
+                                           join c in _colorRepository.AsQueryable() on v.ColorID equals c.ColorID
+                                           join s in _sizeRepository.AsQueryable() on v.SizeID equals s.SizeID
+                                           where v.ProductID == item.ProductID.Value &&
+                                                 (c.HexCode == item.SelectedColor || c.Name == item.SelectedColor) &&
+                                                 s.Value == item.SelectedSize
+                                           select v)
+                                .Include(v => v.Product)
+                                .Include(v => v.Color)
+                                .Include(v => v.Size)
+                                .FirstOrDefaultAsync();
+                                
+                            Console.WriteLine($"[CreateOrder] Looking for ProductID={item.ProductID}, Color={item.SelectedColor}, Size={item.SelectedSize}, Found={variant != null}");
+                        }
 
                         if (variant == null)
-                            throw new Exception($"VariantID {item.VariantID} không tồn tại.");
+                            throw new Exception($"Không tìm thấy sản phẩm với thông tin: VariantID={item.VariantID}, ProductID={item.ProductID}, Color={item.SelectedColor}, Size={item.SelectedSize}");
 
                         if (variant.StockQuantity < item.Quantity)
                             throw new Exception($"Sản phẩm {variant.VariantID} không đủ hàng.");
+
+                        // LOG: Debug thông tin variant
+                        Console.WriteLine($"[CreateOrder] VariantID: {variant.VariantID}, Product: {variant.Product?.Name}, Color: {variant.Color?.Name}, Size: {variant.Size?.Value}, Price: {variant.SellingPrice}, Qty: {item.Quantity}");
 
                         variant.StockQuantity -= item.Quantity;
                         await _variantRepository.UpdateAsync(variant);
@@ -292,8 +339,9 @@ namespace BUS.Services
                         orderDetails.Add(new OrderDetail
                         {
                             OrderID = order.OrderID,
-                            VariantID = item.VariantID,
-                            Quantity = item.Quantity
+                            VariantID = variant.VariantID, // Dùng VariantID từ variant tìm được
+                            Quantity = item.Quantity,
+                            UnitPrice = variant.SellingPrice // Snapshot giá tại thời điểm đặt hàng
                         });
 
                         totalAmount += variant.SellingPrice * item.Quantity;

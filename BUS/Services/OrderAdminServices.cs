@@ -246,8 +246,8 @@ namespace BUS.Services
                         ColorName = variant?.Color?.Name ?? "",
                         SizeName = variant?.Size?.Value ?? "",
                         Quantity = od.Quantity,
-                        UnitPrice = variant?.SellingPrice ?? 0,
-                        Subtotal = od.Quantity * (variant?.SellingPrice ?? 0)
+                        UnitPrice = od.UnitPrice, // Sử dụng giá đã snapshot
+                        Subtotal = od.Quantity * od.UnitPrice // Tính từ giá đã snapshot
                     };
                 }).ToList();
 
@@ -379,12 +379,11 @@ namespace BUS.Services
                         Console.WriteLine($"✅ Điều kiện đúng! Bắt đầu tạo đơn GHN...");
                         try
                         {
+                            // ✅ LẤY ĐỊA CHỈ TỪ ORDER DATABASE (không hardcode)
                             var ghnResult = await _ghnService.CreateOrderAsync(new DAL.DTOs.Shipping.CreateGhnOrderRequest 
                             { 
-                                OrderId = orderId,
-                                // TEMP: Hardcode ward/district for testing (Quận 1, TP.HCM)
-                                ToWardCode = "20308",  // Phường Bến Nghé
-                                ToDistrictId = "1454"  // Quận 1
+                                OrderId = orderId
+                                // Không truyền ToWardCode/ToDistrictId → GhnService sẽ tự lấy từ Order.GhnWardCode/GhnDistrictId
                             });
                             
                             Console.WriteLine($"📦 GHN API Response - Success: {ghnResult.Success}, OrderCode: '{ghnResult.GhnOrderCode}', Message: '{ghnResult.Message}'");

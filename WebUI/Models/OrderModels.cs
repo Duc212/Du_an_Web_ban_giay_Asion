@@ -25,7 +25,14 @@ namespace WebUI.Models
     /// </summary>
     public class OrderDetailRequest
     {
+        // VariantID: Nếu có (user đã login và có cart API)
         public int VariantID { get; set; }
+        
+        // Alternative: Nếu không có VariantID (guest user), dùng ProductID + Color + Size
+        public int? ProductID { get; set; }
+        public string? SelectedColor { get; set; }
+        public string? SelectedSize { get; set; }
+        
         public int Quantity { get; set; }
     }
 

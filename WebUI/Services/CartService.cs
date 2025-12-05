@@ -14,7 +14,8 @@ namespace WebUI.Services
         public int Quantity { get; set; } = 1;
         public string? SelectedSize { get; set; }
         public string? SelectedColor { get; set; }
-        public decimal TotalPrice => Product.Price * Quantity;
+        public decimal VariantPrice { get; set; } = 0; // Giá của variant cụ thể (màu + size)
+        public decimal TotalPrice => VariantPrice * Quantity;
     }
 
     public class CartService
@@ -75,6 +76,23 @@ namespace WebUI.Services
 
         public void AddItem(Product product, int quantity = 1, string? size = null, string? color = null, int variantId = 0)
         {
+            // Calculate variant-specific price
+            decimal variantPrice = product.Price; // Default to product price
+            
+            if (!string.IsNullOrEmpty(color) && !string.IsNullOrEmpty(size) && product.Colors != null)
+            {
+                var colorInfo = product.Colors.FirstOrDefault(c => c.HexColor != null && c.HexColor.Equals(color, StringComparison.OrdinalIgnoreCase));
+                if (colorInfo?.SizePrice != null && colorInfo.SizePrice.TryGetValue(size, out decimal specificPrice))
+                {
+                    variantPrice = specificPrice;
+                    Console.WriteLine($"[CartService.AddItem] Found variant price: {variantPrice} for Color={color}, Size={size}");
+                }
+                else
+                {
+                    Console.WriteLine($"[CartService.AddItem] Warning: Could not find variant price for Color={color}, Size={size}, using default Product.Price={product.Price}");
+                }
+            }
+            
             var existingItem = _items.FirstOrDefault(item =>
                 item.Product.Id == product.Id &&
                 item.SelectedSize == size &&
@@ -83,6 +101,7 @@ namespace WebUI.Services
             if (existingItem != null)
             {
                 existingItem.Quantity += quantity;
+                Console.WriteLine($"[CartService.AddItem] Updated existing item: ProductID={product.Id}, Qty={existingItem.Quantity}, VariantPrice={existingItem.VariantPrice}");
             }
             else
             {
@@ -92,8 +111,10 @@ namespace WebUI.Services
                     VariantID = variantId,
                     Quantity = quantity,
                     SelectedSize = size,
-                    SelectedColor = color
+                    SelectedColor = color,
+                    VariantPrice = variantPrice
                 });
+                Console.WriteLine($"[CartService.AddItem] Added new item: ProductID={product.Id}, Qty={quantity}, VariantPrice={variantPrice}");
             }
 
             OnCartChanged?.Invoke();
@@ -175,6 +196,7 @@ namespace WebUI.Services
         {
             try
             {
+                Console.WriteLine($"[Frontend CartService.AddToCartAsync] ProductID={product.Id}, Name={product.Name}, Size={size}, Color={color}, Qty={quantity}");
                 bool isLoggedIn = _authService != null && _authService.IsAuthenticated;
 
                 if (isLoggedIn)
@@ -242,6 +264,8 @@ namespace WebUI.Services
                     Price = product.Price,
                     ImageUrl = product.ImageUrl
                 };
+                
+                Console.WriteLine($"[Frontend CartService] Sending to API: ProductID={request.ProductId}, Size={request.SelectedSize}, Color={request.SelectedColor}, Qty={request.Quantity}");
 
                 var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{apiBaseUrl}/api/Cart/AddToCart")
                 {

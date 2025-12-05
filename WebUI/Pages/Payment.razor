@@ -568,18 +568,35 @@
                     VariantID = item.VariantID,
                     Quantity = item.Quantity
                 });
+                Console.WriteLine($"[Payment.GetOrderDetails] API Item: VariantID={item.VariantID}, Qty={item.Quantity}");
             }
         }
         else if (checkoutInfo.SelectedLocalItems != null && checkoutInfo.SelectedLocalItems.Any())
         {
-            // Lấy VariantID từ CartItem
+            // Guest user: gửi ProductID + Color + Size để backend tìm variant
             foreach (var item in checkoutInfo.SelectedLocalItems)
             {
-                orderDetails.Add(new OrderDetailRequest
+                var orderDetail = new OrderDetailRequest
                 {
-                    VariantID = item.VariantID > 0 ? item.VariantID : item.Product.Id,
                     Quantity = item.Quantity
-                });
+                };
+                
+                // Nếu có VariantID (logged in user with local cart)
+                if (item.VariantID > 0)
+                {
+                    orderDetail.VariantID = item.VariantID;
+                    Console.WriteLine($"[Payment.GetOrderDetails] Local Item with VariantID: VariantID={item.VariantID}, Qty={item.Quantity}");
+                }
+                // Guest user: gửi ProductID + Color + Size
+                else
+                {
+                    orderDetail.ProductID = item.Product.Id;
+                    orderDetail.SelectedColor = item.SelectedColor;
+                    orderDetail.SelectedSize = item.SelectedSize;
+                    Console.WriteLine($"[Payment.GetOrderDetails] Guest user item: ProductID={item.Product.Id}, Color={item.SelectedColor}, Size={item.SelectedSize}, Qty={item.Quantity}");
+                }
+                
+                orderDetails.Add(orderDetail);
             }
         }
 
@@ -672,6 +689,10 @@
             IsProcessing = false;
             await ScrollToTop();
             await ToastService.ShowSuccess("Đặt hàng thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.");
+            
+            // Clear cart after successful order
+            await CartService.ClearCartAsync();
+            
             // COD: Không cập nhật payment status, đơn hàng sẽ ở trạng thái Pending cho đến khi giao hàng thành công
             StateHasChanged();
         }
@@ -826,6 +847,7 @@
         var nav = serviceProvider.GetService(typeof(NavigationManager)) as NavigationManager;
         var jsRuntime = serviceProvider.GetService(typeof(IJSRuntime)) as IJSRuntime;
         var orderService = serviceProvider.GetService(typeof(IOrderService)) as IOrderService;
+        var cartService = serviceProvider.GetService(typeof(CartService)) as CartService;
 
         if (paymentService == null || nav == null || jsRuntime == null) return;
 
@@ -854,6 +876,13 @@
             await jsRuntime.InvokeVoidAsync("eval", "localStorage.removeItem('paypal_orderId')");
             // Cập nhật trạng thái thanh toán (1 = đã thanh toán)
             try { if (storeOrderId > 0 && orderService != null) await orderService.UpdatePaymentStatusAsync(storeOrderId, WebUI.Models.PaymentStatus.Paid); } catch { }
+            
+            // Clear cart after successful payment
+            if (cartService != null)
+            {
+                await cartService.ClearCartAsync();
+            }
+            
             nav.NavigateTo($"/payment-success?transactionId={payPalOrderId}&orderId={storeOrderId}");
         }
     }

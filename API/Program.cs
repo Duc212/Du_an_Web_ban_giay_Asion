@@ -94,7 +94,8 @@ builder.Services.AddScoped<SizeRepository>();
 
 // Register background services
 builder.Services.AddHostedService<OrderCancellationService>();
-builder.Services.AddHostedService<GhnStatusUpdateBackgroundService>();
+// builder.Services.AddHostedService<GhnStatusUpdateBackgroundService>(); // GHN API thật
+builder.Services.AddHostedService<OrderStatusSimulationService>(); // Simulation mode (fake auto transition)
 
 builder.Services.AddMemoryCache(); 
 builder.Services.AddSingleton<IMemoryCacheSystem, MemoryCacheSystem>();
